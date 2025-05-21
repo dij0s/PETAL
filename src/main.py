@@ -1,11 +1,14 @@
+import asyncio
 from typing import Annotated
-
 from typing_extensions import TypedDict
 
 from langgraph.graph import StateGraph, START
 from langgraph.graph.message import add_messages
-
 from langchain_ollama import ChatOllama
+
+from langgraph.checkpoint.memory import InMemorySaver
+
+from agent.intent_router import router_llm_node
 
 llm = ChatOllama(
     model="llama3.2:3b",
@@ -21,30 +24,41 @@ class State(TypedDict):
 
 graph_builder = StateGraph(State)
 
-def chatbot(state: State):
-    return {"messages": [llm.invoke(state["messages"])]}
+async def chatbot(state: State):
+    response = await llm.ainvoke(state["messages"])
+    return {"messages": [response]}
 
 graph_builder.add_node("chatbot", chatbot)
-graph_builder.add_edge(START, "chatbot")
+graph_builder.add_node("router", router_llm_node)
 
-graph = graph_builder.compile()
+graph_builder.add_edge(START, "router")
 
-def stream_graph_updates(user_input: str):
-    for event in graph.stream({"messages": [{"role": "user", "content": user_input}]}):
+checkpointer = InMemorySaver()
+graph = graph_builder.compile(checkpointer=checkpointer)
+
+configuration = {
+    "configurable": {
+        "thread_id": "1"
+    }
+}
+
+async def stream_graph_updates(user_input: str):
+    async for event in graph.astream({"messages": [{"role": "user", "content": user_input}]}, configuration):
         for value in event.values():
             print("Assistant:", value["messages"][-1].content)
 
 
-while True:
-    try:
-        user_input = input("User: ")
-        if user_input.lower() in ["quit", "exit", "q"]:
-            print("Goodbye!")
+async def main():
+    while True:
+        try:
+            user_input = input("User: ")
+            if user_input.lower() in ["quit", "exit", "q"]:
+                print("Goodbye!")
+                break
+            await stream_graph_updates(user_input)
+        except Exception as e:
+            print(f"Error {e}")
             break
-        stream_graph_updates(user_input)
-    except:
-        # fallback if input() is not available
-        user_input = "What do you know about LangGraph?"
-        print("User: " + user_input)
-        stream_graph_updates(user_input)
-        break
+
+if __name__ == "__main__":
+    asyncio.run(main())
