@@ -2,7 +2,7 @@ import asyncio
 
 from langchain_ollama import ChatOllama
 from langgraph.graph import StateGraph, START, END, add_messages
-from langchain_core.messages import AnyMessage
+from langchain_core.messages import AnyMessage, HumanMessage
 
 from langgraph.checkpoint.memory import InMemorySaver
 
@@ -46,9 +46,9 @@ configuration = {
 }
 
 async def stream_graph_updates(user_input: str):
-    async for event in graph.astream({"messages": [{"role": "user", "content": user_input}]}, configuration):
+    async for event in graph.astream({"messages": [HumanMessage(user_input)]}, config=configuration, stream_mode="updates"):
         for value in event.values():
-            print("Assistant:", value["messages"][-1]["content"])
+            print("Assistant:", value["messages"][-1].content)
 
 
 async def main():

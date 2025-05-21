@@ -12,4 +12,4 @@ class RouterOutput(BaseModel):
     )
     topic: Optional[str] = Field(description="The main topic of the user request, e.g. 'solar', 'biomass', 'heating', 'wind', if available.", default=None)
     location: Optional[str] = Field(description="The location mentioned in the user request, if available (e.g. a municipality name)", default=None)
-    needs_clarification: Optional[bool] = Field(description="Indicates whether the user's request is unclear or incomplete and requires additional information or clarification before it can be properly routed or answered.", default=None)
+    needs_clarification: bool = Field(description="Indicates whether the user's request is unclear or incomplete and requires additional information or clarification before it can be properly routed or answered.", default=True)

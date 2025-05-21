@@ -1,7 +1,7 @@
 import pydantic
 from langchain_core.utils.pydantic import IS_PYDANTIC_V1
 
-from typing import TypeVar
+from typing import TypeVar, Optional
 
 from functools import reduce
 
@@ -13,19 +13,23 @@ else:
 
 TBaseModel = TypeVar("TBaseModel", bound=PydanticBaseModel)
 
-def construct_clarification_prompt(pydantic_object: TBaseModel) -> str:
+def reduce_missing_attributes(pydantic_object: TBaseModel) -> Optional[str]:
     """
-    Evaluates the given pydantic_object and returns a prompt for the user about missing attributes.
+    Evaluates the given pydantic_object and returns a prompt argument for the user about missing attributes.
 
     Args:
         pydantic_object (TBaseModel): The Pydantic model instance to evaluate.
 
     Returns:
-        str: A prompt indicating which required attributes are missing, or a message that all are present.
+        Optional[str]: A reduced string with the required attributes which are missing or else None.
     """
-
-    return "Provided instructions are unclear. Please provide this information more explicitly : " + ', '.join(reduce(
+    reduced_attributes = reduce(
         lambda res, e: [*res, e[0]],
         filter(lambda e: e[1] is None, pydantic_object.model_dump().items()),
         []
-    )) + "."
+    )
+
+    if len(reduced_attributes) == 0:
+        return None
+    else:
+        ', '.join(reduced_attributes)
