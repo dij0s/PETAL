@@ -9,4 +9,5 @@ wheels/
 # Virtual environments
 .venv
 
-.todo
+# Pytest output
+.pytest_cache

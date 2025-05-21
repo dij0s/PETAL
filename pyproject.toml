@@ -9,8 +9,12 @@ dependencies = [
     "langchain-ollama>=0.3.3",
     "langgraph>=0.4.5",
     "pydantic>=2.11.4",
+    "pytest>=8.3.5",
 ]
 
 [tool.pyright]
 venvPath = "."
 venv = ".venv"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

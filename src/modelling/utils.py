@@ -32,4 +32,4 @@ def reduce_missing_attributes(pydantic_object: TBaseModel) -> Optional[str]:
     if len(reduced_attributes) == 0:
         return None
     else:
-        ', '.join(reduced_attributes)
+        return ', '.join(reduced_attributes)

@@ -92,7 +92,7 @@ class PydanticStreamOutputParser(BaseCumulativeTransformOutputParser[TBaseModel]
         text = text.strip()
         try:
             json_object = parse_json_markdown(text)
-            result = self.pydantic_object.parse_obj(json_object)
+            result = self.pydantic_object.model_validate(json_object)
             return result
         except json.JSONDecodeError:
             return None
