@@ -1,6 +1,7 @@
 """Parser for Pydantic output."""
 
 from __future__ import annotations
+from functools import reduce
 
 import json
 from typing import Any, Optional, TypeVar, Union, Type, List
@@ -49,16 +50,44 @@ class PydanticStreamOutputParser(BaseCumulativeTransformOutputParser[TBaseModel]
     pydantic_object: Type[TBaseModel]
 
     def _diff(self, prev: Optional[Any], next: Any) -> Any:
+        """Compute the JSON Patch difference between two objects.
+
+        Args:
+            prev: The previous object state.
+            next: The next object state.
+
+        Returns:
+            A list of JSON Patch operations representing the difference.
+        """
         return jsonpatch.make_patch(prev, next).patch
 
     def _get_schema(self, pydantic_object: type[TBaseModel]) -> Optional[dict[str, Any]]:
-        if issubclass(pydantic_object, pydantic.BaseModel):
-            return pydantic_object.model_json_schema()
-        if issubclass(pydantic_object, pydantic.v1.BaseModel):
-            return pydantic_object.schema()
+        """Return the JSON schema for the given Pydantic object."""
+        if IS_PYDANTIC_V1:
+            if issubclass(pydantic_object, pydantic.BaseModel):
+                return pydantic_object.schema()
+        else:
+            try:
+                from pydantic.v1 import BaseModel as V1BaseModel
+                if issubclass(pydantic_object, V1BaseModel):
+                    return pydantic_object.schema()
+            except ImportError:
+                pass
+            if issubclass(pydantic_object, pydantic.BaseModel):
+                return pydantic_object.model_json_schema()
         return None
 
     def parse_result(self, result: List[Generation], *, partial: bool = False) -> Any:
+        """
+        Parse a list of Generation objects and return a Pydantic object.
+
+        Args:
+            result: List of Generation objects containing the text to parse.
+            partial: Whether to allow partial parsing (unused).
+
+        Returns:
+            An instance of the specified Pydantic model if parsing is successful, otherwise None.
+        """
         text = result[0].text
         text = text.strip()
         try:
@@ -71,6 +100,15 @@ class PydanticStreamOutputParser(BaseCumulativeTransformOutputParser[TBaseModel]
             return None
 
     def parse(self, text: str) -> TBaseModel:
+        """
+        Parse a string of text and return an instance of the specified Pydantic model.
+
+        Args:
+            text: The input string to parse.
+
+        Returns:
+            An instance of the specified Pydantic model if parsing is successful, otherwise None.
+        """
         return self.parse_result([Generation(text=text)])
 
     @property
@@ -83,8 +121,18 @@ class PydanticStreamOutputParser(BaseCumulativeTransformOutputParser[TBaseModel]
         return self.pydantic_object
 
     def get_format_instructions(self) -> str:
-        schema = self._get_schema(self.pydantic_object)
+        """
+        Return format instructions for the output, including the JSON schema.
 
+        This method retrieves the JSON schema for the specified Pydantic object,
+        removes extraneous fields such as "title" and "type", and returns a string
+        with instructions for formatting the output as a JSON instance conforming
+        to the schema.
+
+        Returns:
+            A string containing format instructions and the relevant JSON schema.
+        """
+        schema = self._get_schema(self.pydantic_object)
         if not schema:
             return "Return a JSON object."
 
@@ -97,3 +145,19 @@ class PydanticStreamOutputParser(BaseCumulativeTransformOutputParser[TBaseModel]
         # Ensure json in context is well-formed with double quotes.
         schema_str = json.dumps(reduced_schema, ensure_ascii=False)
         return _PYDANTIC_STREAM_FORMAT_INSTRUCTIONS.format(schema=schema_str)
+
+    def get_description(self) -> str:
+        """
+        Return a string description of the Pydantic object's fields.
+
+        This method iterates over the items of the Pydantic object and creates a string
+        where each line contains the field name and its value, separated by a colon.
+
+        Returns:
+            A string with each field and its value on a separate line.
+        """
+        schema = self._get_schema(self.pydantic_object)
+        if not schema:
+            return "Return a JSON object."
+
+        return "\n".join(reduce(lambda res, e: [*res, f"-{e[0]}: {e[1]}"], schema.items(), []))
