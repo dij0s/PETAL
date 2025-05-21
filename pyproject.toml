@@ -1,0 +1,13 @@
+[project]
+name = "petal"
+version = "0.1.0"
+description = "PETAL is an agentic LLM developed to assist users into the energy planning of their municipality"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "langgraph>=0.4.5",
+]
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
