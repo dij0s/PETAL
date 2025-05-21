@@ -15,6 +15,14 @@ Classify the user input into:
 - topic: e.g. "solar", "biomass", "heating", "wind"
 - location: if available (e.g. a municipality name)
 
+Return ONLY the following JSON like this, with no extra text, explanation, or formatting:
+
+{{
+"intent": "...",
+"topic": "...",
+"location": "..."
+}}
+
 User input: "{user_input}"
 """)
 
@@ -25,7 +33,7 @@ class RouterOutput(BaseModel):
     topic: Optional[str] = Field(description="The main topic of the user request, e.g. 'solar', 'biomass', 'heating', 'wind'")
     location: Optional[str] = Field(description="The location mentioned in the user request, if available (e.g. a municipality name)")
 
-llm = ChatOllama(model="llama3.2:3b", temperature=0).with_structured_output(RouterOutput)
+llm = ChatOllama(model="llama3.2:3b", temperature=0)
 parser = PydanticStreamOutputParser(pydantic_object=RouterOutput, diff=True)
 
 async def router_llm_node(state):
@@ -39,7 +47,7 @@ async def router_llm_node(state):
         parsed = parser.parse(output.content)
         print(parsed)
         if parsed is None:
-            raise Exception("No parsed output from Pydantic object")
+            raise Exception("No parsed output")
     except Exception as e:
         print(f"Error: {e}")
         parsed = RouterOutput(intent=None, topic=None, location=None)
