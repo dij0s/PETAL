@@ -1,12 +1,16 @@
 from langchain_core.prompts import PromptTemplate
-from langchain_core.runnables import RunnableLambda
 from langchain_core.messages import HumanMessage
 from langchain_ollama import ChatOllama
+from langgraph.types import interrupt
 
 from modelling.PydanticStreamOutputParser import PydanticStreamOutputParser
+from modelling.structured_output import RouterOutput
+from modelling.utils import construct_clarification_prompt
 
-from typing import Optional
+from typing import Optional, Any
 from pydantic import BaseModel, Field, ValidationError
+
+from functools import reduce
 
 # define system prompt for enhanced
 # formatting and data scheme validation
@@ -22,19 +26,11 @@ Return ONLY the following JSON like this, with no extra text, explanation, or fo
 User input: "{user_input}"
 """)
 
-# define exptected data scheme
-class RouterOutput(BaseModel):
-    """Router output used to route user queries to appropriate agents and retrieve basic context"""
-
-    intent: Optional[str] = Field(description="The intent of the user, must be one of ['data_request', 'planning_request', 'policy_question']")
-    topic: Optional[str] = Field(description="The main topic of the user request, e.g. 'solar', 'biomass', 'heating', 'wind'")
-    location: Optional[str] = Field(description="The location mentioned in the user request, if available (e.g. a municipality name)")
-
 llm = ChatOllama(model="llama3.2:3b", temperature=0).with_structured_output(RouterOutput)
 parser = PydanticStreamOutputParser(pydantic_object=RouterOutput, diff=True)
 
-async def router_llm_node(state):
-    last_human_message = next(msg.content for msg in reversed(state["messages"]) if isinstance(msg, HumanMessage))
+async def intent_router(state):
+    last_human_message = next(msg.content for msg in reversed(state.messages) if isinstance(msg, HumanMessage))
     prompt: str = router_prompt.format(
         format_description=parser.get_description(),
         format_instructions=parser.get_format_instructions(),
@@ -44,21 +40,42 @@ async def router_llm_node(state):
     response = await llm.ainvoke(prompt)
     # parse response accordingly to
     # enable further actions based
-    # on predefined scheme
-    if isinstance(response, RouterOutput):
-        print(response)
-        return {**state, **response.dict()}
-    else:
-        try:
-            if isinstance(response, dict) and hasattr(response, "content"):
-                parsed = parser.parse(response.content)
+    # on predefined scheme ; first
+    # try to get last state to only
+    # update it
+    current: RouterOutput = RouterOutput(intent=None, topic=None, location=None, needs_clarification=None)
+    if state.router is not None:
+        current = state.router
 
-                if parsed is None:
-                    raise Exception("No parsed output")
+    # assume state, by default, is Pydantic
+    parsed: RouterOutput | Any = response
+    try:
+        if isinstance(response, dict) and hasattr(response, "content"):
+            parsed = parser.parse(response.content)
+            if parsed is None:
+                raise Exception("No parsed output")
+    except Exception as e:
+        print(f"Error: {e}")
+        parsed = RouterOutput(intent=None, topic=None, location=None, needs_clarification=True)
 
-                return {**state, **parsed.dict()}
-        except Exception as e:
-            print(f"Error: {e}")
-            parsed = RouterOutput(intent=None, topic=None, location=None)
+    # evaluate if state is sufficient
+    # for further handing off
+    if parsed.needs_clarification:
+        # create user returned
+        # interrupt prompt
+        clarification_prompt = construct_clarification_prompt(parsed)
+        # interrupt(clarification_prompt)
+        print("User query should be clarified")
 
-            return {**state, **parsed.dict()}
+    # new state does not need further
+    # clarification, update overall state
+    updated_state = current.model_dump()
+    parsed_state = parsed.model_dump()
+    for k, v in updated_state.items():
+        new_v = parsed_state.get(k, None)
+        if (new_v is not None) and (new_v != v):
+            print(f"UPDATING CURRENT KEY {k} FROM {v} TO {new_v}")
+            updated_state[k] = new_v
+
+    # update graph state
+    return {**state.dict(), "router": RouterOutput(**updated_state)}

@@ -160,4 +160,12 @@ class PydanticStreamOutputParser(BaseCumulativeTransformOutputParser[TBaseModel]
         if not schema:
             return "Return a JSON object."
 
-        return "\n".join(reduce(lambda res, e: [*res, f"-{e[0]}: {e[1]}"], schema.items(), []))
+        return "\n".join(
+            reduce(
+                lambda res, e: [*res, f"-{e[0]}: {e[1]}"],
+                map(
+                    lambda e: (e[0], dict(e[1]).get("description", "")),
+                    schema.get("properties", []).items()
+                ), []
+            )
+        )
