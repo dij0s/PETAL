@@ -48,6 +48,7 @@ class GeoSessionProvider:
 
             instance._initialized = False
             instance._ready_event = asyncio.Event()
+            instance._sfso_ready_event = asyncio.Event()
 
             instance.municipality_name = municipality_name
             instance.tile_size = tile_size
@@ -56,6 +57,29 @@ class GeoSessionProvider:
             cls._instances[instance_key] = instance
 
         return cls._instances[instance_key]
+
+    @classmethod
+    def get_or_create(
+        cls,
+        municipality_name: str,
+        tile_size: float,
+        sampling_rate: float
+    ) -> "GeoSessionProvider":
+        """
+        Factory method to get or create a GeoSessionProvider instance and start initialization in the background.
+
+        Args:
+            municipality_name (str): The municipality to create a session for.
+            tile_size (float): The size of a single tile in width and height [m].
+            sampling_rate (float): The sampling rate used to randomly select samples from the tiling pattern, which enables statistical estimation through aggregation [0.0-1.0].
+
+        Returns:
+            GeoSessionProvider: An instance of GeoSessionProvider with the specified configuration.
+        """
+        instance = cls(municipality_name, tile_size, sampling_rate)
+        # start initialisation in the background
+        asyncio.create_task(instance.initialize())
+        return instance
 
     async def initialize(self) -> Optional[bool]:
         """Initializes the session with geographical data based on configuration.
@@ -92,6 +116,14 @@ class GeoSessionProvider:
             None. Completes when the session is ready to use.
         """
         await self._ready_event.wait()
+
+    async def wait_until_sfso_ready(self) -> None:
+        """Wait until the SFSO municipality number is available.
+
+        Returns:
+            None. Completes when the SFSO number is ready to use.
+        """
+        await self._sfso_ready_event.wait()
 
     async def fetch_geometry(self, municipality_name: str) -> bool:
         """Fetches the geometry data for a municipality.
@@ -170,6 +202,8 @@ class GeoSessionProvider:
 
                         # store resulting feature in instance
                         self.geometry = shape(geojson_feature)
+                        self.municipality_sfso_number = feature_id
+                        self._sfso_ready_event.set()
 
                         return True
 

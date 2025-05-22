@@ -9,10 +9,11 @@ from langgraph.checkpoint.memory import InMemorySaver
 from typing import Annotated, Optional
 from pydantic import BaseModel
 
-from modelling.structured_output import RouterOutput
+from modelling.structured_output import RouterOutput, GeoContextOutput
 
 from agent.intent_router import intent_router
 from agent.clarify_query import clarify_query
+from agent.geocontext_retriever import geocontext_retriever
 
 llm = ChatOllama(
     model="llama3.2:3b",
@@ -23,6 +24,7 @@ llm = ChatOllama(
 class State(BaseModel):
     messages: Annotated[list[AnyMessage], add_messages]
     router: Optional[RouterOutput] = None
+    geocontext: Optional[GeoContextOutput] = None
 
 graph_builder = StateGraph(State)
 
@@ -33,6 +35,7 @@ async def chatbot(state: State):
 
 graph_builder.add_node("intent_router", intent_router)
 graph_builder.add_node("clarification", clarify_query)
+graph_builder.add_node("geocontext_retriever", geocontext_retriever)
 graph_builder.add_node("chatbot", chatbot)
 
 def route_condition(state: State):
@@ -40,7 +43,7 @@ def route_condition(state: State):
         if state.router is not None and state.router.needs_clarification:
             return "clarification"
         else:
-            return "chatbot"
+            return "geocontext_retriever"
     except Exception as e:
         print(f"Error: {e}")
 
@@ -50,6 +53,7 @@ graph_builder.add_conditional_edges("intent_router", route_condition)
 # stop the flow too to then process
 # extra user-given context
 graph_builder.add_edge("clarification", END)
+graph_builder.add_edge("geocontext_retriever", END)
 graph_builder.add_edge("chatbot", END)
 
 # temporary short-term memory saver

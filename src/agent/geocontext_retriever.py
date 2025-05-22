@@ -1,10 +1,13 @@
 from langchain_core.prompts import PromptTemplate
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_ollama import ChatOllama
+from langgraph.func import task
 
 from modelling.PydanticStreamOutputParser import PydanticStreamOutputParser
 from modelling.structured_output import RouterOutput, GeoContextOutput
 from modelling.utils import reduce_missing_attributes
+
+from provider.GeoSessionProvider import GeoSessionProvider
 
 from typing import Optional, Any
 from pydantic import BaseModel, Field, ValidationError
@@ -24,7 +27,7 @@ router_prompt = PromptTemplate.from_template("""
     User input: "{user_input}"
     """)
 
-llm = ChatOllama(model="llama3.2:3b", temperature=0).with_structured_output(GeoContextOutput)
+llm = ChatOllama(model="llama3.2:3b", temperature=0)
 parser = PydanticStreamOutputParser(pydantic_object=GeoContextOutput, diff=True)
 
 async def geocontext_retriever(state):
@@ -48,14 +51,38 @@ async def geocontext_retriever(state):
 
     last_human_message = next(msg.content for msg in reversed(state.messages) if isinstance(msg, HumanMessage))
 
+    context = GeoContextOutput()
+
     router_state: RouterOutput = state.router
+    try:
+        # instantiate potentially needed
+        # geometry sessions and schemas
+        # based on router location
+        if router_state.location is not None:
+            provider = GeoSessionProvider.get_or_create(router_state.location, 100, 0.3)
+            GeoSessionProvider.get_or_create(router_state.location, 100, 1.0)
+            GeoSessionProvider.get_or_create(router_state.location, 500, 1.0)
+            GeoSessionProvider.get_or_create(router_state.location, 1000, 1.0)
 
-    prompt: str = router_prompt.format(
-        format_description=parser.get_description(),
-        format_instructions=parser.get_format_instructions(),
-        user_input=last_human_message
-    )
-    # invoke llm on user query
-    response = await llm.ainvoke(prompt)
+            # await and fill context
+            # with SFSO number of
+            # municipality
+            await provider.wait_until_sfso_ready()
+            context.municipality_sfso_number = provider.municipality_sfso_number
+        else:
+            raise Exception("No location provided in router_state.")
+    except Exception as e:
+        print(f"Exception: {e}")
+        return state
 
-    return {}
+    # INSTANTIATE TOOLBOX
+
+    # prompt: str = router_prompt.format(
+    #     format_description=parser.get_description(),
+    #     format_instructions=parser.get_format_instructions(),
+    #     user_input=last_human_message
+    # )
+    # # invoke llm on user query
+    # response = await llm.ainvoke(prompt)
+
+    # return {}
