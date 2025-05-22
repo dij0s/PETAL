@@ -12,9 +12,7 @@ from langchain_ollama import OllamaEmbeddings
 from tool.geodata import SolarPotentialAggregatorTool, SolarPotentialEstimatorTool
 
 class ToolProvider:
-    """Provides a toolbox for the agents to use.
-
-    """
+    """Provides a toolbox for the agents to use."""
 
     def __init__(self, municipality_name: str) -> None:
         """
@@ -34,6 +32,11 @@ class ToolProvider:
             tool_id: tool
             for category_tools in tool_registry.values()
             for tool_id, tool in category_tools.items()
+        }
+        self._tool_registry_by_name: dict[str, StructuredTool] = {
+            tool.name: tool
+            for category_tools in tool_registry.values()
+            for _, tool in category_tools.items()
         }
 
     def _build_vector_store(self, tool_registry: dict[str, dict[str, StructuredTool]]) -> None:
@@ -56,6 +59,18 @@ class ToolProvider:
             for id, tool in tools.items()
         ]
         self._vector_store.add_documents(documents)
+
+    def get(self, name: str) -> Optional[StructuredTool]:
+        """
+        Get a StructuredTool from its associated name.
+
+        Args:
+            name (str): The tool's associated name.
+
+        Returns:
+            Optional[StructuredTool]: The tool, if it is indexed in the tool registry.
+        """
+        return self._tool_registry_by_name.get(name, None)
 
     def search(self, query: str, filter: Optional[Callable[[Document], bool]] = None) -> list[StructuredTool]:
         """

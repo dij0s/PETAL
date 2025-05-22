@@ -320,7 +320,6 @@ class GeoSessionProvider:
                         # evaluate if valid
                         intersection = tile.intersection(self.refined_geometry)
                         area_ratio = intersection.area / tile.area
-                        print(area_ratio, relative_valid_tile_area)
                         if area_ratio >= relative_valid_tile_area:
                             tiles.append(tile)
                     y += tile_size

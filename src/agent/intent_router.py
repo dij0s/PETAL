@@ -92,4 +92,4 @@ async def intent_router(state):
     # State instance serializes the
     # message itself as we called
     # the _dict_ function on the State
-    return {**state.dict(), "messages": state.messages + [AIMessage(content="Let me process your query...")], "router": RouterOutput(**updated_state)}
+    return {**state.model_dump(), "messages": state.messages + [AIMessage(content="Let me process your query...")], "router": RouterOutput(**updated_state)}

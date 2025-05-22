@@ -1,5 +1,13 @@
+import asyncio
+
+from typing import Optional, Any
+from pydantic import BaseModel, Field, ValidationError
+
+from functools import reduce
+
 from langchain_core.prompts import PromptTemplate
 from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.tools.structured import StructuredTool
 from langchain_ollama import ChatOllama
 from langgraph.func import task
 
@@ -8,27 +16,22 @@ from modelling.structured_output import RouterOutput, GeoContextOutput
 from modelling.utils import reduce_missing_attributes
 
 from provider.GeoSessionProvider import GeoSessionProvider
-
-from typing import Optional, Any
-from pydantic import BaseModel, Field, ValidationError
+from provider.ToolProvider import ToolProvider
 
 # define system prompt for enhanced
 # formatting and data scheme validation
-router_prompt = PromptTemplate.from_template("""
-    You are an AI assistant helping to route user requests about energy planning in Switzerland.
-    Classify the user input into:
+tool_call_prompt = PromptTemplate.from_template("""
+    You have access to these different tools:
+    {tools_list}
 
-    {format_description}
-
-    Return ONLY the following JSON like this, with no extra text, explanation, or formatting:
-
-    {format_instructions}
+    In response to the user's input, you can select and execute any number of tools from the available set.
+    They will retrieve for you the data needed to answer the user input.
+    They DON'T HAVE ANY ARGUMENTS, you can call them STRAIGHT AWAY.
 
     User input: "{user_input}"
-    """)
+""")
 
 llm = ChatOllama(model="llama3.2:3b", temperature=0)
-parser = PydanticStreamOutputParser(pydantic_object=GeoContextOutput, diff=True)
 
 async def geocontext_retriever(state):
     """
@@ -51,7 +54,9 @@ async def geocontext_retriever(state):
 
     last_human_message = next(msg.content for msg in reversed(state.messages) if isinstance(msg, HumanMessage))
 
-    context = GeoContextOutput()
+    geocontext: Optional[GeoContextOutput] = state.geocontext
+    if geocontext is None:
+        geocontext = GeoContextOutput()
 
     router_state: RouterOutput = state.router
     try:
@@ -67,22 +72,55 @@ async def geocontext_retriever(state):
             # await and fill context
             # with SFSO number of
             # municipality
-            await provider.wait_until_sfso_ready()
-            context.municipality_sfso_number = provider.municipality_sfso_number
+            # await provider.wait_until_sfso_ready()
+            # context.municipality_sfso_number = provider.municipality_sfso_number
+
+            # instantiate toolbox at runtime
+            # and retrieve relevant tools
+            toolbox: ToolProvider = ToolProvider(router_state.location)
+            tools = toolbox.search(query=last_human_message)
+
+            # prompt to select best available tools
+            tools_bound_llm = llm.bind_tools(tools=tools)
+            tools_description = '\n'.join([f"-{t.name}: {t.description}" for t in tools])
+            prompt = tool_call_prompt.format(tools_list=tools_description, user_input=last_human_message)
+            response = await tools_bound_llm.ainvoke(prompt)
+
+            # invoke chosen tools
+            # and update context state
+            if hasattr(response, "tool_calls"):
+                tools_to_invoke = [
+                    toolbox.get(tool["name"])
+                    for tool in response.tool_calls
+                ]
+                if not any([tool is None for tool in tools_to_invoke]):
+                    tool_data = await _ainvoke_tools(tools_to_invoke)
+                    geocontext.context = tool_data
+
+                    return {
+                        **state.model_dump(),
+                        "messages": state.messages + [AIMessage(content="Successfully retrieved data from tools...")],
+                        "geocontext": geocontext
+                    }
+
+            return state
+
         else:
             raise Exception("No location provided in router_state.")
     except Exception as e:
         print(f"Exception: {e}")
         return state
 
-    # INSTANTIATE TOOLBOX
+async def _ainvoke_tools(tools: list[StructuredTool]) -> dict[str, Any]:
+    """Helper function that invokes a batch of tools asynchronously and returns the result."""
 
-    # prompt: str = router_prompt.format(
-    #     format_description=parser.get_description(),
-    #     format_instructions=parser.get_format_instructions(),
-    #     user_input=last_human_message
-    # )
-    # # invoke llm on user query
-    # response = await llm.ainvoke(prompt)
-
-    # return {}
+    data: list[dict[str, Any]] = await asyncio.gather(
+        *(tool.coroutine() for tool in tools if tool.coroutine is not None)
+    )
+    # reduce partial results
+    # to single dictionnary
+    return {
+        k: v
+        for d in data
+        for k, v in d.items()
+    }

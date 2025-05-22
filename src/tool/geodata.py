@@ -21,7 +21,7 @@ async def _estimate_solar_potential(municipality_name: str, confidence_level=0.8
         confidence_level (float, optional): The confidence level for the margin of error (default is 0.8).
 
     Returns:
-        tuple[float, float]: A tuple containing the estimated solar potential in GWh/year, the estimated solar potential margin in GWh/year and the confidence level.
+        tuple[float, float, float]: A tuple containing the estimated solar potential in GWh/year, the estimated solar potential margin in GWh/year and the confidence level.
     """
     async def _fetch_solar_potential(session, tile) -> float:
         minx, miny, maxx, maxy = tile.bounds
@@ -34,7 +34,7 @@ async def _estimate_solar_potential(municipality_name: str, confidence_level=0.8
             "layers": "all:ch.bfe.solarenergie-eignung-daecher",
             "returnGeometry": "false",
             "tolerance": "0",
-            "sr": "2056"
+            "sr": "2056",
         }
 
         try:
@@ -47,7 +47,7 @@ async def _estimate_solar_potential(municipality_name: str, confidence_level=0.8
 
                     # sum up the potential for all features
                     for result in data.get("results", []):
-                        potential = result.get("properties", {}).get("stromertrag", 0)
+                        potential = result.get("attributes", {}).get("stromertrag", 0)
                         tile_potential += potential
 
                     return tile_potential
@@ -85,9 +85,12 @@ async def _estimate_solar_potential(municipality_name: str, confidence_level=0.8
 
     # convert to GWh/year
     total_estimate_gwh = total_estimate_kwh / 1e6
-    margin_gwh = margin_kwh / 1e6
+    margin_gwh = float(margin_kwh / 1e6)
+    # handle full aggregation
+    if margin_gwh == float("+inf"):
+        margin_gwh = 0.0
 
-    return total_estimate_gwh, margin_gwh, confidence_level
+    return float(total_estimate_gwh), margin_gwh, confidence_level
 
 # expose all tools with
 # associated description
@@ -97,19 +100,24 @@ class GeoDataTool(StructuredTool):
             municipality_name: str,
             func: Callable[..., Any],
             name: str,
+            layer_id: str,
             description: str,
             **kwargs
         ):
-            self.municipality_name = municipality_name
             # wrap the function so it always
             # gets municipality_name as a kwarg
-            async def wrapped_func(*args, **inner_kwargs):
-                return await func(*args, municipality_name=self.municipality_name, **inner_kwargs)
+            # return data with the name of the
+            # tool that was execti
+            async def wrapped_func(*args, **inner_kwargs) -> dict[str, tuple[str, Any]]:
+                return {
+                    name: (layer_id, await func(*args, municipality_name=municipality_name, **inner_kwargs, **kwargs))
+                }
 
             super().__init__(
                 coroutine=wrapped_func,
                 name=name,
                 description=description,
+                args_schema=None,
                 **kwargs
             )
 
@@ -122,6 +130,7 @@ class SolarPotentialEstimatorTool(GeoDataTool):
             municipality_name=municipality_name,
             func=partial(_estimate_solar_potential, confidence_level=0.8),
             name="estimate_solar_potential",
+            layer_id="ch.bfe.solarenergie-eignung-daecher",
             description="Estimates the solar potential for a given municipality in Switzerland. Returns the estimated solar potential in GWh/year, the margin of error, and the confidence level. Useful for assessing renewable energy potential at the municipal level.",
         )
 
@@ -134,5 +143,6 @@ class SolarPotentialAggregatorTool(GeoDataTool):
             municipality_name=municipality_name,
             func=partial(_estimate_solar_potential, confidence_level=1.0),
             name="aggregate_solar_potential",
+            layer_id="ch.bfe.solarenergie-eignung-daecher",
             description="Returns the exact solar potential for a given municipality in Switzerland. Provides the total solar potential in GWh/year, the margin of error, and the confidence level. Useful for obtaining precise renewable energy data at the municipal level.",
         )
