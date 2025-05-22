@@ -5,11 +5,14 @@ description = "PETAL is an agentic LLM developed to assist users into the energy
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "aiohttp>=3.11.18",
     "langchain-core>=0.3.60",
     "langchain-ollama>=0.3.3",
     "langgraph>=0.4.5",
+    "matplotlib>=3.10.3",
     "pydantic>=2.11.4",
     "pytest>=8.3.5",
+    "shapely>=2.1.1",
 ]
 
 [tool.pyright]

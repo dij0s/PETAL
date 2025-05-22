@@ -26,18 +26,7 @@ router_prompt = PromptTemplate.from_template("""
     User input: "{user_input}"
     """)
 
-clarification_promp = PromptTemplate.from_template("""
-    The user just queried some nonsense and you need additional information about this :
-
-    {needed_information}
-
-    If there is no extra needed information, then, they must have mistakely input something.
-    Keep the answer very CONCISE and address the user directly.
-    """)
-
 llm = ChatOllama(model="llama3.2:3b", temperature=0).with_structured_output(RouterOutput)
-conversation_llm = ChatOllama(model="llama3.2:3b", temperature=0.9)
-
 parser = PydanticStreamOutputParser(pydantic_object=RouterOutput, diff=True)
 
 async def intent_router(state):
@@ -97,21 +86,10 @@ async def intent_router(state):
         if (new_v is not None) and (new_v != v):
             updated_state[k] = new_v
 
-    updated = RouterOutput(**updated_state)
-
-    # only push new message to user
-    # if the query needs extra clarification
-    if updated.needs_clarification:
-        missing_attributes = reduce_missing_attributes(updated)
-        prompt = clarification_promp.format(needed_information=missing_attributes)
-        response = await conversation_llm.ainvoke(prompt)
-
-        return { **state.dict(), "messages": state.messages + [AIMessage(response.content)], "router": updated }
-
     # update graph state
     # not destructuring the messages
     # using the dot notation on the
     # State instance serializes the
     # message itself as we called
     # the _dict_ function on the State
-    return {**state.dict(), "messages": state.messages, "router": updated}
+    return {**state.dict(), "messages": state.messages + [AIMessage(content="Let me process the information...")], "router": RouterOutput(**updated_state)}
