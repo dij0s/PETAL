@@ -102,7 +102,7 @@ async def geocontext_retriever(state):
                         "geocontext": geocontext
                     }
 
-            return {}
+            return state
         else:
             # inquire extra clarification
             router_state.needs_clarification = True
@@ -113,7 +113,7 @@ async def geocontext_retriever(state):
             }
     except Exception as e:
         print(f"Exception: {e}")
-        return {}
+        return state
 
 async def _ainvoke_tools(tools: list[StructuredTool]) -> dict[str, Any]:
     """Helper function that invokes a batch of tools asynchronously and returns the result."""
