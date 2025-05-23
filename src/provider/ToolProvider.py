@@ -113,6 +113,9 @@ def _potential_tools(municipality_name: str) -> dict[str, StructuredTool]:
             HydropowerInfrastructureTool,
             WindTurbinesInfrastructureTool,
             BiogasInfrastructureTool,
-            IncinerationInfrastructureTool
+            IncinerationInfrastructureTool,
+            EffectiveInfrastructureTool,
+            ThermalNetworksInfrastructureTool,
+            SewageTreatmentPotentialTool
         ]
     }

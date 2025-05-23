@@ -12,7 +12,8 @@ from scipy.stats import t
 from langchain_core.tools import StructuredTool
 
 from typing import Callable, Any
-from functools import partial
+from functools import partial, reduce
+from collections import defaultdict
 
 from provider.GeoSessionProvider import GeoSessionProvider
 
@@ -537,7 +538,7 @@ async def _fetch_incineration_infrastructure(municipality_name: str) -> tuple[fl
     """Asynchronously fetches the incineration infrastructure for a given municipality.
 
     Args:
-        municipality_name (str): The name of the municipality to estimate the biomass for.
+        municipality_name (str): The name of the municipality to fetch the data for.
 
     Returns:
         tuple[float, float]: The total electricity and heating production in GWh/year.
@@ -596,6 +597,207 @@ async def _fetch_incineration_infrastructure(municipality_name: str) -> tuple[fl
         print(f"Error: {e}")
 
     return 0, 0
+
+async def _fetch_effective_infrastructure(municipality_name: str) -> tuple[float, float, float]:
+    """Asynchronously fetches the effective photovoltaic (PV), biomass and geothermal energy from various infrastructure.
+
+    Args:
+        municipality_name (str): The name of the municipality to estimate the effective infrastructure for.
+
+    Returns:
+        tuple[float, float, float]: A tuple containing the effective photovoltaic, biomass and geothermal power in GWh/year.
+    """
+    async def _fetch_effective_infrastructure(session, tile) -> defaultdict:
+        minx, miny, maxx, maxy = tile.bounds
+        geometry_str = f"{minx},{miny},{maxx},{maxy}"
+
+        identify_url = "https://api3.geo.admin.ch/rest/services/api/MapServer/identify"
+        params = {
+            "geometry": geometry_str,
+            "geometryType": "esriGeometryEnvelope",
+            "layers": "all:ch.bfe.elektrizitaetsproduktionsanlagen",
+            "returnGeometry": "false",
+            "tolerance": "0",
+            "sr": "2056",
+            "geometryFormat": "geojson"
+        }
+
+        try:
+            # retrieve and aggregate partial
+            # results from every single tile
+            async with session.get(identify_url, params=params) as response:
+                if response.status == 200:
+                    data = await response.json()
+
+                    # only consider those
+                    # effective categories
+                    productions = defaultdict(float) # kWh/year
+                    categories = ["Photovoltaic", "Biomass", "Geothermal energy"]
+
+                    # sum up the potential for all features
+                    for result in data.get("results", []):
+                        props = result.get("properties", {})
+
+                        sub_category = props.get("sub_category_en", "")
+                        if sub_category in categories:
+                            total_power = float(props.get("total_power", "0")[:-2]) # kWh/year
+                            productions[sub_category] += total_power
+
+                    return productions
+                else:
+                    print(f"Failed request for tile, status: {response.status}")
+        except Exception as e:
+            print(f"Error for tile at {geometry_str}: {e}")
+
+        return defaultdict(float)
+
+    # await needed GeoSession
+    # for further computing
+    provider = GeoSessionProvider.get_or_create(municipality_name=municipality_name, tile_size=500, sampling_rate=1.0)
+    await provider.wait_until_ready()
+
+    # create an aiohttp session for all requests
+    async with aiohttp.ClientSession() as session:
+        # launch all tile energy
+        # fetches concurrently
+        tasks = [_fetch_effective_infrastructure(session, tile) for tile in provider.sampled_tiles]
+        sampled_energies = await asyncio.gather(*tasks)
+
+    # aggregate all partial energies
+    aggregated_energies = reduce(
+        lambda res, d: {
+            **res,
+            **d
+        },
+        map(dict, sampled_energies),
+        {}
+    )
+
+    photovoltaic_energy_GWh = aggregated_energies.get("Photovoltaic", 0.0) / 1e6
+    biomass_energy_GWh = aggregated_energies.get("Biomass", 0.0) / 1e6
+    geothermal_energy_GWh = aggregated_energies.get("Geothermal energy", 0.0) / 1e6
+
+    return (photovoltaic_energy_GWh, biomass_energy_GWh, geothermal_energy_GWh)
+
+async def _fetch_thermal_networks_infrastructure(municipality_name: str) -> float:
+    """Asynchronously fetches the thermal networks infrastructure for a given municipality.
+
+    Args:
+        municipality_name (str): The name of the municipality to fetch the data for.
+
+    Returns:
+        float: The total energy that can be delivered via thermal networks in GWh/year.
+    """
+    # await GeoSession geometry
+    # fetching for further computing ;
+    # as no tiling is needed, await
+    # most common GeoSession
+    provider = GeoSessionProvider.get_or_create(municipality_name=municipality_name, tile_size=100, sampling_rate=0.3)
+    await provider.wait_until_ready()
+
+    minx, miny, maxx, maxy = provider.geometry.bounds
+    geometry_str = f"{minx},{miny},{maxx},{maxy}"
+
+    url = "https://api3.geo.admin.ch/rest/services/api/MapServer/identify"
+    params = {
+        "geometry": geometry_str,
+        "geometryType": "esriGeometryEnvelope",
+        "layers": "all:ch.bfe.thermische-netze",
+        "returnGeometry": "true",
+        "tolerance": "0",
+        "sr": 2056,
+        "geometryFormat": "geojson"
+    }
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, params=params) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    total_energy = 0 # MWh/year
+
+                    # aggregate all features
+                    for feature in data.get("results", []):
+                        point = shape(feature.get("geometry"))
+
+                        # intersect and clip features
+                        # to municipality geometry
+                        if point.within(provider.geometry):
+                            props = feature.get("properties", {})
+
+                            energy_string = props.get("energy", "0")
+                            energy = float(energy_string) if energy_string else 0 # MWh/a
+
+                            total_energy += energy
+
+                    total_energy_GWh = total_energy / 1e3
+
+                    return total_energy_GWh
+                else:
+                    print(f"Could not retrieve thermal networks infrastructure: {response.status}")
+    except Exception as e:
+        print(f"Error: {e}")
+
+    return 0
+
+async def _fetch_sewage_treatment_potential(municipality_name: str) -> float:
+    """Asynchronously fetches the sewage treatment (STEP) potential for a given municipality.
+
+    Args:
+        municipality_name (str): The name of the municipality to fetch the data for.
+
+    Returns:
+        float: The potential heating energy from the sewage treatment infrastructure in GWh/year.
+    """
+    # await GeoSession geometry
+    # fetching for further computing ;
+    # as no tiling is needed, await
+    # most common GeoSession
+    provider = GeoSessionProvider.get_or_create(municipality_name=municipality_name, tile_size=100, sampling_rate=0.3)
+    await provider.wait_until_ready()
+
+    minx, miny, maxx, maxy = provider.geometry.bounds
+    geometry_str = f"{minx},{miny},{maxx},{maxy}"
+
+    url = "https://api3.geo.admin.ch/rest/services/api/MapServer/identify"
+    params = {
+        "geometry": geometry_str,
+        "geometryType": "esriGeometryEnvelope",
+        "layers": "all:ch.bfe.fernwaerme-angebot",
+        "returnGeometry": "true",
+        "tolerance": "0",
+        "sr": 2056,
+        "geometryFormat": "geojson"
+    }
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, params=params) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    total_potential = 0 # MWh/year
+
+                    # aggregate all features
+                    for feature in data.get("results", []):
+                        point = shape(feature.get("geometry"))
+
+                        # intersect and clip features
+                        # to municipality geometry
+                        if point.within(provider.geometry):
+                            props = feature.get("properties", {})
+
+                            potential = float(props.get("heatpotential", 0)) # MWh/year
+                            total_potential += potential
+
+                    total_potential_GWh = total_potential / 1e3
+
+                    return total_potential_GWh
+                else:
+                    print(f"Could not retrieve sewage treatment infrastructure: {response.status}")
+    except Exception as e:
+        print(f"Error: {e}")
+
+    return 0
 
 # expose all tools with
 # associated description
@@ -781,4 +983,43 @@ class IncinerationInfrastructureTool(GeoDataTool):
             name="incineration_infrastructure",
             layer_id="ch.bfe.kehrichtverbrennungsanlagen",
             description="Returns the total electricity and heating production in GWh/year from incineration infrastructure for a given municipality. Useful for assessing the contribution of waste incineration to renewable energy at the municipal level.",
+        )
+
+class ThermalNetworksInfrastructureTool(GeoDataTool):
+    def __init__(
+        self,
+        municipality_name: str,
+    ):
+        super().__init__(
+            municipality_name=municipality_name,
+            func=_fetch_thermal_networks_infrastructure,
+            name="thermal_networks_infrastructure",
+            layer_id="ch.bfe.thermische-netze",
+            description="Returns the total energy that can be delivered via thermal networks in GWh/year for a given municipality. Useful for assessing the thermal network infrastructure and its contribution to energy delivery at the municipal level.",
+        )
+
+class EffectiveInfrastructureTool(GeoDataTool):
+    def __init__(
+        self,
+        municipality_name: str,
+    ):
+        super().__init__(
+            municipality_name=municipality_name,
+            func=_fetch_effective_infrastructure,
+            name="effective_infrastructure",
+            layer_id="ch.bfe.elektrizitaetsproduktionsanlagen",
+            description="Returns the effective photovoltaic (PV), biomass, and geothermal energy production in GWh/year from various infrastructures for a given municipality. Useful for assessing the actual renewable energy production from these sources at the municipal level.",
+        )
+
+class SewageTreatmentPotentialTool(GeoDataTool):
+    def __init__(
+        self,
+        municipality_name: str,
+    ):
+        super().__init__(
+            municipality_name=municipality_name,
+            func=_fetch_sewage_treatment_potential,
+            name="sewage_treatment_potential",
+            layer_id="ch.bfe.fernwaerme-angebot",
+            description="Returns the potential heating energy from the sewage treatment infrastructure in GWh/year for a given municipality. Useful for assessing the sewage treatment (STEP) potential at the municipal level that may be injected into thermal networks.",
         )
