@@ -90,7 +90,7 @@ async def _estimate_solar_potential(municipality_name: str, confidence_level=0.8
     if margin_gwh == float("+inf"):
         margin_gwh = 0.0
 
-    return float(total_estimate_gwh), margin_gwh, confidence_level
+    return (float(total_estimate_gwh), margin_gwh, confidence_level)
 
 # expose all tools with
 # associated description

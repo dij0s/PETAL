@@ -95,7 +95,7 @@ async def geocontext_retriever(state):
                 ]
                 if not any([tool is None for tool in tools_to_invoke]):
                     tool_data = await _ainvoke_tools(tools_to_invoke)
-                    geocontext.context = tool_data
+                    geocontext.context = {**geocontext.context, **tool_data}
 
                     return {
                         **state.model_dump(),

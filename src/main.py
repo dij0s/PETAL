@@ -58,6 +58,7 @@ configuration = {
 async def stream_graph_updates(user_input: str):
     async for event in graph.astream({"messages": [HumanMessage(user_input)]}, config=configuration, stream_mode="updates"):
         for value in event.values():
+            print(value["geocontext"])
             print("Assistant:", value["messages"][-1].content)
 
 
