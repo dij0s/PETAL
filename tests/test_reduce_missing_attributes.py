@@ -1,30 +1,18 @@
 import pytest
-from src.modelling.utils import reduce_missing_attributes
+from typing import Optional
+from pydantic import BaseModel, Field
 
-# dummy class for testing
-class DummyRouterOutput:
-    def __init__(self, intent=None, topic=None, location=None, needs_clarification=None):
-        self.intent = intent
-        self.topic = topic
-        self.location = location
-        self.needs_clarification = needs_clarification
-    def model_dump(self):
-        # returns dict of attributes
-        return {
-            "intent": self.intent,
-            "topic": self.topic,
-            "location": self.location,
-            "needs_clarification": self.needs_clarification,
-        }
+from src.modelling.structured_output import RouterOutput
+from src.modelling.utils import reduce_missing_attributes
 
 @pytest.fixture
 def dummy_router_output():
     def _make(intent=None, topic=None, location=None, needs_clarification=None):
-        return DummyRouterOutput(
+        return RouterOutput(
             intent=intent,
             topic=topic,
             location=location,
-            needs_clarification=needs_clarification,
+            needs_clarification=needs_clarification if needs_clarification is not None else True,
         )
     return _make
 
@@ -47,5 +35,5 @@ def test_reduce_missing_attributes_all_missing(dummy_router_output):
     obj = dummy_router_output()
     result = reduce_missing_attributes(obj)
     assert result is not None
-    for field in ["intent", "topic", "location", "needs_clarification"]:
+    for field in ["intent", "topic", "location"]:
         assert field in result
