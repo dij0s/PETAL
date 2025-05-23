@@ -24,9 +24,10 @@ router_prompt = PromptTemplate.from_template("""
 
     {format_instructions}
 
-    Here is the previous conversation context that you have already deduced from earlier user inputs and THE LAST USER INPUT. Use this information to help clarify the current request:
+    Here is the previous conversation context and that you have already deduced from earlier user inputs and THE LAST USER INPUT. Use this information to help clarify the current request:
     Previous user input: "{previous_user_input}"
     Conversation context: "{current_router}"
+    Additional prompt from AI (if any, e.g. if the AI previously asked the user to clarify specific information, include it here): "{other}"
 
     User input: "{user_input}"
     """)
@@ -53,10 +54,13 @@ async def intent_router(state):
     Returns:
         dict: The updated conversation state with the 'router' field set to the latest RouterOutput.
     """
+    # retrieve messages for prompt
+    human_messages = [msg.content for msg in reversed(state.messages) if isinstance(msg, HumanMessage)]
+    last_human_message = human_messages[0] if human_messages else ""
+    previous_human_message = human_messages[1] if len(human_messages) > 1 else ""
 
-    human_messages = [msg.content for msg in state.messages if isinstance(msg, HumanMessage)]
-    last_human_message = human_messages[-1] if human_messages else ""
-    previous_human_message = human_messages[-2] if len(human_messages) > 1 else ""
+    ai_messages = [msg.content for msg in reversed(state.messages) if isinstance(msg, AIMessage)]
+    last_ai_message = ai_messages[0] if ai_messages else ""
 
     # retrieve curent router context
     # and fill it in the prompt for
@@ -70,9 +74,10 @@ async def intent_router(state):
         format_description=parser.get_description(),
         format_instructions=parser.get_format_instructions(),
         previous_user_input=previous_human_message,
-        user_input=last_human_message
+        user_input=last_human_message,
+        other=last_ai_message
     )
-    # invoke llm on user query
+    # invoke llm on user prompt
     response = await llm.ainvoke(prompt)
     # parse response accordingly to
     # enable further actions based
