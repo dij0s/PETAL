@@ -98,18 +98,22 @@ async def geocontext_retriever(state):
                     geocontext.context = {**geocontext.context, **tool_data}
 
                     return {
-                        **state.model_dump(),
                         "messages": state.messages + [AIMessage(content="Successfully retrieved data from tools...")],
                         "geocontext": geocontext
                     }
 
-            return state
-
+            return {}
         else:
-            raise Exception("No location provided in router_state.")
+            # inquire extra clarification
+            router_state.needs_clarification = True
+            return {
+                **state.model_dump(),
+                "messages": state.messages,
+                "router": router_state
+            }
     except Exception as e:
         print(f"Exception: {e}")
-        return state
+        return {}
 
 async def _ainvoke_tools(tools: list[StructuredTool]) -> dict[str, Any]:
     """Helper function that invokes a batch of tools asynchronously and returns the result."""

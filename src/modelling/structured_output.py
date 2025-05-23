@@ -7,9 +7,15 @@ class RouterOutput(BaseModel):
     """Router output used to route user queries to appropriate agents and retrieve basic context."""
 
     intent: Optional[str] = Field(
-        description="The user's underlying goal or type of request. Must be one of: 'data' (seeking factual data or statistics), 'planning' (asking for help with planning, scenarios, or recommendations), or 'policy' (inquiring about laws, regulations, or policy matters).",
+    description="The user's underlying goal or type of request. Must be one of: 'data' (seeking factual data or statistics), 'planning' (asking for help with planning, scenarios, or recommendations), or 'policy' (inquiring about laws, regulations, or policy matters). If it is difficult to distinguish, assume the user is inquiring about data.",
         default=None
     )
+    # data_type: Optional[str] = Field(
+    #     description=(
+    #         "Specifies the type of data the user is inquiring about. Must be one of: 'measures' (precise measured values, e.g., heating needs, energy consumption), 'potential' (estimates of possible gains or capacity, e.g., how much could be produced or saved), or 'infrastructure' (counts or details of physical assets, e.g., number of wind turbines, thermal networks, hydroelectric plants)."
+    #     ),
+    #     default=None
+    # )
     topic: Optional[str] = Field(description="The main topic of the user request, e.g. 'solar', 'biomass', 'heating', 'wind', if available.", default=None)
     location: Optional[str] = Field(description="The location mentioned in the user request, if available (e.g. a municipality name)", default=None)
     needs_clarification: bool = Field(

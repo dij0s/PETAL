@@ -99,11 +99,10 @@ async def intent_router(state):
         new_v = parsed_state.get(k, None)
         if (new_v is not None) and (new_v != v):
             updated_state[k] = new_v
-    print(updated_state)
     # update graph state
     # not destructuring the messages
     # using the dot notation on the
     # State instance serializes the
     # message itself as we called
     # the _dict_ function on the State
-    return {**state.model_dump(), "messages": state.messages + [AIMessage(content="Let me process your query...")], "router": RouterOutput(**updated_state)}
+    return {"messages": state.messages + [AIMessage(content="Let me process your query...")], "router": RouterOutput(**updated_state)}

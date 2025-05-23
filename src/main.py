@@ -36,13 +36,22 @@ def route_condition(state: State):
     except Exception as e:
         print(f"Error: {e}")
 
+def geocontext_condition(state: State):
+    try:
+        if state.router is not None and state.router.needs_clarification:
+            return "clarification"
+        else:
+            return END
+    except Exception as e:
+        print(f"Error: {e}")
+
 graph_builder.add_edge(START, "intent_router")
 graph_builder.add_conditional_edges("intent_router", route_condition)
+graph_builder.add_conditional_edges("geocontext_retriever", geocontext_condition)
 # reaching the clarification node should
 # stop the flow too to then process
 # extra user-given context
 graph_builder.add_edge("clarification", END)
-graph_builder.add_edge("geocontext_retriever", END)
 
 # temporary short-term memory saver
 # for conversation-like experience
@@ -58,7 +67,8 @@ configuration = {
 async def stream_graph_updates(user_input: str):
     async for event in graph.astream({"messages": [HumanMessage(user_input)]}, config=configuration, stream_mode="updates"):
         for value in event.values():
-            print(value["geocontext"])
+            print(value)
+            print(value["messages"][-1], type(value["messages"][-1]))
             print("Assistant:", value["messages"][-1].content)
 
 
