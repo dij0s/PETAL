@@ -64,7 +64,11 @@ async def _fetch_solar_potential_roofing(municipality_name: str, confidence_leve
 
     # await needed GeoSession
     # for further computing
-    provider = GeoSessionProvider.get_or_create(municipality_name=municipality_name, tile_size=100, sampling_rate=0.3)
+    # sampling_rate depends
+    # on if the user wants an
+    # estimation, or not
+    sampling_rate = 0.3 if confidence_level < 1.0 else 1.0
+    provider = GeoSessionProvider.get_or_create(municipality_name=municipality_name, tile_size=100, sampling_rate=sampling_rate)
     await provider.wait_until_ready()
 
     # create an aiohttp session for all requests
@@ -891,6 +895,222 @@ async def _fetch_building_construction_periods(municipality_name: str) -> tuple[
 
     return tuple(aggregated_periods.items())
 
+async def _fetch_heating_cooling_needs_industry(municipality_name: str) -> float:
+    """Asynchronously fetches the heating/cooling energy needs for the industry in a given municipality.
+
+    Args:
+        municipality_name (str): The name of the municipality to fetch the data for.
+
+    Returns:
+        float: The heating/cooling energy needs for the industry in GWh/year.
+    """
+    # await GeoSession geometry
+    # fetching for further computing ;
+    # as no tiling is needed, await
+    # most common GeoSession
+    provider = GeoSessionProvider.get_or_create(municipality_name=municipality_name, tile_size=100, sampling_rate=0.3)
+    await provider.wait_until_ready()
+
+    minx, miny, maxx, maxy = provider.geometry.bounds
+    geometry_str = f"{minx},{miny},{maxx},{maxy}"
+    print(geometry_str)
+
+    url = "https://api3.geo.admin.ch/rest/services/api/MapServer/identify"
+    params = {
+        "geometry": geometry_str,
+        "geometryType": "esriGeometryEnvelope",
+        "layers": "all:ch.bfe.fernwaerme-nachfrage_industrie",
+        "returnGeometry": "true",
+        "tolerance": "0",
+        "sr": 2056,
+        "geometryFormat": "geojson"
+    }
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, params=params) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    total_needs = 0 # MWh/year
+
+                    # aggregate all features
+                    for feature in data.get("results", []):
+                        geometry = shape(feature.get("geometry"))
+
+                        # intersect and clip features
+                        # to municipality geometry
+                        if geometry.intersects(provider.geometry):
+                            clipped = geometry.intersection(provider.geometry)
+                            # assume needs are proportional
+                            # to the clipped area
+                            factor = clipped.area / geometry.area
+
+                            props = feature.get("properties", {})
+                            needs = float(props.get("needindustry", 0)) * factor # MWh/year
+
+                            total_needs += needs
+
+                    total_needs_GWh = total_needs / 1e3
+
+                    return total_needs_GWh
+                else:
+                    print(f"Could not retrieve heating/cooling needs: {response.status}")
+    except Exception as e:
+        print(f"Error: {e}")
+
+    return 0
+
+async def _fetch_heating_cooling_needs_households(municipality_name: str) -> float:
+    """Asynchronously fetches the heating/cooling needs for households in a given municipality.
+
+    Args:
+        municipality_name (str): The name of the municipality to estimate the effective infrastructure for.
+
+    Returns:
+        float: The heating/cooling energy needs for households in GWh/year.
+    """
+    async def _fetch_heating_cooling_needs(session, tile) -> float:
+        minx, miny, maxx, maxy = tile.bounds
+        geometry_str = f"{minx},{miny},{maxx},{maxy}"
+
+        identify_url = "https://api3.geo.admin.ch/rest/services/api/MapServer/identify"
+        params = {
+            "geometry": geometry_str,
+            "geometryType": "esriGeometryEnvelope",
+            "layers": "all:ch.bfe.fernwaerme-nachfrage_wohn_dienstleistungsgebaeude",
+            "returnGeometry": "true",
+            "tolerance": "0",
+            "sr": "2056",
+            "geometryFormat": "geojson"
+        }
+
+        try:
+            # retrieve and aggregate partial
+            # results from every single tile
+            async with session.get(identify_url, params=params) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    total_needs = 0 # MWh/year
+
+                    # sum up the needs for all features
+                    for feature in data.get("results", []):
+                        geometry = shape(feature.get("geometry"))
+                        # consider clipped features only
+                        if geometry.intersects(provider.geometry):
+                            clipped = geometry.intersection(tile)
+                            factor = clipped.area / geometry.area
+
+                            props = feature.get("properties", {})
+                            needs = float(props.get("needtotal", 0)) * factor # MWh/year
+
+                            total_needs += needs
+
+                    total_needs_GWh = total_needs / 1e3
+
+                    return total_needs_GWh
+                else:
+                    print(f"Failed request for tile, status: {response.status}")
+        except Exception as e:
+            print(f"Error for tile at {geometry_str}: {e}")
+
+        return 0
+
+    # await needed GeoSession
+    # for further computing
+    provider = GeoSessionProvider.get_or_create(municipality_name=municipality_name, tile_size=1000, sampling_rate=1.0)
+    await provider.wait_until_ready()
+
+    # create an aiohttp session for all requests
+    async with aiohttp.ClientSession() as session:
+        # launch all tile heating and
+        # cooling needs fetches concurrently
+        tasks = [_fetch_heating_cooling_needs(session, tile) for tile in provider.sampled_tiles]
+        sampled_needs = await asyncio.gather(*tasks)
+
+    # aggregate all partial results
+    total_needs = sum(sampled_needs) # GWh
+
+    return total_needs
+
+async def _fetch_building_emissions_energy_source(municipality_name: str) -> tuple[dict[str, int], dict[str, int]]:
+    """Asynchronously fetches the emissions and energy sources of buildings in a given municipality.
+
+    Args:
+        municipality_name (str): The name of the municipality to estimate the effective infrastructure for.
+
+    Returns:
+        tuple[dict[str, int], dict[str, int]]: The first dict maps from CO2 emissions range (in kg/m²) to the number of buildings, and the second dict maps from energy source to the number of buildings.
+    """
+    async def _fetch_emissions_energy_source(session, tile) -> tuple[defaultdict, defaultdict]:
+        minx, miny, maxx, maxy = tile.bounds
+        geometry_str = f"{minx},{miny},{maxx},{maxy}"
+
+        identify_url = "https://api3.geo.admin.ch/rest/services/api/MapServer/identify"
+        params = {
+            "geometry": geometry_str,
+            "geometryType": "esriGeometryEnvelope",
+            "layers": "all:ch.bafu.klima-co2_ausstoss_gebaeude",
+            "returnGeometry": "false",
+            "tolerance": "0",
+            "sr": "2056",
+            "geometryFormat": "geojson"
+        }
+
+        try:
+            # retrieve and aggregate partial
+            # results from every single tile
+            async with session.get(identify_url, params=params) as response:
+                if response.status == 200:
+                    data = await response.json()
+
+                    co2_ranges = defaultdict(int)
+                    energy_sources = defaultdict(int)
+
+                    # aggregate features
+                    for result in data.get("results", []):
+                        props = result.get("properties", {})
+
+                        co2_ranges[props.get("co2_range", "")] += 1
+                        # energy sources are only available
+                        # in french, german and italian
+                        energy_sources[props.get("genh1_fr", "")] += 1
+
+                    return co2_ranges, energy_sources
+                else:
+                    print(f"Failed request for tile, status: {response.status}")
+        except Exception as e:
+            print(f"Error for tile at {geometry_str}: {e}")
+
+        return defaultdict(int), defaultdict(int)
+
+    # await needed GeoSession
+    # for further computing
+    provider = GeoSessionProvider.get_or_create(municipality_name=municipality_name, tile_size=100, sampling_rate=1.0)
+    await provider.wait_until_ready()
+
+    # create an aiohttp session for all requests
+    async with aiohttp.ClientSession() as session:
+        # launch all tile heating and
+        # cooling needs fetches concurrently
+        tasks = [_fetch_emissions_energy_source(session, tile) for tile in provider.sampled_tiles]
+        sampled_emissions_sources = await asyncio.gather(*tasks)
+
+    # aggregate all partial results
+    return reduce(
+        lambda res, pair: (
+            {
+                **res[0],
+                **{k: res[0].get(k, 0) + v for k, v in pair[0].items()}
+            },
+            {
+                **res[1],
+                **{k: res[1].get(k, 0) + v for k, v in pair[1].items()}
+            }
+        ),
+        sampled_emissions_sources,
+        ({}, {})
+    )
+
 # expose all tools with
 # associated description
 class GeoDataTool(StructuredTool):
@@ -1127,4 +1347,43 @@ class BuildingsConstructionPeriodsTool(GeoDataTool):
             name="building_construction_periods",
             layer_id="ch.bfs.gebaeude_wohnungs_register",
             description="Returns the building construction periods for a given municipality. Each result is a tuple of (construction period, number of buildings). Useful for understanding the age distribution of buildings in the municipality.",
+        )
+
+class HeatingCoolingNeedsIndustryTool(GeoDataTool):
+    def __init__(
+        self,
+        municipality_name: str,
+    ):
+        super().__init__(
+            municipality_name=municipality_name,
+            func=_fetch_heating_cooling_needs_industry,
+            name="heating_cooling_needs_industry",
+            layer_id="ch.bfe.fernwaerme-nachfrage_industrie",
+            description="Returns the heating/cooling energy needs for the industry in a given municipality in GWh/year. Useful for assessing the industrial energy demand at the municipal level.",
+        )
+
+class HeatingCoolingNeedsHouseholdsTool(GeoDataTool):
+    def __init__(
+        self,
+        municipality_name: str,
+    ):
+        super().__init__(
+            municipality_name=municipality_name,
+            func=_fetch_heating_cooling_needs_households,
+            name="heating_cooling_needs_households",
+            layer_id="ch.bfe.fernwaerme-nachfrage_wohn_dienstleistungsgebaeude",
+            description="Returns the heating/cooling energy needs for households in a given municipality in GWh/year. Useful for assessing the residential and service building energy demand at the municipal level.",
+        )
+
+class BuildingsEmissionEnergySourcesTool(GeoDataTool):
+    def __init__(
+        self,
+        municipality_name: str,
+    ):
+        super().__init__(
+            municipality_name=municipality_name,
+            func=_fetch_building_emissions_energy_source,
+            name="buildings_emission_energy_source",
+            layer_id="ch.bafu.klima-co2_ausstoss_gebaeude",
+            description="Returns the emissions and energy sources of buildings in a given municipality. The first dict maps from CO2 emissions range (in kg/m²) to the number of buildings, and the second dict maps from energy source to the number of buildings. Useful for assessing the climate impact and energy source distribution of buildings at the municipal level.",
         )

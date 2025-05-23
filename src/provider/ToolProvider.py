@@ -117,6 +117,9 @@ def _potential_tools(municipality_name: str) -> dict[str, StructuredTool]:
             EffectiveInfrastructureTool,
             ThermalNetworksInfrastructureTool,
             SewageTreatmentPotentialTool,
-            BuildingsConstructionPeriodsTool
+            BuildingsConstructionPeriodsTool,
+            HeatingCoolingNeedsIndustryTool,
+            HeatingCoolingNeedsHouseholdsTool,
+            BuildingsEmissionEnergySourcesTool
         ]
     }
