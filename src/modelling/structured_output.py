@@ -7,12 +7,17 @@ class RouterOutput(BaseModel):
     """Router output used to route user queries to appropriate agents and retrieve basic context."""
 
     intent: Optional[str] = Field(
-        description="The user's underlying goal or type of request. Must be one of: 'data_request' (seeking factual data or statistics), 'planning_request' (asking for help with planning, scenarios, or recommendations), or 'policy_question' (inquiring about laws, regulations, or policy matters).",
+        description="The user's underlying goal or type of request. Must be one of: 'data' (seeking factual data or statistics), 'planning' (asking for help with planning, scenarios, or recommendations), or 'policy' (inquiring about laws, regulations, or policy matters).",
         default=None
     )
     topic: Optional[str] = Field(description="The main topic of the user request, e.g. 'solar', 'biomass', 'heating', 'wind', if available.", default=None)
     location: Optional[str] = Field(description="The location mentioned in the user request, if available (e.g. a municipality name)", default=None)
-    needs_clarification: bool = Field(description="Indicates whether the user's request is unclear or incomplete and requires additional information or clarification before it can be properly routed or answered.", default=True)
+    needs_clarification: bool = Field(
+        description=(
+            "Set to True if, after considering both the current user input AND THE PREVIOUS CONVERSATION CONTEXT, the question is ambiguous or if the user's request cannot be confidently routed or answered without further information. Otherwise, set to False."
+        ),
+        default=True
+    )
 
 class GeoContextOutput(BaseModel):
     """GeoContext Retriever output used to fetch relevant data from the user query and process it further."""

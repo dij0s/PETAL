@@ -15,6 +15,7 @@ from functools import reduce
 # formatting and data scheme validation
 router_prompt = PromptTemplate.from_template("""
     You are an AI assistant helping to route user requests about energy planning in Switzerland.
+
     Classify the user input into:
 
     {format_description}
@@ -22,6 +23,10 @@ router_prompt = PromptTemplate.from_template("""
     Return ONLY the following JSON like this, with no extra text, explanation, or formatting:
 
     {format_instructions}
+
+    Here is the previous conversation context that you have already deduced from earlier user inputs and THE LAST USER INPUT. Use this information to help clarify the current request:
+    Previous user input: "{previous_user_input}"
+    Conversation context: "{current_router}"
 
     User input: "{user_input}"
     """)
@@ -49,10 +54,22 @@ async def intent_router(state):
         dict: The updated conversation state with the 'router' field set to the latest RouterOutput.
     """
 
-    last_human_message = next(msg.content for msg in reversed(state.messages) if isinstance(msg, HumanMessage))
+    human_messages = [msg.content for msg in state.messages if isinstance(msg, HumanMessage)]
+    last_human_message = human_messages[-1] if human_messages else ""
+    previous_human_message = human_messages[-2] if len(human_messages) > 1 else ""
+
+    # retrieve curent router context
+    # and fill it in the prompt for
+    # context carry over
+    current: RouterOutput = RouterOutput(intent=None, topic=None, location=None, needs_clarification=True)
+    if state.router is not None:
+        current = state.router
+
     prompt: str = router_prompt.format(
+        current_router=current.model_dump(),
         format_description=parser.get_description(),
         format_instructions=parser.get_format_instructions(),
+        previous_user_input=previous_human_message,
         user_input=last_human_message
     )
     # invoke llm on user query
@@ -62,9 +79,6 @@ async def intent_router(state):
     # on predefined scheme ; first
     # try to get last state to only
     # update it
-    current: RouterOutput = RouterOutput(intent=None, topic=None, location=None, needs_clarification=True)
-    if state.router is not None:
-        current = state.router
 
     # assume state, by default, is Pydantic
     parsed: RouterOutput | Any = response
@@ -85,7 +99,7 @@ async def intent_router(state):
         new_v = parsed_state.get(k, None)
         if (new_v is not None) and (new_v != v):
             updated_state[k] = new_v
-
+    print(updated_state)
     # update graph state
     # not destructuring the messages
     # using the dot notation on the

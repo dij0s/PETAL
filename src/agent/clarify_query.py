@@ -10,7 +10,7 @@ clarification_prompt = PromptTemplate.from_template("""
 
     {needed_information}
 
-    Formulate a polite question asking for these specific details.
+    Formulate a question asking for these specific details.
     If there is no extra needed information, then, they must have mistakenly input something.
     Keep the answer very CONCISE and address the user directly.
     """)
