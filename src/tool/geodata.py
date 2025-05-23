@@ -607,7 +607,7 @@ async def _fetch_effective_infrastructure(municipality_name: str) -> tuple[float
     Returns:
         tuple[float, float, float]: A tuple containing the effective photovoltaic, biomass and geothermal power in GWh/year.
     """
-    async def _fetch_effective_infrastructure(session, tile) -> defaultdict:
+    async def _fetch_infrastructure(session, tile) -> defaultdict:
         minx, miny, maxx, maxy = tile.bounds
         geometry_str = f"{minx},{miny},{maxx},{maxy}"
 
@@ -660,7 +660,7 @@ async def _fetch_effective_infrastructure(municipality_name: str) -> tuple[float
     async with aiohttp.ClientSession() as session:
         # launch all tile energy
         # fetches concurrently
-        tasks = [_fetch_effective_infrastructure(session, tile) for tile in provider.sampled_tiles]
+        tasks = [_fetch_infrastructure(session, tile) for tile in provider.sampled_tiles]
         sampled_energies = await asyncio.gather(*tasks)
 
     # aggregate all partial energies
@@ -798,6 +798,98 @@ async def _fetch_sewage_treatment_potential(municipality_name: str) -> float:
         print(f"Error: {e}")
 
     return 0
+
+async def _fetch_building_construction_periods(municipality_name: str) -> tuple[tuple[str, int], ...]:
+    """Asynchronously fetches the building construction periods for a given municipality.
+
+    Args:
+        municipality_name (str): The name of the municipality to estimate the effective infrastructure for.
+
+    Returns:
+        tuple[tuple[str, int], ...]: A tuple where each element is a tuple containing the construction period as a string and the number of buildings as an integer.
+    """
+
+    # RegBL building construction
+    # period definition (from website)
+    _gbaup_types = defaultdict(lambda: "Unknown", {
+        "8011": "<1919",
+        "8012": "1919-1945",
+        "8013": "1946-1960",
+        "8014": "1961-1970",
+        "8015": "1971-1980",
+        "8016": "1981-1985",
+        "8017": "1986-1990",
+        "8018": "1991-1995",
+        "8019": "1996-2000",
+        "8020": "2001-2005",
+        "8021": "2006-2010",
+        "8022": "2011-2015",
+        "8023": "2016>"
+    })
+
+    async def _fetch_construction_periods(session, tile) -> defaultdict:
+        minx, miny, maxx, maxy = tile.bounds
+        geometry_str = f"{minx},{miny},{maxx},{maxy}"
+
+        identify_url = "https://api3.geo.admin.ch/rest/services/api/MapServer/identify"
+        params = {
+            "geometry": geometry_str,
+            "geometryType": "esriGeometryEnvelope",
+            "layers": "all:ch.bfs.gebaeude_wohnungs_register",
+            "returnGeometry": "false",
+            "tolerance": "0",
+            "sr": "2056",
+            "geometryFormat": "geojson"
+        }
+
+        try:
+            # retrieve and aggregate partial
+            # results from every single tile
+            async with session.get(identify_url, params=params) as response:
+                if response.status == 200:
+                    data = await response.json()
+
+                    construction_periods = defaultdict(int)
+
+                    # sum up the potential for all features
+                    for result in data.get("results", []):
+                        props = result.get("properties", {})
+
+                        gbaup_key = str(props.get("gbaup", "0"))
+                        construction_period = _gbaup_types[gbaup_key]
+                        construction_periods[construction_period] += 1
+
+                    return construction_periods
+                else:
+                    print(f"Failed request for tile, status: {response.status}")
+        except Exception as e:
+            print(f"Error for tile at {geometry_str}: {e}")
+
+        return defaultdict(int)
+
+    # await needed GeoSession
+    # for further computing
+    provider = GeoSessionProvider.get_or_create(municipality_name=municipality_name, tile_size=100, sampling_rate=1.0)
+    await provider.wait_until_ready()
+
+    # create an aiohttp session for all requests
+    async with aiohttp.ClientSession() as session:
+        # launch all tile construction
+        # period fetches concurrently
+        tasks = [_fetch_construction_periods(session, tile) for tile in provider.sampled_tiles]
+        sampled_periods = await asyncio.gather(*tasks)
+
+    # aggregate all partial results
+    aggregated_periods = reduce(
+        lambda res, e: {
+            **res,
+            e[0]: res.get(e[0], 0) +e[1]
+        },
+        reduce(lambda res, d: [*res, *d.items()], sampled_periods, []),
+        defaultdict(int)
+    )
+
+    return tuple(aggregated_periods.items())
 
 # expose all tools with
 # associated description
@@ -1022,4 +1114,17 @@ class SewageTreatmentPotentialTool(GeoDataTool):
             name="sewage_treatment_potential",
             layer_id="ch.bfe.fernwaerme-angebot",
             description="Returns the potential heating energy from the sewage treatment infrastructure in GWh/year for a given municipality. Useful for assessing the sewage treatment (STEP) potential at the municipal level that may be injected into thermal networks.",
+        )
+
+class BuildingsConstructionPeriodsTool(GeoDataTool):
+    def __init__(
+        self,
+        municipality_name: str,
+    ):
+        super().__init__(
+            municipality_name=municipality_name,
+            func=_fetch_building_construction_periods,
+            name="building_construction_periods",
+            layer_id="ch.bfs.gebaeude_wohnungs_register",
+            description="Returns the building construction periods for a given municipality. Each result is a tuple of (construction period, number of buildings). Useful for understanding the age distribution of buildings in the municipality.",
         )
