@@ -205,8 +205,6 @@ async def _fetch_small_hydro_potential(municipality_name: str, efficiency: float
     }
 
     try:
-        # retrieve and aggregate partial result
-        # of tile from retrieved roofs
         async with aiohttp.ClientSession() as session:
             async with session.get(url, params=params) as response:
                 if response.status == 200:
@@ -216,14 +214,15 @@ async def _fetch_small_hydro_potential(municipality_name: str, efficiency: float
                     # aggregate all features
                     for feature in data.get("results", []):
                         geometry = shape(feature.get("geometry"))
-                        props = feature.get("properties", {})
-                        kw_per_meter = float(props.get("kwprometer", 0))
 
                         # intersect and clip features
                         # to municipality geometry
                         if geometry.intersects(provider.geometry):
                             clipped = geometry.intersection(provider.geometry)
                             if not clipped.is_empty:
+                                props = feature.get("properties", {})
+                                kw_per_meter = float(props.get("kwprometer", 0))
+
                                 length = clipped.length
                                 potential_kw = length * kw_per_meter
 
@@ -236,6 +235,116 @@ async def _fetch_small_hydro_potential(municipality_name: str, efficiency: float
                     return (total_potential_GWh, efficiency)
                 else:
                     print(f"Could not retrieve small hydroelectricity data: {response.status}")
+    except Exception as e:
+        print(f"Error: {e}")
+
+    return 0, 0
+
+async def _fetch_big_hydro_potential(municipality_name: str) -> tuple[float, float]:
+    """Asynchronously fetches the big hydro heating/cooling potential for a given municipality.
+
+    Args:
+        municipality_name (str): The name of the municipality to estimate big hydro for.
+
+    Returns:
+        tuple[float, float]: A tuple containing the heating and cooling potential in GWh/year.
+    """
+    # await GeoSession geometry
+    # fetching for further computing ;
+    # as no tiling is needed, await
+    # most common GeoSession
+    provider = GeoSessionProvider.get_or_create(municipality_name=municipality_name, tile_size=100, sampling_rate=0.3)
+    await provider.wait_until_ready()
+
+    minx, miny, maxx, maxy = provider.geometry.bounds
+    geometry_str = f"{minx},{miny},{maxx},{maxy}"
+
+    url = "https://api3.geo.admin.ch/rest/services/api/MapServer/identify"
+    params = {
+        "geometry": geometry_str,
+        "geometryType": "esriGeometryEnvelope",
+        "layers": "all:ch.bfe.waermepotential-gewaesser",
+        "returnGeometry": "true",
+        "tolerance": "0",
+        "sr": 2056,
+        "geometryFormat": "geojson"
+    }
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, params=params) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    heating_potential = [] # GWh/year
+                    cooling_potential = [] # GWh/year
+
+                    # aggregate all features
+                    for feature in data.get("results", []):
+                        geometry = shape(feature.get("geometry"))
+
+                        # intersect and clip features
+                        # to municipality geometry
+                        if geometry.intersects(provider.geometry):
+                            clipped = geometry.intersection(provider.geometry)
+                            if not clipped.is_empty:
+                                props = feature.get("properties", {})
+                                heating = float(props.get("heat_extraction_gwha", 0))
+                                cooling = float(props.get("heat_disposal_gwha", 0))
+
+                                heating_potential.append(heating)
+                                cooling_potential.append(cooling)
+
+                    # aggregate
+                    heating_potential_GWh = sum(heating_potential) / len(heating_potential)
+                    cooling_potential_GWh = sum(cooling_potential) / len(cooling_potential)
+
+                    return (heating_potential_GWh, cooling_potential_GWh)
+                else:
+                    print(f"Could not retrieve big hydroelectricity data: {response.status}")
+    except Exception as e:
+        print(f"Error: {e}")
+
+    return 0, 0
+
+async def _fetch_available_biomass(municipality_name: str) -> tuple[float, float]:
+    """Asynchronously fetches the available biomass for a given municipality.
+
+    Args:
+        municipality_name (str): The name of the municipality to estimate the biomass for.
+
+    Returns:
+        tuple[float, float]: A tuple containing the available woody and non-woody biomass in GWh.
+    """
+    # await GeoSession SFSO number
+    provider = GeoSessionProvider.get_or_create(municipality_name=municipality_name, tile_size=100, sampling_rate=0.3)
+    await provider.wait_until_sfso_ready()
+
+    url = "https://api3.geo.admin.ch/rest/services/api/MapServer/find"
+    params = {
+        "layer": "ch.bfe.biomasse-nicht-verholzt",
+        "searchField": "bfs_nummer",
+        "searchText": provider.municipality_sfso_number,
+        "returnGeometry": "false",
+        "sr": 2056,
+    }
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, params=params) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    attributes = data.get("results", [])[0].get("attributes", [])
+
+                    woody_biomass = attributes.get("woody", 0) # TJ
+                    non_woody_biomass = attributes.get("non_woody", 0) # TJ
+
+                    # 1 kWh equiv. 3.6 MJ <=> 1 GWh equiv. 3.6 TJ
+                    woody_biomass_GWh = woody_biomass / 3.6
+                    non_woody_biomass_GWh = non_woody_biomass / 3.6
+
+                    return (woody_biomass_GWh, non_woody_biomass_GWh)
+                else:
+                    print(f"Could not available biomass: {response.status}")
     except Exception as e:
         print(f"Error: {e}")
 
@@ -347,4 +456,30 @@ class SmallHydroPotentialTool(GeoDataTool):
             name="small_hydro_potential",
             layer_id="ch.bfe.kleinwasserkraftpotentiale",
             description="Returns the potential of small hydroelectricity due to small hydro sources in the municipality in GWh/year and the efficiency used to compute it.",
+        )
+
+class LargeHydroPotentialTool(GeoDataTool):
+    def __init__(
+        self,
+        municipality_name: str,
+    ):
+        super().__init__(
+            municipality_name=municipality_name,
+            func=_fetch_big_hydro_potential,
+            name="large_hydro_potential",
+            layer_id="ch.bfe.waermepotential-gewaesser",
+            description="Returns the heating and cooling potential from large hydro sources (surface water) in the municipality in GWh/year. Useful for assessing renewable energy potential for heating and cooling at the municipal level.",
+        )
+
+class BiomassAvailabilityTool(GeoDataTool):
+    def __init__(
+        self,
+        municipality_name: str,
+    ):
+        super().__init__(
+            municipality_name=municipality_name,
+            func=_fetch_available_biomass,
+            name="available_biomass",
+            layer_id="ch.bfe.biomasse-nicht-verholzt",
+            description="Returns the available woody and non-woody biomass in GWh for a given municipality. Useful for assessing renewable energy potential from biomass at the municipal level.",
         )

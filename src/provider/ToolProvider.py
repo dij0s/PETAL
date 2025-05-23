@@ -107,6 +107,8 @@ def _potential_tools(municipality_name: str) -> dict[str, StructuredTool]:
             RoofingSolarPotentialAggregatorTool,
             FacadesSolarPotentialEstimatorTool,
             FacadesSolarPotentialAggregatorTool,
-            SmallHydroPotentialTool
+            SmallHydroPotentialTool,
+            LargeHydroPotentialTool,
+            BiomassAvailabilityTool
         ]
     }
