@@ -9,7 +9,7 @@ from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_core.vectorstores.base import VectorStore
 from langchain_ollama import OllamaEmbeddings
 
-from tool.geodata import SolarPotentialAggregatorTool, SolarPotentialEstimatorTool
+from tool.geodata import *
 
 class ToolProvider:
     """Provides a toolbox for the agents to use."""
@@ -101,9 +101,12 @@ def _potential_tools(municipality_name: str) -> dict[str, StructuredTool]:
     """
 
     return {
-        str(uuid.uuid4()): tool
+        str(uuid.uuid4()): tool.factory(municipality_name=municipality_name)
         for tool in [
-            SolarPotentialEstimatorTool(municipality_name),
-            SolarPotentialAggregatorTool(municipality_name)
+            RoofingSolarPotentialEstimatorTool,
+            RoofingSolarPotentialAggregatorTool,
+            FacadesSolarPotentialEstimatorTool,
+            FacadesSolarPotentialAggregatorTool,
+            SmallHydroPotentialTool
         ]
     }

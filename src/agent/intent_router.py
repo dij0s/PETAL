@@ -106,7 +106,7 @@ async def intent_router(state):
             updated_state[k] = new_v
 
     # explicitly set the flag for
-    # extra clarification if all fields
+    # extra clarification if any fields
     # except "needs_clarification" aren't set
     all_fields_set = all([
         v is not None
@@ -114,7 +114,6 @@ async def intent_router(state):
         if k != "needs_clarification"
     ])
     updated_state["needs_clarification"] = updated_state["needs_clarification"] or (not all_fields_set)
-    print(updated_state["needs_clarification"])
 
     # update graph state
     # not destructuring the messages
