@@ -17,7 +17,7 @@ class RouterOutput(BaseModel):
     #     default=None
     # )
     topic: Optional[str] = Field(description="The main topic of the user request, e.g. 'solar', 'biomass', 'heating', 'wind', if available.", default=None)
-    location: Optional[str] = Field(description="The location mentioned in the user request, if available (e.g. a municipality name)", default=None)
+    location: Optional[str] = Field(description="The location mentioned in the user request, if available (ONLY SUPPORTS THE municipality name)", default=None)
     needs_clarification: bool = Field(
         description=(
             "Set to True if, after considering both the current user input AND THE PREVIOUS CONVERSATION CONTEXT, the question is ambiguous or if the user's request cannot be confidently routed or answered without further information. Otherwise, set to False."

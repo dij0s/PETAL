@@ -104,6 +104,18 @@ async def intent_router(state):
         new_v = parsed_state.get(k, None)
         if (new_v is not None) and (new_v != v):
             updated_state[k] = new_v
+
+    # explicitly set the flag for
+    # extra clarification if all fields
+    # except "needs_clarification" aren't set
+    all_fields_set = all([
+        v is not None
+        for k, v in updated_state.items()
+        if k != "needs_clarification"
+    ])
+    updated_state["needs_clarification"] = updated_state["needs_clarification"] or (not all_fields_set)
+    print(updated_state["needs_clarification"])
+
     # update graph state
     # not destructuring the messages
     # using the dot notation on the
