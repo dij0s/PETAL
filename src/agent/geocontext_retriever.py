@@ -98,6 +98,7 @@ async def geocontext_retriever(state):
                     geocontext.context = {**geocontext.context, **tool_data}
 
                     return {
+                        **state.model_dump(),
                         "messages": state.messages + [AIMessage(content="Successfully retrieved data from tools...")],
                         "geocontext": geocontext
                     }
