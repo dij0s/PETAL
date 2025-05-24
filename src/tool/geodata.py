@@ -301,7 +301,15 @@ async def _fetch_big_hydro_potential(municipality_name: str) -> tuple[float, flo
                                 heating_potential.append(heating)
                                 cooling_potential.append(cooling)
 
-                    # aggregate
+                    # average over municipality
+                    # attention, this is very
+                    # difficult to properly exploit
+                    # as a single body of water
+                    # may be split into "sections"
+                    # with different estimate
+                    # as they are very rare in CH,
+                    # not a big issue to average
+                    # (Rhône and other smaller rivers)
                     heating_potential_GWh = sum(heating_potential) / len(heating_potential) if len(heating_potential) > 0 else 0.0
                     cooling_potential_GWh = sum(cooling_potential) / len(cooling_potential) if len(cooling_potential) > 0 else 0.0
 
@@ -683,11 +691,15 @@ async def _fetch_effective_infrastructure(municipality_name: str) -> tuple[float
 
     # aggregate all partial energies
     aggregated_energies = reduce(
-        lambda res, d: {
+        lambda res, d:
+        {
             **res,
-            **d
+            **{
+                k: res.get(k, 0) + v
+                for k, v in d.items()
+            }
         },
-        map(dict, sampled_energies),
+        sampled_energies,
         {}
     )
 
