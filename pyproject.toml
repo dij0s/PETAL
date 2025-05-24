@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "aiohttp>=3.11.18",
+    "fastapi[standard]>=0.115.12",
     "langchain-core>=0.3.60",
     "langchain-ollama>=0.3.3",
     "langgraph>=0.4.5",
@@ -13,6 +14,7 @@ dependencies = [
     "pytest>=8.3.5",
     "scipy>=1.15.3",
     "shapely>=2.1.1",
+    "sse-starlette>=2.3.5",
 ]
 
 [tool.pyright]
