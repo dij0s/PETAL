@@ -10,6 +10,7 @@ import numpy as np
 from scipy.stats import t
 
 from langchain_core.tools import StructuredTool
+from langgraph.config import get_stream_writer
 
 from typing import Callable, Any
 from functools import partial, reduce
@@ -1141,13 +1142,22 @@ class GeoDataTool(StructuredTool):
             # returns data with the name of the
             # tool that was invoked and extra
             # layer_id
-            async def wrapped_func(*args, **inner_kwargs) -> dict[str, tuple[str, Any]]:
+            async def wrapper(*args, **inner_kwargs) -> dict[str, tuple[str, Any]]:
+                # write custom events
+                # on custom tool call
+                writer = get_stream_writer()
+                clean_name = name.replace("_", " ")
+
+                writer({"type": "tool_call", "name": clean_name, "isFinished": False})
+                result = await func(*args, municipality_name=municipality_name, **inner_kwargs, **kwargs)
+                writer({"type": "tool_call", "name": clean_name, "isFinished": True})
+
                 return {
-                    name: (layer_id, await func(*args, municipality_name=municipality_name, **inner_kwargs, **kwargs))
+                    name: (layer_id, result)
                 }
 
             super().__init__(
-                coroutine=wrapped_func,
+                coroutine=wrapper,
                 name=name,
                 description=description,
                 args_schema=None,

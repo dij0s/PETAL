@@ -14,6 +14,7 @@ RUN ollama serve & sleep 5 ; ollama pull llama3.2:3b ; ollama pull nomic-embed-t
 # copy application code and dependency files
 WORKDIR /app
 COPY . /app
+RUN chmod +x start.sh
 
 # production stage
 FROM python:3.11-slim
@@ -34,5 +35,5 @@ COPY --from=builder /app /app
 # expose the port the server runs on
 EXPOSE 8000
 
-# run the application
-CMD ["uv", "run", "fastapi", "run", "src/server.py", "--port", "8000", "--host", "0.0.0.0"]
+# start the app
+CMD ["./start.sh"]

@@ -67,13 +67,14 @@ configuration: RunnableConfig = {
 
 async def stream_graph_generator(user_input: str) -> AsyncGenerator[str, None]:
     """Yield tokens one by one as strings for streaming."""
-    async for msg, metadata in graph.astream(
+    async for mode, chunk in graph.astream(
         {"messages": [HumanMessage(user_input)]},
         config=configuration,
-        stream_mode="messages"
+        stream_mode=["updates", "custom"]
     ):
-        if isinstance(msg, AIMessageChunk) and msg.content:
-            yield str(msg.content)
+        print(mode, chunk)
+        if isinstance(chunk, AIMessageChunk) and chunk.content:
+            yield str(chunk.content)
 
 async def stream_graph_updates(user_input: str, f: Callable[[str], None]):
     """Custom wrapper for tokens generator to print in CLI."""

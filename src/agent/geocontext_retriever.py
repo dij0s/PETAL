@@ -10,6 +10,7 @@ from langchain_core.messages import HumanMessage, AIMessage
 from langchain_core.tools.structured import StructuredTool
 from langchain_ollama import ChatOllama
 from langgraph.func import task
+from langgraph.config import get_stream_writer
 
 from modelling.PydanticStreamOutputParser import PydanticStreamOutputParser
 from modelling.structured_output import RouterOutput, GeoContextOutput
@@ -51,7 +52,7 @@ async def geocontext_retriever(state):
     Returns:
         dict: The updated conversation state with.
     """
-
+    writer = get_stream_writer()
     last_human_message = next(msg.content for msg in reversed(state.messages) if isinstance(msg, HumanMessage))
 
     geocontext: Optional[GeoContextOutput] = state.geocontext
@@ -64,10 +65,13 @@ async def geocontext_retriever(state):
         # geometry sessions and schemas
         # based on router location
         if router_state.location is not None:
+            # write custom event
+            writer({"type": "custom_message", "content": "Let's start the machine."})
             provider = GeoSessionProvider.get_or_create(router_state.location, 100, 0.3)
             GeoSessionProvider.get_or_create(router_state.location, 100, 1.0)
             GeoSessionProvider.get_or_create(router_state.location, 500, 1.0)
             GeoSessionProvider.get_or_create(router_state.location, 1000, 1.0)
+            writer({"type": "custom_message", "content": "Ok, that's done."})
 
             # await and fill context
             # with SFSO number of
@@ -77,14 +81,18 @@ async def geocontext_retriever(state):
 
             # instantiate toolbox at runtime
             # and retrieve relevant tools
+            writer({"type": "custom_message", "content": "Where's my toolbox, I need my tools."})
             toolbox: ToolProvider = ToolProvider(router_state.location)
             tools = toolbox.search(query=last_human_message)
+            writer({"type": "custom_message", "content": "I FOUND THEM!"})
 
             # prompt to select best available tools
             tools_bound_llm = llm.bind_tools(tools=tools)
             tools_description = '\n'.join([f"-{t.name}: {t.description}" for t in tools])
             prompt = tool_call_prompt.format(tools_list=tools_description, user_input=last_human_message)
+            writer({"type": "custom_message", "content": "Are these the right tools ?"})
             response = await tools_bound_llm.ainvoke(prompt)
+            writer({"type": "custom_message", "content": "OK, the user guide said to use those.."})
 
             # invoke chosen tools
             # and update context state

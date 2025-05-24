@@ -1,6 +1,7 @@
 from langchain_core.prompts import PromptTemplate
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_ollama import ChatOllama
+from langgraph.config import get_stream_writer
 
 from modelling.PydanticStreamOutputParser import PydanticStreamOutputParser
 from modelling.structured_output import RouterOutput
@@ -54,6 +55,7 @@ async def intent_router(state):
     Returns:
         dict: The updated conversation state with the 'router' field set to the latest RouterOutput.
     """
+    writer = get_stream_writer()
     # retrieve messages for prompt
     human_messages = [msg.content for msg in reversed(state.messages) if isinstance(msg, HumanMessage)]
     last_human_message = human_messages[0] if human_messages else ""
@@ -77,6 +79,8 @@ async def intent_router(state):
         user_input=last_human_message,
         other=last_ai_message
     )
+    # write custom event
+    writer({"type": "custom_message", "content": "Interpreting your request..."})
     # invoke llm on user prompt
     response = await llm.ainvoke(prompt)
     # parse response accordingly to
@@ -114,6 +118,7 @@ async def intent_router(state):
         if k != "needs_clarification"
     ])
     updated_state["needs_clarification"] = updated_state["needs_clarification"] or (not all_fields_set)
+    writer({"type": "custom_message", "content": "Got it." if not updated_state["needs_clarification"] else "Not too sure what to do."})
 
     # update graph state
     # not destructuring the messages
