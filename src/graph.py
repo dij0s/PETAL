@@ -66,7 +66,7 @@ configuration: RunnableConfig = {
 }
 
 async def stream_graph_generator(user_input: str) -> AsyncGenerator[str, None]:
-    """Yield tokens one by one as strings."""
+    """Yield tokens one by one as strings for streaming."""
     async for msg, metadata in graph.astream(
         {"messages": [HumanMessage(user_input)]},
         config=configuration,
@@ -76,5 +76,6 @@ async def stream_graph_generator(user_input: str) -> AsyncGenerator[str, None]:
             yield str(msg.content)
 
 async def stream_graph_updates(user_input: str, f: Callable[[str], None]):
+    """Custom wrapper for tokens generator to print in CLI."""
     async for token in stream_graph_generator(user_input):
         f(token)

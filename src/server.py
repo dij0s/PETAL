@@ -16,6 +16,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# use asyncio queue, instead ?
 session_store = {}
 
 class PromptRequest(BaseModel):
@@ -38,7 +39,6 @@ async def stream_tokens(request: Request, user_id: str):
             if await request.is_disconnected():
                 break
 
-            print(token)
             yield {"event": "token", "data": token}
         yield {"event": "end", "data": "[DONE]"}
 
