@@ -235,7 +235,7 @@ async def _fetch_small_hydro_potential(municipality_name: str, efficiency: float
                                 total_potential += potential_kw
 
                     # convert to GWh/year
-                    hours_per_year = 8760
+                    hours_per_year = 24 * 365
                     total_potential_GWh = total_potential * hours_per_year * efficiency / 1e6
 
                     return (total_potential_GWh, efficiency)
@@ -611,6 +611,15 @@ async def _fetch_effective_infrastructure(municipality_name: str) -> tuple[float
     Returns:
         tuple[float, float, float]: A tuple containing the effective photovoltaic, biomass and geothermal power in GWh/year.
     """
+    # estimated effective power
+    # per energy type to compute
+    # yearly yield
+    _effective_power_factor = {
+        "Photovoltaic": 0.35,
+        "Biomass" : 1.0,
+        "Geothermal energy": 1.0
+    }
+
     async def _fetch_infrastructure(session, tile) -> defaultdict:
         minx, miny, maxx, maxy = tile.bounds
         geometry_str = f"{minx},{miny},{maxx},{maxy}"
@@ -633,19 +642,23 @@ async def _fetch_effective_infrastructure(municipality_name: str) -> tuple[float
                 if response.status == 200:
                     data = await response.json()
 
-                    # only consider those
-                    # effective categories
                     productions = defaultdict(float) # kWh/year
-                    categories = ["Photovoltaic", "Biomass", "Geothermal energy"]
+                    hours_per_year = 24 * 365
 
                     # sum up the potential for all features
                     for result in data.get("results", []):
                         props = result.get("properties", {})
 
+                        # only consider those
+                        # effective categories
                         sub_category = props.get("sub_category_en", "")
-                        if sub_category in categories:
-                            total_power = float(props.get("total_power", "0")[:-2]) # kWh/year
-                            productions[sub_category] += total_power
+                        if sub_category in _effective_power_factor:
+                            total_power = float(props.get("total_power", "0")[:-2]) # kW
+                            effective_power = total_power * _effective_power_factor[sub_category] # kW
+
+                            total_energy = effective_power * hours_per_year # kWh/year
+
+                            productions[sub_category] += total_energy
 
                     return productions
                 else:
@@ -677,6 +690,7 @@ async def _fetch_effective_infrastructure(municipality_name: str) -> tuple[float
         {}
     )
 
+    # convert into GWh/year
     photovoltaic_energy_GWh = aggregated_energies.get("Photovoltaic", 0.0) / 1e6
     biomass_energy_GWh = aggregated_energies.get("Biomass", 0.0) / 1e6
     geothermal_energy_GWh = aggregated_energies.get("Geothermal energy", 0.0) / 1e6
