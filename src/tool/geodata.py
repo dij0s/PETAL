@@ -679,7 +679,7 @@ async def _fetch_effective_infrastructure(municipality_name: str) -> tuple[float
 
     # await needed GeoSession
     # for further computing
-    provider = GeoSessionProvider.get_or_create(municipality_name=municipality_name, tile_size=500, sampling_rate=1.0)
+    provider = GeoSessionProvider.get_or_create(municipality_name=municipality_name, tile_size=100, sampling_rate=1.0)
     await provider.wait_until_ready()
 
     # create an aiohttp session for all requests
