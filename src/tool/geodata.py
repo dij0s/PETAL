@@ -1494,5 +1494,5 @@ class EnergyNeedsTool(GeoDataTool):
             func=partial(_fetch_energy_needs, heuristic=lambda n_households: 3500.0 * n_households),
             name="energy_needs",
             layer_id="", # not defined as makes no sense to display the housing inventory layer
-            description="Returns the estimated energy needs for a given municipality in GWh/year. The energy needs are estimated using a heuristic based on the number of primary households. Useful for assessing the total energy demand at the municipal level when detailed consumption data is not available.",
+            description="Returns the estimated energy needs for a given municipality in GWh/year. The energy needs include electricity consumption for everyday tasks as well as heating. The energy needs are estimated using a heuristic based on the number of primary households. Useful for assessing the total energy demand at the municipal level when detailed consumption data is not available.",
         )

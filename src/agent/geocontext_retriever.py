@@ -82,11 +82,12 @@ async def geocontext_retriever(state):
             # await provider.wait_until_sfso_ready()
             # context.municipality_sfso_number = provider.municipality_sfso_number
 
-            # instantiate toolbox at runtime
+            # create or get the singleton
+            # tools provider instance
             # and retrieve relevant tools
             writer({"type": "custom_message", "content": "Where's my toolbox, I need my tools."})
-            toolbox: ToolProvider = ToolProvider(router_state.location)
-            tools = toolbox.search(query=router_state.aggregated_query)
+            toolbox: ToolProvider = await ToolProvider.acreate(router_state.location)
+            tools = await toolbox.asearch(query=router_state.aggregated_query, k=4)
             writer({"type": "custom_message", "content": "I FOUND THEM!"})
 
             # prompt to select best available tools

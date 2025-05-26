@@ -14,20 +14,33 @@ from tool.geodata import *
 class ToolProvider:
     """Provides a toolbox for the agents to use."""
 
-    def __init__(self, municipality_name: str) -> None:
-        """
-        Initialize the ToolProvider.
+    _instances: dict[str, "ToolProvider"] = {}
+    _locks: dict[str, asyncio.Lock] = {}
 
-        Args:
-            municipality_name (str): The name of the municipality for which tools are provided.
-        """
+    def __init__(self, *args, **kwargs):
+        raise RuntimeError("Use ToolProvider.acreate(municipality_name) to instantiate.")
+
+    @classmethod
+    async def acreate(cls, municipality_name: str) -> "ToolProvider":
+        # singleton logic
+        if municipality_name not in cls._instances:
+            if municipality_name not in cls._locks:
+                cls._locks[municipality_name] = asyncio.Lock()
+            async with cls._locks[municipality_name]:
+                if municipality_name not in cls._instances:
+                    # create a new instance
+                    # if no such one
+                    self = object.__new__(cls)
+                    await self._ainit(municipality_name)
+                    cls._instances[municipality_name] = self
+        return cls._instances[municipality_name]
+
+    async def _ainit(self, municipality_name: str):
         tool_registry: dict[str, dict[str, StructuredTool]] = {
             "potential": _potential_tools(municipality_name)
         }
-        self._build_vector_store(tool_registry)
+        await self._build_vector_store(tool_registry)
         # store flattened tool registry
-        # indexed by ID to allow further
-        # retrieval of the tool
         self._tool_registry: dict[str, StructuredTool] = {
             tool_id: tool
             for category_tools in tool_registry.values()
@@ -39,7 +52,7 @@ class ToolProvider:
             for _, tool in category_tools.items()
         }
 
-    def _build_vector_store(self, tool_registry: dict[str, dict[str, StructuredTool]]) -> None:
+    async def _build_vector_store(self, tool_registry: dict[str, dict[str, StructuredTool]]) -> None:
         # instantiate and populate
         # vector store from tools
         self._vector_store = InMemoryVectorStore(embedding=OllamaEmbeddings(model="nomic-embed-text:v1.5"))
@@ -58,7 +71,7 @@ class ToolProvider:
             for category, tools in tool_registry.items()
             for id, tool in tools.items()
         ]
-        self._vector_store.add_documents(documents)
+        await self._vector_store.aadd_documents(documents)
 
     def get(self, name: str) -> Optional[StructuredTool]:
         """
@@ -72,20 +85,22 @@ class ToolProvider:
         """
         return self._tool_registry_by_name.get(name, None)
 
-    def search(self, query: str, filter: Optional[Callable[[Document], bool]] = None) -> list[StructuredTool]:
+    async def asearch(self, query: str, k: int = 4, filter: Optional[Callable[[Document], bool]] = None) -> list[StructuredTool]:
         """
         Search for a StructuredTool matching the query and filter.
 
         Args:
             query (str): The search query string.
+            k (int): The number of tools to retrieve.
             filter (Callable[[Document], bool]): A callable that takes a Document and returns True if it matches the filter criteria. By default, assigned to None.
 
         Returns:
             list[StructuredTool]: A list of releveant StructuredTool matching the query and filter. No filtering by default.
         """
+        docs = await self._vector_store.asimilarity_search(query=query, k=k, filter=filter)
         return [
             self._tool_registry[doc.id]
-            for doc in self._vector_store.similarity_search(query=query, filter=filter)
+            for doc in docs
             if doc.id is not None
         ]
 
