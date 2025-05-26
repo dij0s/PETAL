@@ -60,7 +60,9 @@ async def intent_router(state):
     human_messages = [msg.content for msg in reversed(state.messages) if isinstance(msg, HumanMessage)]
     last_human_message = human_messages[0] if human_messages else ""
     previous_human_message = human_messages[1] if len(human_messages) > 1 else ""
-
+    # retrieve last AI message to
+    # assess the context to which
+    # the user replied
     ai_messages = [msg.content for msg in reversed(state.messages) if isinstance(msg, AIMessage)]
     last_ai_message = ai_messages[0] if ai_messages else ""
 

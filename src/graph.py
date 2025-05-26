@@ -72,7 +72,8 @@ async def stream_graph_generator(user_input: str) -> AsyncGenerator[str, None]:
         config=configuration,
         stream_mode=["updates", "custom"]
     ):
-        print(mode, chunk)
+        if mode == "updates":
+            print(mode, chunk)
         if isinstance(chunk, AIMessageChunk) and chunk.content:
             yield str(chunk.content)
 

@@ -29,7 +29,7 @@ tool_call_prompt = PromptTemplate.from_template("""
     They will retrieve for you the data needed to answer the user input.
     They DON'T HAVE ANY ARGUMENTS, you can call them STRAIGHT AWAY.
 
-    User input: "{user_input}"
+    User input: "{aggregated_query}"
 """)
 
 llm = ChatOllama(model="llama3.2:3b", temperature=0)
@@ -53,7 +53,6 @@ async def geocontext_retriever(state):
         dict: The updated conversation state with.
     """
     writer = get_stream_writer()
-    last_human_message = next(msg.content for msg in reversed(state.messages) if isinstance(msg, HumanMessage))
 
     geocontext: Optional[GeoContextOutput] = state.geocontext
     if geocontext is None:
@@ -64,7 +63,11 @@ async def geocontext_retriever(state):
         # instantiate potentially needed
         # geometry sessions and schemas
         # based on router location
-        if router_state.location is not None:
+        # also check that aggregated query
+        # is set for type safety but, logically
+        # speaking, it is set if we are inside
+        # the current node
+        if router_state.location is not None and router_state.aggregated_query is not None:
             # write custom event
             writer({"type": "custom_message", "content": "Let's start the machine."})
             provider = GeoSessionProvider.get_or_create(router_state.location, 100, 0.3)
@@ -83,20 +86,21 @@ async def geocontext_retriever(state):
             # and retrieve relevant tools
             writer({"type": "custom_message", "content": "Where's my toolbox, I need my tools."})
             toolbox: ToolProvider = ToolProvider(router_state.location)
-            tools = toolbox.search(query=last_human_message)
+            tools = toolbox.search(query=router_state.aggregated_query)
             writer({"type": "custom_message", "content": "I FOUND THEM!"})
 
             # prompt to select best available tools
             tools_bound_llm = llm.bind_tools(tools=tools)
             tools_description = '\n'.join([f"-{t.name}: {t.description}" for t in tools])
-            prompt = tool_call_prompt.format(tools_list=tools_description, user_input=last_human_message)
+            prompt = tool_call_prompt.format(tools_list=tools_description, aggregated_query=router_state.aggregated_query)
             writer({"type": "custom_message", "content": "Are these the right tools ?"})
             response = await tools_bound_llm.ainvoke(prompt)
             writer({"type": "custom_message", "content": "OK, the user guide said to use those.."})
 
             # invoke chosen tools
             # and update context state
-            if hasattr(response, "tool_calls"):
+            if isinstance(response, AIMessage) and hasattr(response, "tool_calls"):
+                # retrieve tools by name
                 tools_to_invoke = [
                     toolbox.get(tool["name"])
                     for tool in response.tool_calls
