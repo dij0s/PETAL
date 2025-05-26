@@ -27,9 +27,11 @@ tool_call_prompt = PromptTemplate.from_template("""
 
     In response to the user's input, you can select and execute any number of tools from the available set.
     They will retrieve for you the data needed to answer the user input.
-    They DON'T HAVE ANY ARGUMENTS, you can call them STRAIGHT AWAY.
+    The aggregated query summarizes what the user is requesting in a concise manner,
 
-    User input: "{aggregated_query}"
+    User input: "{user_input}"
+
+    Aggregated query: "{aggregated_query}"
 """)
 
 llm = ChatOllama(model="llama3.2:3b", temperature=0)
@@ -53,6 +55,8 @@ async def geocontext_retriever(state):
         dict: The updated conversation state with.
     """
     writer = get_stream_writer()
+
+    last_human_message = next(msg.content for msg in state.messages if isinstance(msg, HumanMessage))
 
     geocontext: Optional[GeoContextOutput] = state.geocontext
     if geocontext is None:
@@ -93,7 +97,7 @@ async def geocontext_retriever(state):
             # prompt to select best available tools
             tools_bound_llm = llm.bind_tools(tools=tools)
             tools_description = '\n'.join([f"-{t.name}: {t.description}" for t in tools])
-            prompt = tool_call_prompt.format(tools_list=tools_description, aggregated_query=router_state.aggregated_query)
+            prompt = tool_call_prompt.format(tools_list=tools_description, user_input=last_human_message, aggregated_query=router_state.aggregated_query)
             writer({"type": "custom_message", "content": "Are these the right tools ?"})
             response = await tools_bound_llm.ainvoke(prompt)
             writer({"type": "custom_message", "content": "OK, the user guide said to use those.."})

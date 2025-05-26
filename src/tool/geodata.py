@@ -1042,7 +1042,9 @@ async def _fetch_heating_cooling_needs_households(municipality_name: str) -> flo
                             factor = clipped.area / geometry.area
 
                             props = feature.get("properties", {})
-                            needs = float(props.get("needtotal", 0)) * factor # MWh/year
+                            # only consider households needs
+                            # and not commercial buildings
+                            needs = float(props.get("needhome", 0)) * factor # MWh/year
 
                             total_needs += needs
 
@@ -1069,7 +1071,7 @@ async def _fetch_heating_cooling_needs_households(municipality_name: str) -> flo
         sampled_needs = await asyncio.gather(*tasks)
 
     # aggregate all partial results
-    total_needs = sum(sampled_needs) # GWh
+    total_needs = sum(sampled_needs) # GWh/year
 
     return total_needs
 
@@ -1494,5 +1496,5 @@ class EnergyNeedsTool(GeoDataTool):
             func=partial(_fetch_energy_needs, heuristic=lambda n_households: 3500.0 * n_households),
             name="energy_needs",
             layer_id="", # not defined as makes no sense to display the housing inventory layer
-            description="Returns the estimated energy needs for a given municipality in GWh/year. The energy needs include electricity consumption for everyday tasks as well as heating. The energy needs are estimated using a heuristic based on the number of primary households. Useful for assessing the total energy demand at the municipal level when detailed consumption data is not available.",
+            description="Returns the estimated energy needs for a given municipality in GWh/year. The energy needs are estimated using a heuristic based on the number of primary households. Useful for assessing the total energy demand at the municipal level when detailed consumption data is not available.",
         )

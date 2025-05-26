@@ -21,7 +21,6 @@ Keep the answer short and address the user in a friendly, non-robotic way.
 """)
 
 async def clarify_query(state):
-    writer = get_stream_writer()
     """
     Creates a clarification message to ask the user for more information.
 
@@ -34,6 +33,7 @@ async def clarify_query(state):
     Returns:
         A dictionary with updated messages including the clarification
     """
+    writer = get_stream_writer()
     last_human_message = next(msg.content for msg in state.messages if isinstance(msg, HumanMessage))
 
     missing_attributes = reduce_missing_attributes(state.router)
