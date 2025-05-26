@@ -17,6 +17,8 @@ class ToolProvider:
     _instances: dict[str, "ToolProvider"] = {}
     _locks: dict[str, asyncio.Lock] = {}
 
+    _last_retrieved_tools: list[StructuredTool] = []
+
     def __init__(self, *args, **kwargs):
         raise RuntimeError("Use ToolProvider.acreate(municipality_name) to instantiate.")
 
@@ -85,6 +87,18 @@ class ToolProvider:
         """
         return self._tool_registry_by_name.get(name, None)
 
+    def get_last_retrieved_tools(self) -> Optional[list[StructuredTool]]:
+        """
+        Get the last retrieve tools.
+
+        Args:
+            None
+
+        Returns:
+            Optional[list[StructuredTools]]: A list of the last retrieved tools or None.
+        """
+        return self._last_retrieved_tools if len(self._last_retrieved_tools) > 0 else None
+
     async def asearch(self, query: str, k: int = 4, filter: Optional[Callable[[Document], bool]] = None) -> list[StructuredTool]:
         """
         Search for a StructuredTool matching the query and filter.
@@ -98,11 +112,15 @@ class ToolProvider:
             list[StructuredTool]: A list of releveant StructuredTool matching the query and filter. No filtering by default.
         """
         docs = await self._vector_store.asimilarity_search(query=query, k=k, filter=filter)
-        return [
+        # store last retrieved tools to
+        # easily direct the user into
+        # similar data to what is requested
+        self._last_retrieved_tools = [
             self._tool_registry[doc.id]
             for doc in docs
             if doc.id is not None
         ]
+        return self._last_retrieved_tools
 
 def _potential_tools(municipality_name: str) -> dict[str, StructuredTool]:
     """

@@ -1,9 +1,11 @@
 from langchain_core.prompts import PromptTemplate
 from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.tools.structured import StructuredTool
 from langchain_ollama import ChatOllama
 
-from modelling.utils import reduce_missing_attributes
 from provider.ToolProvider import ToolProvider
+
+from functools import reduce
 
 llm = ChatOllama(model="llama3.2:3b", temperature=0.8)
 
@@ -19,12 +21,15 @@ It is reported in this format :
     ...
 
 Gathered available data for {location}:
-    {tool_description_data}
+    {tool_data}
 
 User request: "{aggregated_query}"
 
-Respond to the user's request by utilizing the provided data in a relevant manner. You may round down decimal values if needed BUT DON'T MODIFY THE UNITS.
-Be friendly and offer one specific way you can assist the user, making sure your suggestion directly relates to their request.
+Respond to the user's request by utilizing the provided data in a relevant manner. YOU MUST ROUND DOWN DECIMAL VALUES TO A MAXIMUM OF 2 DIGITS BUT DON'T MODIFY THE UNITS.
+
+Offer one specific way you can assist the user, making sure your suggestion directly relates to their request. You can easily retrieve the following data. DO NOT REVEAL THE FUNCTION NAME OR ANYTHING. Just use the description to guide you :
+
+{available_tools}
 """)
 
 async def generate_answer(state):
@@ -41,11 +46,28 @@ async def generate_answer(state):
     # aggregated data using tools
     toolbox: ToolProvider = await ToolProvider.acreate(state.router.location)
 
-    tool_description_data = "\n".join([
-        f"['description': {toolbox.get(k).description}, 'value': {v[1]}]"
-        for k, v in state.geocontext.context.items()
-    ])
-    prompt = answer_prompt.format(location=state.router.location, tool_description_data=tool_description_data, aggregated_query=state.router.aggregated_query)
+    tool_data, tool_layers = reduce(
+        lambda res, d: (
+            res[0] + f"['description': {toolbox.get(d[0]).description}, 'value': {d[1][1]}]" + "\n",
+            res[1] + [d[1][0]]
+        ),
+        state.geocontext.context.items(),
+        ("", [])
+    )
+
+    # retrieve similar tools
+    # to add them to the prompt
+    # and lead conversation to
+    # similar/related datasources
+    tools = toolbox.get_last_retrieved_tools()
+    available_tools = "\n".join([f"- {tool.name}: {tool.description}" for tool in tools]) if tools else None
+
+    prompt = answer_prompt.format(
+        location=state.router.location,
+        tool_data=tool_data,
+        aggregated_query=state.router.aggregated_query,
+        available_tools=available_tools
+    )
 
     response = await llm.ainvoke(prompt)
     return {
