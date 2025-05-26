@@ -1,3 +1,3 @@
 ### Requirements
-NVIDIA Container Toolkit
+Ollama
 Docker

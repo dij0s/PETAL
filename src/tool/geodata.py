@@ -1,4 +1,4 @@
-"""Exposes tools to query GeoContex-related data."""
+"""Exposes tools to query GeoContext-related data."""
 
 import aiohttp
 import asyncio
@@ -45,7 +45,8 @@ async def _fetch_solar_potential_roofing(municipality_name: str, confidence_leve
         try:
             # retrieve and aggregate partial result
             # of tile from retrieved roofs
-            async with session.get(identify_url, params=params) as response:
+            headers = {"Referer": "dion.osmani@students.hevs.ch"}
+            async with session.get(identify_url, params=params, headers=headers) as response:
                 if response.status == 200:
                     data = await response.json()
                     tile_potential = 0  # kWh/year
@@ -128,7 +129,8 @@ async def _fetch_solar_potential_facades(municipality_name: str, confidence_leve
         try:
             # retrieve and aggregate partial result
             # of tile from retrieved roofs
-            async with session.get(identify_url, params=params) as response:
+            headers = {"Referer": "dion.osmani@students.hevs.ch"}
+            async with session.get(identify_url, params=params, headers=headers) as response:
                 if response.status == 200:
                     data = await response.json()
                     tile_potential = 0  # kWh/year
@@ -212,8 +214,9 @@ async def _fetch_small_hydro_potential(municipality_name: str, efficiency: float
     }
 
     try:
+        headers = {"Referer": "dion.osmani@students.hevs.ch"}
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, params=params) as response:
+            async with session.get(url, params=params, headers=headers) as response:
                 if response.status == 200:
                     data = await response.json()
                     total_potential = 0  # kWh
@@ -278,8 +281,9 @@ async def _fetch_big_hydro_potential(municipality_name: str) -> tuple[float, flo
     }
 
     try:
+        headers = {"Referer": "dion.osmani@students.hevs.ch"}
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, params=params) as response:
+            async with session.get(url, params=params, headers=headers) as response:
                 if response.status == 200:
                     data = await response.json()
                     heating_potential = [] # GWh/year
@@ -342,10 +346,10 @@ async def _fetch_available_biomass(municipality_name: str) -> tuple[float, float
         "returnGeometry": "false",
         "sr": 2056,
     }
-
     try:
+        headers = {"Referer": "dion.osmani@students.hevs.ch"}
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, params=params) as response:
+            async with session.get(url, params=params, headers=headers) as response:
                 if response.status == 200:
                     data = await response.json()
                     attributes = data.get("results", [])[0].get("attributes", [])
@@ -396,8 +400,9 @@ async def _fetch_hydropower_infrastructure(municipality_name: str) -> float:
     }
 
     try:
+        headers = {"Referer": "dion.osmani@students.hevs.ch"}
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, params=params) as response:
+            async with session.get(url, params=params, headers=headers) as response:
                 if response.status == 200:
                     data = await response.json()
                     total_production = 0 # GWh/year
@@ -453,8 +458,9 @@ async def _fetch_wind_turbines_infrastructure(municipality_name: str) -> float:
     }
 
     try:
+        headers = {"Referer": "dion.osmani@students.hevs.ch"}
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, params=params) as response:
+            async with session.get(url, params=params, headers=headers) as response:
                 if response.status == 200:
                     data = await response.json()
                     total_production = 0 # kWh/year
@@ -516,8 +522,9 @@ async def _fetch_biogas_infrastructure(municipality_name: str) -> float:
     }
 
     try:
+        headers = {"Referer": "dion.osmani@students.hevs.ch"}
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, params=params) as response:
+            async with session.get(url, params=params, headers=headers) as response:
                 if response.status == 200:
                     data = await response.json()
                     total_production = 0 # kWh/year
@@ -578,8 +585,9 @@ async def _fetch_incineration_infrastructure(municipality_name: str) -> tuple[fl
     }
 
     try:
+        headers = {"Referer": "dion.osmani@students.hevs.ch"}
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, params=params) as response:
+            async with session.get(url, params=params, headers=headers) as response:
                 if response.status == 200:
                     data = await response.json()
                     total_electricity_production = 0 # MWh/year
@@ -647,7 +655,8 @@ async def _fetch_effective_infrastructure(municipality_name: str) -> tuple[float
         try:
             # retrieve and aggregate partial
             # results from every single tile
-            async with session.get(identify_url, params=params) as response:
+            headers = {"Referer": "dion.osmani@students.hevs.ch"}
+            async with session.get(identify_url, params=params, headers=headers) as response:
                 if response.status == 200:
                     data = await response.json()
 
@@ -741,8 +750,9 @@ async def _fetch_thermal_networks_infrastructure(municipality_name: str) -> floa
     }
 
     try:
+        headers = {"Referer": "dion.osmani@students.hevs.ch"}
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, params=params) as response:
+            async with session.get(url, params=params, headers=headers) as response:
                 if response.status == 200:
                     data = await response.json()
                     total_energy = 0 # MWh/year
@@ -802,8 +812,9 @@ async def _fetch_sewage_treatment_potential(municipality_name: str) -> float:
     }
 
     try:
+        headers = {"Referer": "dion.osmani@students.hevs.ch"}
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, params=params) as response:
+            async with session.get(url, params=params, headers=headers) as response:
                 if response.status == 200:
                     data = await response.json()
                     total_potential = 0 # MWh/year
@@ -876,7 +887,8 @@ async def _fetch_building_construction_periods(municipality_name: str) -> tuple[
         try:
             # retrieve and aggregate partial
             # results from every single tile
-            async with session.get(identify_url, params=params) as response:
+            headers = {"Referer": "dion.osmani@students.hevs.ch"}
+            async with session.get(identify_url, params=params, headers=headers) as response:
                 if response.status == 200:
                     data = await response.json()
 
@@ -954,8 +966,9 @@ async def _fetch_heating_cooling_needs_industry(municipality_name: str) -> float
     }
 
     try:
+        headers = {"Referer": "dion.osmani@students.hevs.ch"}
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, params=params) as response:
+            async with session.get(url, params=params, headers=headers) as response:
                 if response.status == 200:
                     data = await response.json()
                     total_needs = 0 # MWh/year
@@ -1014,7 +1027,8 @@ async def _fetch_heating_cooling_needs_households(municipality_name: str) -> flo
         try:
             # retrieve and aggregate partial
             # results from every single tile
-            async with session.get(identify_url, params=params) as response:
+            headers = {"Referer": "dion.osmani@students.hevs.ch"}
+            async with session.get(identify_url, params=params, headers=headers) as response:
                 if response.status == 200:
                     data = await response.json()
                     total_needs = 0 # MWh/year
@@ -1086,7 +1100,8 @@ async def _fetch_building_emissions_energy_source(municipality_name: str) -> tup
         try:
             # retrieve and aggregate partial
             # results from every single tile
-            async with session.get(identify_url, params=params) as response:
+            headers = {"Referer": "dion.osmani@students.hevs.ch"}
+            async with session.get(identify_url, params=params, headers=headers) as response:
                 if response.status == 200:
                     data = await response.json()
 

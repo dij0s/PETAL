@@ -137,6 +137,7 @@ class GeoSessionProvider:
         current_year = datetime.now().year
 
         try:
+            headers = {"Referer": "dion.osmani@students.hevs.ch"}
             async with aiohttp.ClientSession() as session:
                 # find municipality feature
                 search_url = "https://api3.geo.admin.ch/rest/services/api/SearchServer"
@@ -148,7 +149,7 @@ class GeoSessionProvider:
                     "sr": "2056"
                 }
 
-                async with session.get(search_url, params=search_params) as response:
+                async with session.get(search_url, params=search_params, headers=headers) as response:
                     if response.status != 200:
                         print(f"SearchServer request failed: {response.status}")
                         return False
@@ -188,7 +189,7 @@ class GeoSessionProvider:
                         "geometryFormat": "geojson"
                     }
 
-                    async with session.get(detail_url, params=detail_params) as detail_response:
+                    async with session.get(detail_url, params=detail_params, headers=headers) as detail_response:
                         if detail_response.status != 200:
                             print(f"Failed to retrieve detailed geometry: {detail_response.status}")
                             return False
@@ -230,6 +231,7 @@ class GeoSessionProvider:
             bounding_box = self.geometry.bounds
             geometry_bounding_box = f"{bounding_box[0]},{bounding_box[1]},{bounding_box[2]},{bounding_box[3]}"
 
+            headers = {"Referer": "dion.osmani@students.hevs.ch"}
             async with aiohttp.ClientSession() as session:
                 # identify unvalid areas inside
                 # the municipality bouding box
@@ -243,7 +245,7 @@ class GeoSessionProvider:
                     "sr": "2056"
                 }
 
-                async with session.get(url, params=params) as response:
+                async with session.get(url, params=params, headers=headers) as response:
                     if response.status != 200:
                         print(f"identify api request failed: {response.status}")
                         return False
