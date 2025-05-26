@@ -1153,6 +1153,51 @@ async def _fetch_building_emissions_energy_source(municipality_name: str) -> tup
         ({}, {})
     )
 
+async def _fetch_energy_needs(municipality_name: str, heuristic: Callable[[int], float] = lambda n: 3500 * n) -> float:
+    """Asynchronously fetches the energy needs for a given municipality.
+
+    The energy needs are estimated using an argument-given heuristic as it is not publicly available data.
+
+    Args:
+        municipality_name (str): The name of the municipality to estimate the biomass for.
+        heuristic (Callable[[int], float]): The function used to estimate the energy needs based oon the number of primary households. By default, estimated to be 3500 kWh/year, per household.
+
+    Returns:
+        float: The estimated energy needs for the municipality in GWh/year.
+    """
+    # await GeoSession SFSO number
+    provider = GeoSessionProvider.get_or_create(municipality_name=municipality_name, tile_size=100, sampling_rate=0.3)
+    await provider.wait_until_sfso_ready()
+
+    url = "https://api3.geo.admin.ch/rest/services/api/MapServer/find"
+    params = {
+        "layer": "ch.are.wohnungsinventar-zweitwohnungsanteil",
+        "searchField": "gemeinde_nummer",
+        "searchText": provider.municipality_sfso_number,
+        "returnGeometry": "false",
+        "sr": 2056,
+    }
+    try:
+        headers = {"Referer": "dion.osmani@students.hevs.ch"}
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, params=params, headers=headers) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    attributes = data.get("results", [])[0].get("attributes", [])
+                    # secondary households aren't considered
+                    primary_households = attributes.get("zwg_3010", 0)
+                    estimated_needs = heuristic(primary_households) # kWh/year
+
+                    estimated_needs_GWh = estimated_needs / 1e6
+
+                    return estimated_needs_GWh
+                else:
+                    print(f"Could not estimate electricity needs: {response.status}")
+    except Exception as e:
+        print(f"Error: {e}")
+
+    return 0
+
 # expose all tools with
 # associated description
 class GeoDataTool(StructuredTool):
@@ -1437,4 +1482,17 @@ class BuildingsEmissionEnergySourcesTool(GeoDataTool):
             name="buildings_emission_energy_source",
             layer_id="ch.bafu.klima-co2_ausstoss_gebaeude",
             description="Returns the emissions and energy sources of buildings in a given municipality. The first dict maps from CO2 emissions range (in kg/m²) to the number of buildings, and the second dict maps from energy source to the number of buildings. Useful for assessing the climate impact and energy source distribution of buildings at the municipal level.",
+        )
+
+class EnergyNeedsTool(GeoDataTool):
+    def __init__(
+        self,
+        municipality_name: str,
+    ):
+        super().__init__(
+            municipality_name=municipality_name,
+            func=partial(_fetch_energy_needs, heuristic=lambda n_households: 3500.0 * n_households),
+            name="energy_needs",
+            layer_id="", # not defined as makes no sense to display the housing inventory layer
+            description="Returns the estimated energy needs for a given municipality in GWh/year. The energy needs are estimated using a heuristic based on the number of primary households. Useful for assessing the total energy demand at the municipal level when detailed consumption data is not available.",
         )
