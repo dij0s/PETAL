@@ -89,7 +89,7 @@ async def geocontext_retriever(state):
             # create or get the singleton
             # tools provider instance
             # and retrieve relevant tools
-            writer({"type": "log", "content": "Where's my toolbox, I need my tools."})
+            writer({"type": "info", "content": "Retrieving tools..."})
             toolbox: ToolProvider = await ToolProvider.acreate(router_state.location)
             tools = await toolbox.asearch(query=router_state.aggregated_query, k=4)
             writer({"type": "log", "content": "I FOUND THEM!"})
@@ -100,7 +100,6 @@ async def geocontext_retriever(state):
             prompt = tool_call_prompt.format(tools_list=tools_description, user_input=last_human_message, aggregated_query=router_state.aggregated_query)
             writer({"type": "log", "content": "Are these the right tools ?"})
             response = await tools_bound_llm.ainvoke(prompt)
-            writer({"type": "info", "content": "Fetching data from retrieved tools..."})
 
             # invoke chosen tools
             # and update context state
@@ -111,6 +110,7 @@ async def geocontext_retriever(state):
                     for tool in response.tool_calls
                 ]
                 if not any([tool is None for tool in tools_to_invoke]):
+                    writer({"type": "info", "content": "Fetching data from retrieved tools..."})
                     tool_data = await _ainvoke_tools(tools_to_invoke)
                     geocontext.context = {**geocontext.context, **tool_data}
 

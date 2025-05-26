@@ -68,6 +68,7 @@ async def generate_answer(state):
     # related_tools_data = "\n".join([f"- {tool.name}: {tool.description}" for tool in tools]) if tools else None
     related_tools_data = "\n".join([f"- {tool.name.replace('_', ' ')}" for tool in tools]) if tools else None
 
+    writer({"type": "info", "content": "Organizing the information."})
     prompt = answer_prompt.format(
         location=state.router.location,
         tool_data=tool_data,
@@ -81,8 +82,10 @@ async def generate_answer(state):
     # current's municipality's
     # bounding box
     if len(layers) > 0:
+        await provider.wait_until_sfso_ready()
+        print(layers)
         writer({"type": "layers", "layers": layers})
-        writer({"type": "bbox", "bbox": provider.geometry.bounds})
+        writer({"type": "sfso_number", "sfso_number": provider.municipality_sfso_number})
 
     return {
         **state.model_dump(),

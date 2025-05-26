@@ -1339,7 +1339,8 @@ class BiomassAvailabilityTool(GeoDataTool):
             municipality_name=municipality_name,
             func=_fetch_available_biomass,
             name="available_biomass",
-            layer_id="ch.bfe.biomasse-nicht-verholzt",
+            # layer_id="ch.bfe.biomasse-nicht-verholzt",
+            layer_id="",
             description="Returns the available woody and non-woody biomass in GWh for a given municipality. Useful for assessing renewable energy potential from biomass at the municipal level.",
         )
 

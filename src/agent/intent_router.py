@@ -120,7 +120,8 @@ async def intent_router(state):
         if k != "needs_clarification"
     ])
     updated_state["needs_clarification"] = updated_state["needs_clarification"] or (not all_fields_set)
-    writer({"type": "log", "content": "Got it." if not updated_state["needs_clarification"] else "Not too sure what to do."})
+    if not updated_state["needs_clarification"]:
+        writer({"type": "info", "content": "Got it!"})
 
     # update graph state
     # not destructuring the messages
