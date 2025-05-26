@@ -25,7 +25,7 @@ Gathered available data for {location}:
 
 User request: "{aggregated_query}"
 
-Respond to the user's request by utilizing the provided data in a relevant manner. YOU MUST ROUND DOWN DECIMAL VALUES TO A MAXIMUM OF 2 DIGITS BUT DON'T MODIFY THE UNITS.
+Respond to the user's request in a friendly manner by utilizing the provided data in a relevant manner. YOU MUST ROUND DOWN DECIMAL VALUES TO A MAXIMUM OF 2 DIGITS BUT DON'T MODIFY THE UNITS.
 
 Offer one specific way you can assist the user, making sure your suggestion directly relates to their request. You can easily retrieve the following data. DO NOT REVEAL THE FUNCTION NAME OR ANYTHING. Just use the description to guide you :
 

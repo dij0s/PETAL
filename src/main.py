@@ -6,7 +6,7 @@ async def main():
     """CLI for interacting with the graph via user input."""
 
     def process_chunk(msg):
-        print(msg, end="", flush=True)
+        print(msg, end="\n", flush=True)
 
     while True:
         try:

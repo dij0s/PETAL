@@ -82,7 +82,7 @@ async def intent_router(state):
         other=last_ai_message
     )
     # write custom event
-    writer({"type": "custom_message", "content": "Interpreting your request..."})
+    writer({"type": "info", "content": "Interpreting your request..."})
     # invoke llm on user prompt
     response = await llm.ainvoke(prompt)
     # parse response accordingly to
@@ -120,7 +120,7 @@ async def intent_router(state):
         if k != "needs_clarification"
     ])
     updated_state["needs_clarification"] = updated_state["needs_clarification"] or (not all_fields_set)
-    writer({"type": "custom_message", "content": "Got it." if not updated_state["needs_clarification"] else "Not too sure what to do."})
+    writer({"type": "log", "content": "Got it." if not updated_state["needs_clarification"] else "Not too sure what to do."})
 
     # update graph state
     # not destructuring the messages

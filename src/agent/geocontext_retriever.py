@@ -73,12 +73,12 @@ async def geocontext_retriever(state):
         # the current node
         if router_state.location is not None and router_state.aggregated_query is not None:
             # write custom event
-            writer({"type": "custom_message", "content": "Let's start the machine."})
+            writer({"type": "log", "content": "Let's start the machine."})
             provider = GeoSessionProvider.get_or_create(router_state.location, 100, 0.3)
             GeoSessionProvider.get_or_create(router_state.location, 100, 1.0)
             GeoSessionProvider.get_or_create(router_state.location, 500, 1.0)
             GeoSessionProvider.get_or_create(router_state.location, 1000, 1.0)
-            writer({"type": "custom_message", "content": "Ok, that's done."})
+            writer({"type": "log", "content": "Ok, that's done."})
 
             # await and fill context
             # with SFSO number of
@@ -89,18 +89,18 @@ async def geocontext_retriever(state):
             # create or get the singleton
             # tools provider instance
             # and retrieve relevant tools
-            writer({"type": "custom_message", "content": "Where's my toolbox, I need my tools."})
+            writer({"type": "log", "content": "Where's my toolbox, I need my tools."})
             toolbox: ToolProvider = await ToolProvider.acreate(router_state.location)
             tools = await toolbox.asearch(query=router_state.aggregated_query, k=4)
-            writer({"type": "custom_message", "content": "I FOUND THEM!"})
+            writer({"type": "log", "content": "I FOUND THEM!"})
 
             # prompt to select best available tools
             tools_bound_llm = llm.bind_tools(tools=tools)
             tools_description = '\n'.join([f"-{t.name}: {t.description}" for t in tools])
             prompt = tool_call_prompt.format(tools_list=tools_description, user_input=last_human_message, aggregated_query=router_state.aggregated_query)
-            writer({"type": "custom_message", "content": "Are these the right tools ?"})
+            writer({"type": "log", "content": "Are these the right tools ?"})
             response = await tools_bound_llm.ainvoke(prompt)
-            writer({"type": "custom_message", "content": "OK, the user guide said to use those.."})
+            writer({"type": "log", "content": "OK, the user guide said to use those.."})
 
             # invoke chosen tools
             # and update context state

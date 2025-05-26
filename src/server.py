@@ -35,11 +35,11 @@ async def stream_tokens(request: Request, user_id: str):
         return {"error": "No prompt found for user."}
 
     async def event_generator():
-        async for token in stream_graph_generator(prompt):
+        async for mode, chunk in stream_graph_generator(prompt):
             if await request.is_disconnected():
                 break
 
-            yield {"event": "token", "data": token}
+            yield {"event": mode, "data": chunk}
         yield {"event": "end", "data": "[DONE]"}
 
     return EventSourceResponse(event_generator())

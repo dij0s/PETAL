@@ -40,7 +40,7 @@ async def clarify_query(state):
     prompt = clarification_prompt.format(needed_information=missing_attributes, user_input=last_human_message)
 
     # write custom event
-    writer({"type": "custom_message", "content": "Let's clarify things."})
+    writer({"type": "log", "content": "Let's clarify things."})
     response = await llm.ainvoke(prompt)
 
     return {
