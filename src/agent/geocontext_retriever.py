@@ -100,7 +100,7 @@ async def geocontext_retriever(state):
             prompt = tool_call_prompt.format(tools_list=tools_description, user_input=last_human_message, aggregated_query=router_state.aggregated_query)
             writer({"type": "log", "content": "Are these the right tools ?"})
             response = await tools_bound_llm.ainvoke(prompt)
-            writer({"type": "log", "content": "OK, the user guide said to use those.."})
+            writer({"type": "info", "content": "Fetching data from retrieved tools..."})
 
             # invoke chosen tools
             # and update context state

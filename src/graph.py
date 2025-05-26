@@ -1,4 +1,5 @@
 import asyncio
+import json
 
 from langchain_core.runnables import RunnableConfig
 from langchain_ollama import ChatOllama
@@ -86,14 +87,13 @@ async def stream_graph_generator(user_input: str) -> AsyncGenerator[tuple[str, A
                 and isinstance(metadata, dict)
                 and metadata.get("langgraph_node") in ["clarification", "generate_answer"]
             ):
-                print(mode, token)
                 yield "token", token.content
         elif mode == "custom":
             if (
                 isinstance(chunk, dict)
                 and chunk.get("type") != "log"
             ):
-                yield chunk.get("type"), chunk
+                yield chunk.get("type"), json.dumps(chunk)
 
 async def stream_graph_updates(user_input: str, f: Callable[[Any], None]):
     """Custom wrapper for tokens generator to print in CLI."""
