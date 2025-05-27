@@ -117,16 +117,19 @@ async def intent_router(state):
     # explicitly set the flag for
     # extra clarification if any fields
     # except "needs_clarification" aren't set
+    # and if municipality's name is assumed
+    # to be the topic
     all_fields_set = all([
         v is not None
         for k, v in updated_state.items()
         if k != "needs_clarification"
     ])
-    updated_state["needs_clarification"] = updated_state["needs_clarification"] or (not all_fields_set)
+    updated_state["needs_clarification"] = updated_state["needs_clarification"] or (not all_fields_set) or updated_state["topic"] == updated_state["location"]
     if not updated_state["needs_clarification"]:
         writer({"type": "info", "content": "Got it!"})
 
     updated_router = RouterOutput(**updated_state)
+    print(updated_router)
     # reset geocontext on location change
     if last_location != updated_router.location:
         return {

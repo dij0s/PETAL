@@ -11,6 +11,7 @@ from langchain_core.vectorstores.base import VectorStore
 from langchain_ollama import OllamaEmbeddings
 
 from sentence_transformers import CrossEncoder
+from torch.nn import Sigmoid
 
 from tool.geodata import *
 
@@ -119,14 +120,14 @@ class ToolProvider:
         else:
             return
 
-    async def asearch(self, query: str, n: int, k: int = 4, filter: Optional[Callable[[Document], bool]] = None) -> list[StructuredTool]:
+    async def asearch(self, query: str, max_n: int, k: int = 4, filter: Optional[Callable[[Document], bool]] = None) -> list[StructuredTool]:
         """
         Search for a StructuredTool matching the query and filter.
         First retrieves documents based on cosine similarity indicator and the applies crossencoder reranking.
 
         Args:
             query (str): The search query string.
-            n (int): The number of tools to select after crossencoder reranking. Attention, 0 < n <= k.
+            max_n (int): The number of tools to select after crossencoder reranking.
             k (int): The number of tools to retrieve from the vector store for futher reranking.
             filter (Callable[[Document], bool]): A callable that takes a Document and returns True if it matches the filter criteria. By default, assigned to None.
 
@@ -138,15 +139,22 @@ class ToolProvider:
         # crossencoder reranking
         if k < 0:
             k = 4
-        n = max(1, n if n <= k else k)
+        max_n = max(1, max_n if max_n <= k else k)
         # retrieve batch of documents
         # using cosine similarity
         docs = await self._vector_store.asimilarity_search(query=query, k=k, filter=filter)
         # apply crossencoder reranking
+        # and use sigmoid activation
+        # function for probability (single class)
+        # finally apply softmax for
+        # easier thresholding
         pairs = [(query, doc.page_content) for doc in docs]
-        scores = self._reranking_model.predict(pairs)
-        # retrieve n best documents
-        top_indices = np.argsort(scores)[-n:][::-1]
+        scores = self._reranking_model.predict(pairs, activation_fn=Sigmoid())
+        scores = scores * (1 / sum(scores))
+        # retrieve best documents
+        threshold = 1 / (len(scores) + 1)
+        above_threshold_indices = [index for index, score in enumerate(scores) if score > threshold]
+        top_indices = sorted(above_threshold_indices, key=lambda index: scores[index], reverse=True)[:min(len(above_threshold_indices), max_n)]
         top_docs = [docs[i] for i in top_indices]
         # store last retrieved tools from
         # vectore store by cosine similarity

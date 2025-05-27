@@ -73,8 +73,10 @@ async def geocontext_retriever(state):
             # tools provider instance
             # and retrieve relevant tools
             writer({"type": "info", "content": "Retrieving tools..."})
+
             toolbox: ToolProvider = await ToolProvider.acreate(router_state.location)
-            tools = await toolbox.asearch(query=router_state.aggregated_query, n=1, k=5)
+            tools = await toolbox.asearch(query=router_state.aggregated_query, max_n=3, k=5)
+
             writer({"type": "log", "content": "I FOUND THEM!"})
 
             # invoke chosen tools
