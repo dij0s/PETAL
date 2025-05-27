@@ -110,6 +110,10 @@ async def geocontext_retriever(state):
                     for tool in response.tool_calls
                 ]
                 if not any([tool is None for tool in tools_to_invoke]):
+                    # remove used tools
+                    for tool in tools_to_invoke:
+                        toolbox.remove_used_tool(tool)
+
                     writer({"type": "info", "content": "Fetching data from retrieved tools..."})
                     tool_data = await _ainvoke_tools(tools_to_invoke)
                     geocontext.context = {**geocontext.context, **tool_data}

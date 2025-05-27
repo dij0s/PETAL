@@ -99,6 +99,21 @@ class ToolProvider:
         """
         return self._last_retrieved_tools if len(self._last_retrieved_tools) > 0 else None
 
+    def remove_used_tool(self, tool: StructuredTool) -> None:
+        """
+        Removes a used tool from the last retrieved tools. Allows to not recommend it anymore.
+
+        Args:
+            name (StructuredTool): The tool to remove.
+
+        Returns:
+            None
+        """
+        if tool in self._last_retrieved_tools:
+            self._last_retrieved_tools.remove(tool)
+        else:
+            return
+
     async def asearch(self, query: str, k: int = 4, filter: Optional[Callable[[Document], bool]] = None) -> list[StructuredTool]:
         """
         Search for a StructuredTool matching the query and filter.
