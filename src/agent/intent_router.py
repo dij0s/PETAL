@@ -4,7 +4,7 @@ from langchain_ollama import ChatOllama
 from langgraph.config import get_stream_writer
 
 from modelling.PydanticStreamOutputParser import PydanticStreamOutputParser
-from modelling.structured_output import RouterOutput
+from modelling.structured_output import GeoContextOutput, RouterOutput
 from modelling.utils import reduce_missing_attributes
 
 from typing import Optional, Any
@@ -104,6 +104,9 @@ async def intent_router(state):
 
     # new state does not need further
     # clarification, update overall state
+    # buffer last location to know if
+    # geocontext reset is appropriate
+    last_location = current.location
     updated_state = current.model_dump()
     parsed_state = parsed.model_dump()
     for k, v in updated_state.items():
@@ -123,6 +126,15 @@ async def intent_router(state):
     if not updated_state["needs_clarification"]:
         writer({"type": "info", "content": "Got it!"})
 
+    updated_router = RouterOutput(**updated_state)
+    # reset geocontext on location change
+    if last_location != updated_router.location:
+        return {
+            **state.model_dump(),
+            "messages": state.messages,
+            "router": updated_router,
+            "geocontext": GeoContextOutput()
+        }
     # update graph state
     # not destructuring the messages
     # using the dot notation on the
@@ -132,5 +144,5 @@ async def intent_router(state):
     return {
         **state.model_dump(),
         "messages": state.messages,
-        "router": RouterOutput(**updated_state)
+        "router": updated_router
     }

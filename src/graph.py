@@ -98,4 +98,4 @@ async def stream_graph_generator(user_input: str) -> AsyncGenerator[tuple[str, A
 async def stream_graph_updates(user_input: str, f: Callable[[Any], None]):
     """Custom wrapper for tokens generator to print in CLI."""
     async for mode, chunk in stream_graph_generator(user_input):
-        f(chunk)
+        f(mode, chunk)

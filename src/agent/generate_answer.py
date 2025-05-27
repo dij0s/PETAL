@@ -54,7 +54,7 @@ async def generate_answer(state):
     tool_data, layers = reduce(
         lambda res, d: (
             res[0] + f"['description': {toolbox.get(d[0]).description}, 'value': {d[1][1]}]" + "\n",
-            res[1] + [d[1][0]]
+            res[1] + [d[1][0]] if d[1][0] != "" else []
         ),
         state.geocontext.context.items(),
         ("", [])
@@ -79,11 +79,10 @@ async def generate_answer(state):
 
     # update state with response
     # and push the new layers and
-    # current's municipality's
-    # bounding box
+    # municipality's SFSO number
+    # if there are any layers
     if len(layers) > 0:
         await provider.wait_until_sfso_ready()
-        print(layers)
         writer({"type": "layers", "layers": layers})
         writer({"type": "sfso_number", "sfso_number": provider.municipality_sfso_number})
 
