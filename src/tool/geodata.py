@@ -18,7 +18,7 @@ from collections import defaultdict
 
 from provider.GeoSessionProvider import GeoSessionProvider
 
-async def _fetch_solar_potential_roofing(municipality_name: str, confidence_level=0.8) -> tuple[float, float, float]:
+async def _fetch_solar_potential_roofing(municipality_name: str, confidence_level=0.8) -> tuple[float, float]:
     """Asynchronously estimates the roofing solar potential for a given municipality.
 
     Args:
@@ -26,7 +26,7 @@ async def _fetch_solar_potential_roofing(municipality_name: str, confidence_leve
         confidence_level (float, optional): The confidence level for the margin of error (default is 0.8).
 
     Returns:
-        tuple[float, float, float]: A tuple containing the estimated solar potential in GWh/year, the estimated solar potential margin in GWh/year and the confidence level.
+        tuple[float, float]: A tuple containing the estimated solar potential in GWh/year and margin in GWh/year.
     """
     async def _fetch_solar_potential(session, tile) -> float:
         minx, miny, maxx, maxy = tile.bounds
@@ -100,9 +100,9 @@ async def _fetch_solar_potential_roofing(municipality_name: str, confidence_leve
     if margin_gwh == float("+inf"):
         margin_gwh = 0.0
 
-    return (float(total_estimate_gwh), margin_gwh, confidence_level)
+    return float(total_estimate_gwh), margin_gwh
 
-async def _fetch_solar_potential_facades(municipality_name: str, confidence_level=0.8) -> tuple[float, float, float]:
+async def _fetch_solar_potential_facades(municipality_name: str, confidence_level=0.8) -> tuple[float, float]:
     """Asynchronously estimates the facades solar potential for a given municipality.
 
     Args:
@@ -110,7 +110,7 @@ async def _fetch_solar_potential_facades(municipality_name: str, confidence_leve
         confidence_level (float, optional): The confidence level for the margin of error (default is 0.8).
 
     Returns:
-        tuple[float, float, float]: A tuple containing the estimated solar potential in GWh/year, the estimated solar potential margin in GWh/year and the confidence level.
+        tuple[float, float]: A tuple containing the estimated solar potential in GWh/year and margin in GWh/year.
     """
     async def _fetch_solar_potential(session, tile) -> float:
         minx, miny, maxx, maxy = tile.bounds
@@ -180,9 +180,9 @@ async def _fetch_solar_potential_facades(municipality_name: str, confidence_leve
     if margin_gwh == float("+inf"):
         margin_gwh = 0.0
 
-    return (float(total_estimate_gwh), margin_gwh, confidence_level)
+    return float(total_estimate_gwh), margin_gwh
 
-async def _fetch_small_hydro_potential(municipality_name: str, efficiency: float = 0.3) -> tuple[float, float]:
+async def _fetch_small_hydro_potential(municipality_name: str, efficiency: float = 0.3) -> float:
     """Asynchronously fetches the small hydroelectricity potential for a given municipality.
 
     Args:
@@ -190,7 +190,7 @@ async def _fetch_small_hydro_potential(municipality_name: str, efficiency: float
         efficiency (float, optional): The hydroelectricity production efficiency used to compute the total potential (default is 0.3).
 
     Returns:
-        tuple[float, float]: A tuple containing the estimated small hydroelectricity potential in GWh/year and the estimated efficiency.
+        float: The estimated small hydroelectricity potential in GWh/year.
     """
     # await GeoSession geometry
     # fetching for further computing ;
@@ -1262,7 +1262,7 @@ class RoofingSolarPotentialEstimatorTool(GeoDataTool):
             func=partial(_fetch_solar_potential_roofing, confidence_level=0.8),
             name="estimate_solar_potential_roofing",
             layer_id="ch.bfe.solarenergie-eignung-daecher",
-            description="ESTIMATES THE ROOFING SOLAR POTENTIAL for a given municipality in Switzerland. Returns the estimated solar potential in GWh/year, the margin of error, and the confidence level. Useful for assessing renewable energy potential at the municipal level.",
+            description="ESTIMATED **ROOFING SOLAR POTENTIAL**. Returns the estimated solar potential in GWh/year and the margin of error in GWh/year, in a tuple.",
         )
 
 class RoofingSolarPotentialAggregatorTool(GeoDataTool):
@@ -1275,7 +1275,7 @@ class RoofingSolarPotentialAggregatorTool(GeoDataTool):
             func=partial(_fetch_solar_potential_roofing, confidence_level=1.0),
             name="aggregate_solar_potential_roofing",
             layer_id="ch.bfe.solarenergie-eignung-daecher",
-            description="Returns the EXACT ROOFING SOLAR POTENTIAL for a given municipality in Switzerland. Provides the total solar potential in GWh/year, the margin of error, and the confidence level. Useful for obtaining precise renewable energy data at the municipal level at the COST OF GREATER COMPUTE TIME. ONLY USE IF USER EXPLICITLY ASKS FOR PRECISE DATA.",
+            description="EXACT **ROOFING SOLAR POTENTIAL**. Returns the total solar potential in GWh/year and the margin of error in GWh/year, in a tuple. COMES AT THE COST OF GREATER COMPUTE TIME. ONLY USE IF USER EXPLICITLY ASKS FOR VERY ACCURATE DATA.",
         )
 
 class FacadesSolarPotentialEstimatorTool(GeoDataTool):
@@ -1288,7 +1288,7 @@ class FacadesSolarPotentialEstimatorTool(GeoDataTool):
             func=partial(_fetch_solar_potential_facades, confidence_level=0.8),
             name="estimate_solar_potential_facades",
             layer_id="ch.bfe.solarenergie-eignung-fassaden",
-            description="ESTIMATES THE FACADES SOLAR POTENTIAL for a given municipality in Switzerland. Returns the estimated solar potential in GWh/year, the margin of error, and the confidence level. Useful for assessing renewable energy potential at the municipal level.",
+            description="ESTIMATED **FACADES SOLAR POTENTIAL**. Returns the estimated solar potential in GWh/year and the margin of error in GWh/year, in a tuple.",
         )
 
 class FacadesSolarPotentialAggregatorTool(GeoDataTool):
@@ -1301,7 +1301,7 @@ class FacadesSolarPotentialAggregatorTool(GeoDataTool):
             func=partial(_fetch_solar_potential_facades, confidence_level=1.0),
             name="aggregate_solar_potential_facades",
             layer_id="ch.bfe.solarenergie-eignung-fassaden",
-            description="Returns the EXACT FACADES SOLAR POTENTIAL for a given municipality in Switzerland. Provides the total solar potential in GWh/year, the margin of error, and the confidence level. Useful for obtaining precise renewable energy data at the municipal level at the COST OF GREATER COMPUTE TIME. ONLY USE IF USER EXPLICITLY ASKS FOR PRECISE DATA.",
+            description="EXACT **FACADES SOLAR POTENTIAL**. Returns the total solar potential in GWh/year and the margin of error in GWh/year, in a tuple. COMES AT THE COST OF GREATER COMPUTE TIME. ONLY USE IF USER EXPLICITLY ASKS FOR VERY ACCURATE DATA.",
         )
 
 class SmallHydroPotentialTool(GeoDataTool):
@@ -1314,7 +1314,7 @@ class SmallHydroPotentialTool(GeoDataTool):
             func=partial(_fetch_small_hydro_potential, efficiency=0.3),
             name="small_hydro_potential",
             layer_id="ch.bfe.kleinwasserkraftpotentiale",
-            description="Returns the potential of small hydroelectricity due to small hydro sources in the municipality in GWh/year and the efficiency used to compute it.",
+            description="Potential **energy of small hydro sources** (for e.g. rivers). Returns the potential energy from small hydroelectricity in GWh/year.",
         )
 
 class LargeHydroPotentialTool(GeoDataTool):
@@ -1327,7 +1327,7 @@ class LargeHydroPotentialTool(GeoDataTool):
             func=_fetch_big_hydro_potential,
             name="large_hydro_potential",
             layer_id="ch.bfe.waermepotential-gewaesser",
-            description="Returns the heating and cooling potential from large hydro sources (surface water) in the municipality in GWh/year. Useful for assessing renewable energy potential for heating and cooling at the municipal level.",
+            description="Potential **energy of LARGE hydro sources** (for e.g. surface water and lakes) we can use for heating and cooling. Returns the heating and cooling potential from large hydro sources in GWh/year.",
         )
 
 class BiomassAvailabilityTool(GeoDataTool):
@@ -1339,9 +1339,8 @@ class BiomassAvailabilityTool(GeoDataTool):
             municipality_name=municipality_name,
             func=_fetch_available_biomass,
             name="available_biomass",
-            # layer_id="ch.bfe.biomasse-nicht-verholzt",
             layer_id="",
-            description="Returns the available woody and non-woody biomass in GWh for a given municipality. Useful for assessing renewable energy potential from biomass at the municipal level.",
+            description="Available woody and non-woody **biomass energy**. Returns the available woody in GWh and non-woody biomass in GWh, in a tuple.",
         )
 
 class HydropowerInfrastructureTool(GeoDataTool):
@@ -1354,7 +1353,7 @@ class HydropowerInfrastructureTool(GeoDataTool):
             func=_fetch_hydropower_infrastructure,
             name="hydropower_infrastructure",
             layer_id="ch.bfe.statistik-wasserkraftanlagen",
-            description="Returns the total hydropower electricity production in GWh/year for a given municipality. Useful for assessing the hydropower infrastructure and its contribution to renewable energy at the municipal level.",
+            description="Produced **energy using hydropower infrastructure**. Returns the total hydropower energy production in GWh/year.",
         )
 
 class WindTurbinesInfrastructureTool(GeoDataTool):
@@ -1367,7 +1366,7 @@ class WindTurbinesInfrastructureTool(GeoDataTool):
             func=_fetch_wind_turbines_infrastructure,
             name="wind_turbines_infrastructure",
             layer_id="ch.bfe.windenergieanlagen",
-            description="Returns the total wind turbines electricity production in GWh/year for a given municipality. Useful for assessing the wind energy infrastructure and its contribution to renewable energy at the municipal level.",
+            description="Produced **energy using wind turbines**. Returns the total wind turbines energy production in GWh/year.",
         )
 
 class BiogasInfrastructureTool(GeoDataTool):
@@ -1380,7 +1379,7 @@ class BiogasInfrastructureTool(GeoDataTool):
             func=_fetch_biogas_infrastructure,
             name="biogas_infrastructure",
             layer_id="ch.bfe.biogasanlagen",
-            description="Returns the total biogas production in GWh/year for a given municipality. Useful for assessing the biogas infrastructure and its contribution to renewable energy at the municipal level.",
+            description="Produced **energy using biogas**. Returns total energy production from biogas in GWh/year.",
         )
 
 class IncinerationInfrastructureTool(GeoDataTool):
@@ -1393,7 +1392,7 @@ class IncinerationInfrastructureTool(GeoDataTool):
             func=_fetch_incineration_infrastructure,
             name="incineration_infrastructure",
             layer_id="ch.bfe.kehrichtverbrennungsanlagen",
-            description="Returns the total electricity and heating production in GWh/year from incineration infrastructure for a given municipality. Useful for assessing the contribution of waste incineration to renewable energy at the municipal level.",
+            description="Total **energy production from incineration infrastucture**. Returns the total energy production that is electricity in GWh/year and heating in GWh/year, in a tuple. Useful for assessing the contribution of waste incineration to renewable energy at the municipal level.",
         )
 
 class ThermalNetworksInfrastructureTool(GeoDataTool):
@@ -1405,8 +1404,9 @@ class ThermalNetworksInfrastructureTool(GeoDataTool):
             municipality_name=municipality_name,
             func=_fetch_thermal_networks_infrastructure,
             name="thermal_networks_infrastructure",
-            layer_id="ch.bfe.thermische-netze",
-            description="Returns the total energy that can be delivered via thermal networks in GWh/year for a given municipality. Useful for assessing the thermal network infrastructure and its contribution to energy delivery at the municipal level.",
+            # layer_id="ch.bfe.thermische-netze",
+            layer_id="",
+            description="Total **energy that can be delivered via the thermal networks INFRASTRUCTURE**. Returns the total energy that can be delivered via thermal networks in GWh/year.",
         )
 
 class EffectiveInfrastructureTool(GeoDataTool):
@@ -1419,7 +1419,7 @@ class EffectiveInfrastructureTool(GeoDataTool):
             func=_fetch_effective_infrastructure,
             name="effective_infrastructure",
             layer_id="ch.bfe.elektrizitaetsproduktionsanlagen",
-            description="Returns the effective photovoltaic (PV), biomass, and geothermal energy production in GWh/year from various infrastructures for a given municipality. Useful for assessing the actual renewable energy production from these sources at the municipal level.",
+            description="Effective **energy production from photovoltaic (PV), biomass, and geothermal heating**. Returns the energy production of photovoltaic, biomass and geothermal heating in GWh/year, all in a tuple.",
         )
 
 class SewageTreatmentPotentialTool(GeoDataTool):
@@ -1432,7 +1432,7 @@ class SewageTreatmentPotentialTool(GeoDataTool):
             func=_fetch_sewage_treatment_potential,
             name="sewage_treatment_potential",
             layer_id="ch.bfe.fernwaerme-angebot",
-            description="Returns the potential heating energy from the sewage treatment infrastructure in GWh/year for a given municipality. Useful for assessing the sewage treatment (STEP) potential at the municipal level that may be injected into thermal networks.",
+            description="Potential **heating energy from sewage treatment infrastucture**. Returns the potential heating energy from the sewage treatment infrastructure in GWh/year.",
         )
 
 class BuildingsConstructionPeriodsTool(GeoDataTool):
@@ -1445,7 +1445,7 @@ class BuildingsConstructionPeriodsTool(GeoDataTool):
             func=_fetch_building_construction_periods,
             name="building_construction_periods",
             layer_id="ch.bfs.gebaeude_wohnungs_register",
-            description="Returns the building construction periods for a given municipality. Each result is a tuple of (construction period, number of buildings). Useful for understanding the age distribution of buildings in the municipality.",
+            description="**Building construction periods**. Returns the building construction periods from which each result is a tuple of (construction period, number of buildings).",
         )
 
 class HeatingCoolingNeedsIndustryTool(GeoDataTool):
@@ -1458,7 +1458,7 @@ class HeatingCoolingNeedsIndustryTool(GeoDataTool):
             func=_fetch_heating_cooling_needs_industry,
             name="heating_cooling_needs_industry",
             layer_id="ch.bfe.fernwaerme-nachfrage_industrie",
-            description="Returns the heating/cooling energy needs for the industry in a given municipality in GWh/year. Useful for assessing the industrial energy demand at the municipal level.",
+            description="**Heating/cooling needs for the INDUSTRY**. Returns the heating/cooling energy needs for the industry in GWh/year.",
         )
 
 class HeatingCoolingNeedsHouseholdsTool(GeoDataTool):
@@ -1471,7 +1471,7 @@ class HeatingCoolingNeedsHouseholdsTool(GeoDataTool):
             func=_fetch_heating_cooling_needs_households,
             name="heating_cooling_needs_households",
             layer_id="ch.bfe.fernwaerme-nachfrage_wohn_dienstleistungsgebaeude",
-            description="Returns the heating/cooling energy needs for households in a given municipality in GWh/year. Useful for assessing the residential and service building energy demand at the municipal level.",
+            description="**Heating/cooling needs for HOUSEHOLDS**. Returns the heating/cooling energy needs for households in GWh/year.",
         )
 
 class BuildingsEmissionEnergySourcesTool(GeoDataTool):
@@ -1484,7 +1484,7 @@ class BuildingsEmissionEnergySourcesTool(GeoDataTool):
             func=_fetch_building_emissions_energy_source,
             name="buildings_emission_energy_source",
             layer_id="ch.bafu.klima-co2_ausstoss_gebaeude",
-            description="Returns the emissions and energy sources of buildings in a given municipality. The first dict maps from CO2 emissions range (in kg/m²) to the number of buildings, and the second dict maps from energy source to the number of buildings. Useful for assessing the climate impact and energy source distribution of buildings at the municipal level.",
+            description="**Emissions and energy sources** of buildings. Returns the emissions and energy sources of buildings from which the first dictionnary maps from CO2 emissions range (in kg/m²) to the number of buildings in this range and the second dictionnary mapping each energy source to the number of buildings using this energy source.",
         )
 
 class EnergyNeedsTool(GeoDataTool):
@@ -1496,6 +1496,6 @@ class EnergyNeedsTool(GeoDataTool):
             municipality_name=municipality_name,
             func=partial(_fetch_energy_needs, heuristic=lambda n_households: 3500.0 * n_households),
             name="energy_needs",
-            layer_id="", # not defined as makes no sense to display the housing inventory layer
-            description="Returns the estimated energy needs for a given municipality in GWh/year. The energy needs are estimated using a heuristic based on the number of primary households. Useful for assessing the total energy demand at the municipal level when detailed consumption data is not available.",
+            layer_id="",
+            description="**Estimated energy needs** for households. Returns the estimated energy needs for households in GWh/year.",
         )

@@ -113,6 +113,7 @@ async def geocontext_retriever(state):
                     writer({"type": "info", "content": "Fetching data from retrieved tools..."})
                     tool_data = await _ainvoke_tools(tools_to_invoke)
                     geocontext.context = {**geocontext.context, **tool_data}
+                    print(geocontext)
 
                     return {
                         **state.model_dump(),
