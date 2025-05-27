@@ -13,6 +13,7 @@ dependencies = [
     "pydantic>=2.11.4",
     "pytest>=8.3.5",
     "scipy>=1.15.3",
+    "sentence-transformers>=4.1.0",
     "shapely>=2.1.1",
     "sse-starlette>=2.3.5",
 ]

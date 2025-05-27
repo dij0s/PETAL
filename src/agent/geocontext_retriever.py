@@ -19,23 +19,6 @@ from modelling.utils import reduce_missing_attributes
 from provider.GeoSessionProvider import GeoSessionProvider
 from provider.ToolProvider import ToolProvider
 
-# define system prompt for enhanced
-# formatting and data scheme validation
-tool_call_prompt = PromptTemplate.from_template("""
-    You have access to these different tools:
-    {tools_list}
-
-    In response to the user's input, you can select and execute any number of tools from the available set.
-    They will retrieve for you the data needed to answer the user input.
-    The aggregated query summarizes what the user is requesting in a concise manner,
-
-    User input: "{user_input}"
-
-    Aggregated query: "{aggregated_query}"
-""")
-
-llm = ChatOllama(model="llama3.2:3b", temperature=0)
-
 async def geocontext_retriever(state):
     """
     Retrieves relevant geographical and contextual data based on the user query.
@@ -91,39 +74,24 @@ async def geocontext_retriever(state):
             # and retrieve relevant tools
             writer({"type": "info", "content": "Retrieving tools..."})
             toolbox: ToolProvider = await ToolProvider.acreate(router_state.location)
-            tools = await toolbox.asearch(query=router_state.aggregated_query, k=4)
+            tools = await toolbox.asearch(query=router_state.aggregated_query, n=1, k=5)
             writer({"type": "log", "content": "I FOUND THEM!"})
-
-            # prompt to select best available tools
-            tools_bound_llm = llm.bind_tools(tools=tools)
-            tools_description = '\n'.join([f"-{t.name}: {t.description}" for t in tools])
-            prompt = tool_call_prompt.format(tools_list=tools_description, user_input=last_human_message, aggregated_query=router_state.aggregated_query)
-            writer({"type": "log", "content": "Are these the right tools ?"})
-            response = await tools_bound_llm.ainvoke(prompt)
 
             # invoke chosen tools
             # and update context state
-            if isinstance(response, AIMessage) and hasattr(response, "tool_calls"):
-                # retrieve tools by name
-                tools_to_invoke = [
-                    toolbox.get(tool["name"])
-                    for tool in response.tool_calls
-                ]
-                if not any([tool is None for tool in tools_to_invoke]):
-                    # remove used tools
-                    for tool in tools_to_invoke:
-                        toolbox.remove_used_tool(tool)
+            # remove used tools
+            for tool in tools:
+                toolbox.remove_used_tool(tool)
 
-                    writer({"type": "info", "content": "Fetching data from retrieved tools..."})
-                    tool_data = await _ainvoke_tools(tools_to_invoke)
-                    geocontext.context = {**geocontext.context, **tool_data}
-                    print(geocontext)
+            writer({"type": "info", "content": "Fetching data from retrieved tools..."})
+            tool_data = await _ainvoke_tools(tools)
+            geocontext.context = {**geocontext.context, **tool_data}
 
-                    return {
-                        **state.model_dump(),
-                        "messages": state.messages + [AIMessage(content="Successfully retrieved data from tools...")],
-                        "geocontext": geocontext
-                    }
+            return {
+                **state.model_dump(),
+                "messages": state.messages + [AIMessage(content="Successfully retrieved data from tools...")],
+                "geocontext": geocontext
+            }
 
             return state
         else:

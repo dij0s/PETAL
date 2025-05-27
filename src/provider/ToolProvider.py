@@ -2,12 +2,15 @@ import uuid
 
 from typing import Callable, Optional
 from functools import reduce
+import numpy as np
 
 from langchain_core.tools.structured import StructuredTool
 from langchain_core.documents import Document
 from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_core.vectorstores.base import VectorStore
 from langchain_ollama import OllamaEmbeddings
+
+from sentence_transformers import CrossEncoder
 
 from tool.geodata import *
 
@@ -53,6 +56,8 @@ class ToolProvider:
             for category_tools in tool_registry.values()
             for _, tool in category_tools.items()
         }
+        # initialize reranking model
+        self._reranking_model = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
 
     async def _build_vector_store(self, tool_registry: dict[str, dict[str, StructuredTool]]) -> None:
         # instantiate and populate
@@ -114,28 +119,50 @@ class ToolProvider:
         else:
             return
 
-    async def asearch(self, query: str, k: int = 4, filter: Optional[Callable[[Document], bool]] = None) -> list[StructuredTool]:
+    async def asearch(self, query: str, n: int, k: int = 4, filter: Optional[Callable[[Document], bool]] = None) -> list[StructuredTool]:
         """
         Search for a StructuredTool matching the query and filter.
+        First retrieves documents based on cosine similarity indicator and the applies crossencoder reranking.
 
         Args:
             query (str): The search query string.
-            k (int): The number of tools to retrieve.
+            n (int): The number of tools to select after crossencoder reranking. Attention, 0 < n <= k.
+            k (int): The number of tools to retrieve from the vector store for futher reranking.
             filter (Callable[[Document], bool]): A callable that takes a Document and returns True if it matches the filter criteria. By default, assigned to None.
 
         Returns:
             list[StructuredTool]: A list of releveant StructuredTool matching the query and filter. No filtering by default.
         """
+        # handle invalid number of
+        # documents to retrieve after
+        # crossencoder reranking
+        if k < 0:
+            k = 4
+        n = max(1, n if n <= k else k)
+        # retrieve batch of documents
+        # using cosine similarity
         docs = await self._vector_store.asimilarity_search(query=query, k=k, filter=filter)
-        # store last retrieved tools to
-        # easily direct the user into
-        # similar data to what is requested
+        # apply crossencoder reranking
+        pairs = [(query, doc.page_content) for doc in docs]
+        scores = self._reranking_model.predict(pairs)
+        # retrieve n best documents
+        top_indices = np.argsort(scores)[-n:][::-1]
+        top_docs = [docs[i] for i in top_indices]
+        # store last retrieved tools from
+        # vectore store by cosine similarity
+        # to easily guide user
         self._last_retrieved_tools = [
             self._tool_registry[doc.id]
             for doc in docs
             if doc.id is not None
         ]
-        return self._last_retrieved_tools
+        # get top tools
+        top_tools = [
+            self._tool_registry[doc.id]
+            for doc in top_docs
+        ]
+
+        return top_tools
 
 def _potential_tools(municipality_name: str) -> dict[str, StructuredTool]:
     """
