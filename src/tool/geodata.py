@@ -833,14 +833,14 @@ async def _fetch_thermal_networks_infrastructure(municipality_name: str) -> str:
 
     return "0"
 
-async def _fetch_sewage_treatment_potential(municipality_name: str) -> str:
-    """Asynchronously fetches the sewage treatment (STEP) potential for a given municipality.
+async def _fetch_wastewater_treatment_potential(municipality_name: str) -> str:
+    """Asynchronously fetches the wastewater treatment (STEP) potential for a given municipality.
 
     Args:
         municipality_name (str): The name of the municipality to fetch the data for.
 
     Returns:
-        str: The potential heating energy from the sewage treatment infrastructure in GWh/year.
+        str: The potential heating energy from the wastewater treatment infrastructure in GWh/year.
     """
     # await GeoSession geometry
     # fetching for further computing ;
@@ -1446,14 +1446,14 @@ class EffectiveInfrastructureTool(GeoDataTool):
             description="Effective **electricity production plants from photovoltaic (PV), biomass, and geothermal energy**. Returns the energy (electricity) production from photovoltaic solar panels in GWh/year, from biomass energy in GWh/year and from geothermal energy in GWh/year, all in a tuple. These are all production plants powered by renewable energies. Only electricity production plants that are in operation are included.",
         )
 
-class SewageTreatmentPotentialTool(GeoDataTool):
+class WastewaterTreatmentPotentialTool(GeoDataTool):
     def __init__(
         self,
         municipality_name: str,
     ):
         super().__init__(
             municipality_name=municipality_name,
-            func=_fetch_sewage_treatment_potential,
+            func=_fetch_wastewater_treatment_potential,
             name="wastewater_treatment_potential",
             layer_id="ch.bfe.fernwaerme-angebot",
             description="Potential **energy (heat) that can be recovered from wastewater treatment plants**. Returns the potential energy (heat) from the wastewater treatment plants in GWh/year. Wastewater treatment plants (WWTPs) treat and purify wastewater. Wastewater is water that has been polluted through activities such as cooking, doing laundry or showering and then transported through a sewer system. A heat pump can recover this heat in order for it to be used as a heat source in a district heating network. ",

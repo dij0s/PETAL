@@ -43,20 +43,28 @@ class ToolProvider:
 
     async def _ainit(self, municipality_name: str):
         tool_registry: dict[str, dict[str, StructuredTool]] = {
-            "potential": _potential_tools(municipality_name)
+            "needs": _tools_needs(municipality_name),
+            "potential": _tools_potential(municipality_name),
+            "infrastructure": _tools_infrastructure(municipality_name),
         }
         await self._build_vector_store(tool_registry)
         # store flattened tool registry
+        # for various lookups
+        self._tools_by_category: dict[str, list[StructuredTool]] = {
+            category: list(tools.values())
+            for category, tools in tool_registry.items()
+        }
         self._tool_registry: dict[str, StructuredTool] = {
             tool_id: tool
-            for category_tools in tool_registry.values()
-            for tool_id, tool in category_tools.items()
+            for tools in tool_registry.values()
+            for tool_id, tool in tools.items()
         }
-        self._tool_registry_by_name: dict[str, StructuredTool] = {
-            tool.name: tool
-            for category_tools in tool_registry.values()
-            for _, tool in category_tools.items()
-        }
+        self._tool_registry_by_name: dict[str, StructuredTool] = {}
+        self._category_by_tool_name: dict[str, str] = {}
+        for category, tools in tool_registry.items():
+            for tool in tools.values():
+                self._tool_registry_by_name[tool.name] = tool
+                self._category_by_tool_name[tool.name] = category
         # initialize reranking model
         self._reranking_model = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
 
@@ -93,32 +101,41 @@ class ToolProvider:
         """
         return self._tool_registry_by_name.get(name, None)
 
-    def get_last_retrieved_tools(self) -> Optional[list[StructuredTool]]:
+    def get_category(self, name: str) -> Optional[str]:
         """
-        Get the last retrieve tools.
+        Get the category associated to a tool.
+
+        Args:
+            name (str): The tool's associated name.
+
+        Returns:
+            Optional[str]: The category of the tool, if associated.
+        """
+        return self._category_by_tool_name.get(name, None)
+
+    def get_tools(self, category_name: str) -> list[StructuredTool | Any]:
+        """
+        Get the tools associated to a category.
+
+        Args:
+            category_name (str): The name of the category.
+
+        Returns:
+            list[StructuredTool | Any]: The list of tools associated to that category.
+        """
+        return self._tools_by_category.get(category_name, [])
+
+    def get_last_retrieved_categories(self) -> Optional[list[str]]:
+        """
+        Get the last retrieved categories associated to tools.
 
         Args:
             None
 
         Returns:
-            Optional[list[StructuredTools]]: A list of the last retrieved tools or None.
+            Optional[list[str]]: A list of the last retrieved categories or None.
         """
-        return self._last_retrieved_tools if len(self._last_retrieved_tools) > 0 else None
-
-    def remove_used_tool(self, tool: StructuredTool) -> None:
-        """
-        Removes a used tool from the last retrieved tools. Allows to not recommend it anymore.
-
-        Args:
-            name (StructuredTool): The tool to remove.
-
-        Returns:
-            None
-        """
-        if tool in self._last_retrieved_tools:
-            self._last_retrieved_tools.remove(tool)
-        else:
-            return
+        return self._last_retrieved_categories if len(self._last_retrieved_categories) > 0 else None
 
     async def asearch(self, query: str, max_n: int, k: int = 4, filter: Optional[Callable[[Document], bool]] = None) -> list[StructuredTool]:
         """
@@ -156,23 +173,44 @@ class ToolProvider:
         above_threshold_indices = [index for index, score in enumerate(scores) if score > threshold]
         top_indices = sorted(above_threshold_indices, key=lambda index: scores[index], reverse=True)[:min(len(above_threshold_indices), max_n)]
         top_docs = [docs[i] for i in top_indices]
-        # store last retrieved tools from
-        # vectore store by cosine similarity
-        # to easily guide user
-        self._last_retrieved_tools = [
-            self._tool_registry[doc.id]
-            for doc in docs
-            if doc.id is not None
-        ]
-        # get top tools
+        # get top tools and store
+        # their categories for
+        # future lookup when guiding
+        # the user
         top_tools = [
             self._tool_registry[doc.id]
             for doc in top_docs
         ]
+        self._last_retrieved_categories = list(set([
+            self._category_by_tool_name[tool.name]
+            for tool in top_tools
+        ]))
 
         return top_tools
 
-def _potential_tools(municipality_name: str) -> dict[str, StructuredTool]:
+def _tools_needs(municipality_name: str) -> dict[str, StructuredTool]:
+    """
+    Returns a list of tools related to assessing the energy needs in a municipality.
+
+    Args:
+        municipality_name (str): The name of the municipality.
+
+    Returns:
+        dict[str, StructuredTool]: A dictionnary of StructuredTool objects relevant to energy needs.
+    """
+
+    return {
+        str(uuid.uuid4()): tool.factory(municipality_name=municipality_name)
+        for tool in [
+            HeatingCoolingNeedsIndustryTool,
+            HeatingCoolingNeedsHouseholdsTool,
+            EnergyNeedsTool,
+            BuildingsConstructionPeriodsTool,
+            BuildingsEmissionEnergySourcesTool
+        ]
+    }
+
+def _tools_potential(municipality_name: str) -> dict[str, StructuredTool]:
     """
     Returns a list of tools related to assessing the energy potential in a municipality.
 
@@ -191,17 +229,29 @@ def _potential_tools(municipality_name: str) -> dict[str, StructuredTool]:
             SmallHydroPotentialTool,
             LargeHydroPotentialTool,
             BiomassAvailabilityTool,
+            WastewaterTreatmentPotentialTool,
+        ]
+    }
+
+def _tools_infrastructure(municipality_name: str) -> dict[str, StructuredTool]:
+    """
+    Returns a list of tools related to assessing the energy infrastructure in a municipality.
+
+    Args:
+        municipality_name (str): The name of the municipality.
+
+    Returns:
+        dict[str, StructuredTool]: A dictionnary of StructuredTool objects relevant to energy infrastructure.
+    """
+
+    return {
+        str(uuid.uuid4()): tool.factory(municipality_name=municipality_name)
+        for tool in [
             HydropowerInfrastructureTool,
             WindTurbinesInfrastructureTool,
             BiogasInfrastructureTool,
             IncinerationInfrastructureTool,
             EffectiveInfrastructureTool,
             ThermalNetworksInfrastructureTool,
-            SewageTreatmentPotentialTool,
-            BuildingsConstructionPeriodsTool,
-            HeatingCoolingNeedsIndustryTool,
-            HeatingCoolingNeedsHouseholdsTool,
-            BuildingsEmissionEnergySourcesTool,
-            EnergyNeedsTool
         ]
     }

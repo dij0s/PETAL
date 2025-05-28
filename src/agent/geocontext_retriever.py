@@ -76,15 +76,11 @@ async def geocontext_retriever(state):
             toolbox: ToolProvider = await ToolProvider.acreate(router_state.location)
             tools = await toolbox.asearch(query=router_state.aggregated_query, max_n=3, k=5)
             writer({"type": "log", "content": "I FOUND THEM!"})
-            # invoke chosen tools
-            # and update context state
-            # remove used tools
-            for tool in tools:
-                toolbox.remove_used_tool(tool)
             # filter out tools whose
             # data we already have
             tools = [tool for tool in tools if tool.name not in geocontext.context.keys()]
-
+            # invoke chosen tools
+            # and update context state
             if len(tools) > 0:
                 writer({"type": "info", "content": "Fetching data from retrieved tools..."})
                 tool_data = await _ainvoke_tools(tools)

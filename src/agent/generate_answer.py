@@ -17,12 +17,12 @@ You are an AI assistant specializing in energy planning for {location}.
 You have already gathered the relevant data for the user's requested location "{location}". This data is provided below, with each entry including a description (explaining what the data represents and its units) and the corresponding value.
 
 Available data:
-{tool_data}
+{tools_data}
 
 User request: "{aggregated_query}"
 
-Additionally, here are some related analyses or data sources that may be relevant for further exploration:
-{related_tools_data}
+Additionally, here are some related data sources that may be relevant for the user in the same categorie(s) "{categories}":
+{related_tools}
 
 Your task:
 - Answer the user's request clearly and directly, using the provided data.
@@ -51,8 +51,7 @@ async def generate_answer(state):
     # retrieve description of
     # aggregated data using tools
     toolbox: ToolProvider = await ToolProvider.acreate(state.router.location)
-
-    tool_data, layers = reduce(
+    tools_data, layers = reduce(
         lambda res, d: (
             res[0] + f"['description': {toolbox.get(d[0]).description}, 'value': {d[1][1]}]" + "\n",
             res[1] + [d[1][0]] if d[1][0] != "" else []
@@ -60,21 +59,27 @@ async def generate_answer(state):
         state.geocontext.context.items(),
         ("", [])
     )
-
     # retrieve similar tools
-    # to add them to the prompt
-    # and lead conversation to
-    # similar/related datasources
-    tools = toolbox.get_last_retrieved_tools()
-    # related_tools_data = "\n".join([f"- {tool.name}: {tool.description}" for tool in tools]) if tools else None
-    related_tools_data = "\n".join([f"- {tool.name.replace('_', ' ')}" for tool in tools]) if tools else None
+    # from same category to
+    # better lead conversation
+    last_categories = toolbox.get_last_retrieved_categories()
+    if last_categories is None:
+        last_categories = []
+    # don't consider actual tools
+    # which we've already fetched
+    related_tools = "\n".join(reduce(
+        lambda res, c: [*res, *[tool.description for tool in toolbox.get_tools(c)]],
+        last_categories,
+        []
+    ))
 
     writer({"type": "info", "content": "Organizing the information."})
     prompt = answer_prompt.format(
         location=state.router.location,
-        tool_data=tool_data,
+        tools_data=tools_data,
         aggregated_query=state.router.aggregated_query,
-        related_tools_data=related_tools_data
+        categories=last_categories,
+        related_tools=related_tools
     )
     response = await llm.ainvoke(prompt)
 
