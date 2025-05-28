@@ -1495,7 +1495,7 @@ class HeatingCoolingNeedsHouseholdsTool(GeoDataTool):
             func=_fetch_heating_cooling_needs_households,
             name="heating_cooling_needs_households",
             layer_id="ch.bfe.fernwaerme-nachfrage_wohn_dienstleistungsgebaeude",
-            description="**Heating/cooling energy needs for HOUSEHOLDS**. Returns the heating/cooling energy needs for households in GWh/year. The demand for heat and cooling is a key element in the strategic planning of thermal networks for households. Building a thermal network is only viable if sufficient sales turnover can be generated from heat and/or cooling. Areas with a heat density of at least 0.7 GWh/year per hectare are considered suitable.",
+            description="**Heating/cooling energy needs for HOUSEHOLDS**. Returns the heating/cooling energy needs for households in GWh/year. The demand for heat and cooling is a key element in the strategic planning of thermal networks for households. Building a thermal network is only viable if sufficient sales turnover can be generated from heat and/or cooling. Areas with a heat density of at least 0.7 GWh/year per hectare are considered suitable. The heating/cooling energy needs for households can be summed to the electricity energy needs for households to determine the global energy needs for households.",
         )
 
 class BuildingsEmissionEnergySourcesTool(GeoDataTool):
@@ -1521,5 +1521,5 @@ class EnergyNeedsTool(GeoDataTool):
             func=partial(_fetch_energy_needs, heuristic=lambda n_households: 3500.0 * n_households),
             name="energy_needs",
             layer_id="",
-            description="**Estimated energy (electricity for everyday use only, HEATING/COOLING ISN'T INCLUDED) needs** for households. Returns the estimated energy (electricity for everyday use only, HEATING/COOLING ISN'T INCLUDED) needs for households in GWh/year. This estimate only includes everyday household electricity consumption and does not account for energy used for heating or cooling (which can be retrieved separately).",
+            description="**Estimated energy (electricity for everyday use only, HEATING/COOLING ISN'T INCLUDED) needs** for households. Returns the estimated energy (electricity for everyday use only, HEATING/COOLING ISN'T INCLUDED) needs for households in GWh/year. This estimate only includes everyday household electricity consumption and does not account for energy used for heating or cooling (which can be retrieved separately). The heating/cooling energy needs for households can be summed to the electricity energy needs for households to determine the global energy needs for households.",
         )

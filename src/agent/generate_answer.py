@@ -22,7 +22,7 @@ Available data:
 User request: "{aggregated_query}"
 
 Additionally, here are some related data sources that may be relevant for the user in the same categorie(s) "{categories}":
-{related_tools}
+{related_tools_description}
 
 Your task:
 - Answer the user's request clearly and directly, using the provided data.
@@ -65,13 +65,15 @@ async def generate_answer(state):
     last_categories = toolbox.get_last_retrieved_categories()
     if last_categories is None:
         last_categories = []
-    # don't consider actual tools
-    # which we've already fetched
-    related_tools = "\n".join(reduce(
-        lambda res, c: [*res, *[tool.description for tool in toolbox.get_tools(c)]],
+    related_tools = reduce(
+        lambda res, c: [*res, *toolbox.get_tools(c)],
         last_categories,
         []
-    ))
+    )
+    # don't consider actual tools
+    # which we've already fetched
+    related_tools = [tool for tool in related_tools if tool.name not in state.geocontext.context.keys()]
+    related_tools_description = "\n".join(tool.description for tool in related_tools)
 
     writer({"type": "info", "content": "Organizing the information."})
     prompt = answer_prompt.format(
@@ -79,7 +81,7 @@ async def generate_answer(state):
         tools_data=tools_data,
         aggregated_query=state.router.aggregated_query,
         categories=last_categories,
-        related_tools=related_tools
+        related_tools_description=related_tools_description
     )
     response = await llm.ainvoke(prompt)
 
