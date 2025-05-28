@@ -137,7 +137,7 @@ class ToolProvider:
         # handle invalid number of
         # documents to retrieve after
         # crossencoder reranking
-        if k < 0:
+        if k <= 0:
             k = 4
         max_n = max(1, max_n if max_n <= k else k)
         # retrieve batch of documents
@@ -152,7 +152,7 @@ class ToolProvider:
         scores = self._reranking_model.predict(pairs, activation_fn=Sigmoid())
         scores = scores * (1 / sum(scores))
         # retrieve best documents
-        threshold = 1 / (len(scores) + 1)
+        threshold = 1 / len(scores)
         above_threshold_indices = [index for index, score in enumerate(scores) if score > threshold]
         top_indices = sorted(above_threshold_indices, key=lambda index: scores[index], reverse=True)[:min(len(above_threshold_indices), max_n)]
         top_docs = [docs[i] for i in top_indices]
@@ -187,9 +187,7 @@ def _potential_tools(municipality_name: str) -> dict[str, StructuredTool]:
         str(uuid.uuid4()): tool.factory(municipality_name=municipality_name)
         for tool in [
             RoofingSolarPotentialEstimatorTool,
-            RoofingSolarPotentialAggregatorTool,
             FacadesSolarPotentialEstimatorTool,
-            FacadesSolarPotentialAggregatorTool,
             SmallHydroPotentialTool,
             LargeHydroPotentialTool,
             BiomassAvailabilityTool,

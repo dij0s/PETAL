@@ -18,7 +18,7 @@ from collections import defaultdict
 
 from provider.GeoSessionProvider import GeoSessionProvider
 
-async def _fetch_solar_potential_roofing(municipality_name: str, confidence_level=0.8) -> tuple[float, float]:
+async def _fetch_solar_potential_roofing(municipality_name: str, confidence_level=0.8) -> tuple[str, str]:
     """Asynchronously estimates the roofing solar potential for a given municipality.
 
     Args:
@@ -26,9 +26,15 @@ async def _fetch_solar_potential_roofing(municipality_name: str, confidence_leve
         confidence_level (float, optional): The confidence level for the margin of error (default is 0.8).
 
     Returns:
-        tuple[float, float]: A tuple containing the estimated solar potential in GWh/year and margin in GWh/year.
+        tuple[str, str]: A tuple containing the estimated energy (electricity) in GWh/year and the estimated energy (heating) in GWh/year.
     """
-    async def _fetch_solar_potential(session, tile) -> float:
+    # DETEC states that 70%
+    # of roofings' area is
+    # considered as covered
+    # for the computations
+    area_coverage_factor = 0.7
+
+    async def _fetch_solar_potential(session, tile) -> tuple[float, float]:
         minx, miny, maxx, maxy = tile.bounds
         geometry_str = f"{minx},{miny},{maxx},{maxy}"
 
@@ -49,20 +55,32 @@ async def _fetch_solar_potential_roofing(municipality_name: str, confidence_leve
             async with session.get(identify_url, params=params, headers=headers) as response:
                 if response.status == 200:
                     data = await response.json()
-                    tile_potential = 0  # kWh/year
+                    tile_energy_electricity = 0  # kWh/year
+                    tile_energy_heating = 0  # kWh/year
 
                     # sum up the potential for all features
+                    # if they are valid per DETEC rules :
+                    # only consider areas >= 10m² which
+                    # have a yield class >= 3 (good, very good, excellent)
                     for result in data.get("results", []):
-                        potential = result.get("attributes", {}).get("stromertrag", 0)
-                        tile_potential += potential
+                        attributes = result.get("attributes", {})
 
-                    return tile_potential
+                        area = attributes.get("flaeche", 0) # m²
+                        yield_class = attributes.get("klasse", 0)
+                        if area >= 10.0 and int(yield_class) >= 3:
+                            energy_electricity = attributes.get("stromertrag", 0) # kWh/year
+                            energy_heating = attributes.get("waermeertrag", 0) # kWh/year
+                            tile_energy_electricity += energy_electricity
+                            tile_energy_heating += energy_heating
+
+                    # include area coverage
+                    return tile_energy_electricity * area_coverage_factor, tile_energy_heating * area_coverage_factor
                 else:
                     print(f"Failed request for tile, status: {response.status}")
         except Exception as e:
             print(f"Error for tile at {geometry_str}: {e}")
 
-        return 0
+        return 0, 0
 
     # await needed GeoSession
     # for further computing
@@ -82,27 +100,35 @@ async def _fetch_solar_potential_roofing(municipality_name: str, confidence_leve
     # aggregate all partial potentials
     # and compute estimate potential
     # for municipality
-    sampled_potentials = np.array(sampled_potentials)
-    n = len(sampled_potentials)
-    mean_tile_value = np.mean(sampled_potentials)
-    std_dev = np.std(sampled_potentials, ddof=1)
+    electricity, heating = reduce(lambda res, p: ([*res[0], p[0]], [*res[1], p[1]]), sampled_potentials, ([], []))
+
+    n_electricity = len(electricity)
+    n_heating = len(heating)
+    mean_tile_value_electricity = np.mean(electricity)
+    mean_tile_value_heating = np.mean(heating)
+    std_dev_electricity = np.std(electricity, ddof=1)
+    std_dev_heating = np.std(heating, ddof=1)
 
     # compute t-value for the
     # given confidence level
-    t_value = t.ppf((1 + confidence_level) / 2, df=n - 1)
-    total_estimate_kwh = mean_tile_value * provider.total_tiles
-    margin_kwh = t_value * (std_dev / np.sqrt(n)) * provider.total_tiles
+    t_value = t.ppf((1 + confidence_level) / 2, df=n_electricity - 1)
+    total_estimate_electricity = mean_tile_value_electricity * provider.total_tiles # kWh/year
+    total_estimate_heating = mean_tile_value_heating * provider.total_tiles # kWh/year
+    margin_electricity = t_value * (std_dev_electricity / np.sqrt(n_electricity)) * provider.total_tiles # kWh/year
+    margin_heating = t_value * (std_dev_heating / np.sqrt(n_heating)) * provider.total_tiles # kWh/year
 
     # convert to GWh/year
-    total_estimate_gwh = total_estimate_kwh / 1e6
-    margin_gwh = float(margin_kwh / 1e6)
+    total_estimate_electricity_gwh = total_estimate_electricity / 1e6
+    total_estimate_heating_gwh = total_estimate_heating / 1e6
+    margin_electricity_gwh = margin_electricity / 1e6
+    margin_heating_gwh = margin_heating / 1e6
     # handle full aggregation
-    if margin_gwh == float("+inf"):
-        margin_gwh = 0.0
+    if margin_electricity_gwh == float("+inf"):
+        return f"{total_estimate_electricity_gwh:.2f}", f"{total_estimate_heating_gwh:.2f}"
 
-    return float(total_estimate_gwh), margin_gwh
+    return f"{total_estimate_electricity_gwh:.2f} ± {margin_electricity_gwh:.2f}", f"{total_estimate_heating_gwh:.2f} ± {margin_heating_gwh:.2f}"
 
-async def _fetch_solar_potential_facades(municipality_name: str, confidence_level=0.8) -> tuple[float, float]:
+async def _fetch_solar_potential_facades(municipality_name: str, confidence_level=0.8) -> tuple[str, str]:
     """Asynchronously estimates the facades solar potential for a given municipality.
 
     Args:
@@ -110,9 +136,15 @@ async def _fetch_solar_potential_facades(municipality_name: str, confidence_leve
         confidence_level (float, optional): The confidence level for the margin of error (default is 0.8).
 
     Returns:
-        tuple[float, float]: A tuple containing the estimated solar potential in GWh/year and margin in GWh/year.
+        tuple[str, str]: A tuple containing the estimated energy (electricity) in GWh/year and the estimated energy (heating) in GWh/year.
     """
-    async def _fetch_solar_potential(session, tile) -> float:
+    # DETEC states that 45-60%
+    # of facades' area is
+    # considered as covered
+    # for the computations
+    area_coverage_factor = 0.525
+
+    async def _fetch_solar_potential(session, tile) -> tuple[float, float]:
         minx, miny, maxx, maxy = tile.bounds
         geometry_str = f"{minx},{miny},{maxx},{maxy}"
 
@@ -133,20 +165,32 @@ async def _fetch_solar_potential_facades(municipality_name: str, confidence_leve
             async with session.get(identify_url, params=params, headers=headers) as response:
                 if response.status == 200:
                     data = await response.json()
-                    tile_potential = 0  # kWh/year
+                    tile_energy_electricity = 0  # kWh/year
+                    tile_energy_heating = 0  # kWh/year
 
                     # sum up the potential for all features
+                    # if they are valid per DETEC rules :
+                    # only consider areas >= 20m² which
+                    # have a yield class >= 2
                     for result in data.get("results", []):
-                        potential = result.get("attributes", {}).get("stromertrag", 0)
-                        tile_potential += potential
+                        attributes = result.get("attributes", {})
 
-                    return tile_potential
+                        area = attributes.get("flaeche", 0) # m²
+                        yield_class = attributes.get("klasse", 0)
+                        if area >= 20.0 and int(yield_class) >= 2:
+                            energy_electricity = attributes.get("stromertrag", 0) # kWh/year
+                            energy_heating = attributes.get("waermeertrag", 0) # kWh/year
+                            tile_energy_electricity += energy_electricity
+                            tile_energy_heating += energy_heating
+
+                    # include area coverage
+                    return tile_energy_electricity * area_coverage_factor, tile_energy_heating * area_coverage_factor
                 else:
                     print(f"Failed request for tile, status: {response.status}")
         except Exception as e:
             print(f"Error for tile at {geometry_str}: {e}")
 
-        return 0
+        return 0, 0
 
     # await needed GeoSession
     # for further computing
@@ -162,25 +206,33 @@ async def _fetch_solar_potential_facades(municipality_name: str, confidence_leve
     # aggregate all partial potentials
     # and compute estimate potential
     # for municipality
-    sampled_potentials = np.array(sampled_potentials)
-    n = len(sampled_potentials)
-    mean_tile_value = np.mean(sampled_potentials)
-    std_dev = np.std(sampled_potentials, ddof=1)
+    electricity, heating = reduce(lambda res, p: ([*res[0], p[0]], [*res[1], p[1]]), sampled_potentials, ([], []))
+
+    n_electricity = len(electricity)
+    n_heating = len(heating)
+    mean_tile_value_electricity = np.mean(electricity)
+    mean_tile_value_heating = np.mean(heating)
+    std_dev_electricity = np.std(electricity, ddof=1)
+    std_dev_heating = np.std(heating, ddof=1)
 
     # compute t-value for the
     # given confidence level
-    t_value = t.ppf((1 + confidence_level) / 2, df=n - 1)
-    total_estimate_kwh = mean_tile_value * provider.total_tiles
-    margin_kwh = t_value * (std_dev / np.sqrt(n)) * provider.total_tiles
+    t_value = t.ppf((1 + confidence_level) / 2, df=n_electricity - 1)
+    total_estimate_electricity = mean_tile_value_electricity * provider.total_tiles # kWh/year
+    total_estimate_heating = mean_tile_value_heating * provider.total_tiles # kWh/year
+    margin_electricity = t_value * (std_dev_electricity / np.sqrt(n_electricity)) * provider.total_tiles # kWh/year
+    margin_heating = t_value * (std_dev_heating / np.sqrt(n_heating)) * provider.total_tiles # kWh/year
 
     # convert to GWh/year
-    total_estimate_gwh = total_estimate_kwh / 1e6
-    margin_gwh = float(margin_kwh / 1e6)
+    total_estimate_electricity_gwh = total_estimate_electricity / 1e6
+    total_estimate_heating_gwh = total_estimate_heating / 1e6
+    margin_electricity_gwh = margin_electricity / 1e6
+    margin_heating_gwh = margin_heating / 1e6
     # handle full aggregation
-    if margin_gwh == float("+inf"):
-        margin_gwh = 0.0
+    if margin_electricity_gwh == float("+inf"):
+        return f"{total_estimate_electricity_gwh:.2f}", f"{total_estimate_heating_gwh:.2f}"
 
-    return float(total_estimate_gwh), margin_gwh
+    return f"{total_estimate_electricity_gwh:.2f} ± {margin_electricity_gwh:.2f}", f"{total_estimate_heating_gwh:.2f} ± {margin_heating_gwh:.2f}"
 
 async def _fetch_small_hydro_potential(municipality_name: str, efficiency: float = 0.3) -> float:
     """Asynchronously fetches the small hydroelectricity potential for a given municipality.
@@ -1262,21 +1314,21 @@ class RoofingSolarPotentialEstimatorTool(GeoDataTool):
             func=partial(_fetch_solar_potential_roofing, confidence_level=0.8),
             name="estimate_solar_potential_roofing",
             layer_id="ch.bfe.solarenergie-eignung-daecher",
-            description="ESTIMATED **ROOFING SOLAR POTENTIAL**. Returns the estimated solar potential in GWh/year and the margin of error in GWh/year, in a tuple.",
+            description="Estimated **ROOFING SOLAR ENERGY POTENTIAL**. Returns the estimated solar energy that can be used for electricity (photovoltaic) in GWh/year and the energy that can be used for heating (solar thermal) in GWh/year, in a tuple.",
         )
 
-class RoofingSolarPotentialAggregatorTool(GeoDataTool):
-    def __init__(
-        self,
-        municipality_name: str,
-    ):
-        super().__init__(
-            municipality_name=municipality_name,
-            func=partial(_fetch_solar_potential_roofing, confidence_level=1.0),
-            name="aggregate_solar_potential_roofing",
-            layer_id="ch.bfe.solarenergie-eignung-daecher",
-            description="EXACT **ROOFING SOLAR POTENTIAL**. Returns the total solar potential in GWh/year and the margin of error in GWh/year, in a tuple. COMES AT THE COST OF GREATER COMPUTE TIME. ONLY USE IF USER EXPLICITLY ASKS FOR VERY ACCURATE DATA.",
-        )
+# class RoofingSolarPotentialAggregatorTool(GeoDataTool):
+#     def __init__(
+#         self,
+#         municipality_name: str,
+#     ):
+#         super().__init__(
+#             municipality_name=municipality_name,
+#             func=partial(_fetch_solar_potential_roofing, confidence_level=1.0),
+#             name="aggregate_solar_potential_roofing",
+#             layer_id="ch.bfe.solarenergie-eignung-daecher",
+#             description="EXACT **ROOFING SOLAR POTENTIAL**. Returns the total solar potential in GWh/year and the margin of error in GWh/year, in a tuple. COMES AT THE COST OF GREATER COMPUTE TIME. ONLY USE IF USER EXPLICITLY ASKS FOR VERY ACCURATE DATA.",
+#         )
 
 class FacadesSolarPotentialEstimatorTool(GeoDataTool):
     def __init__(
@@ -1288,21 +1340,21 @@ class FacadesSolarPotentialEstimatorTool(GeoDataTool):
             func=partial(_fetch_solar_potential_facades, confidence_level=0.8),
             name="estimate_solar_potential_facades",
             layer_id="ch.bfe.solarenergie-eignung-fassaden",
-            description="ESTIMATED **FACADES SOLAR POTENTIAL**. Returns the estimated solar potential in GWh/year and the margin of error in GWh/year, in a tuple.",
+            description="Estimated **FACADES SOLAR ENERGY POTENTIAL**. Returns the estimated solar energy that can be used for electricity (photovoltaic) in GWh/year and the energy that can be used for heating (solar thermal) in GWh/year, in a tuple.",
         )
 
-class FacadesSolarPotentialAggregatorTool(GeoDataTool):
-    def __init__(
-        self,
-        municipality_name: str,
-    ):
-        super().__init__(
-            municipality_name=municipality_name,
-            func=partial(_fetch_solar_potential_facades, confidence_level=1.0),
-            name="aggregate_solar_potential_facades",
-            layer_id="ch.bfe.solarenergie-eignung-fassaden",
-            description="EXACT **FACADES SOLAR POTENTIAL**. Returns the total solar potential in GWh/year and the margin of error in GWh/year, in a tuple. COMES AT THE COST OF GREATER COMPUTE TIME. ONLY USE IF USER EXPLICITLY ASKS FOR VERY ACCURATE DATA.",
-        )
+# class FacadesSolarPotentialAggregatorTool(GeoDataTool):
+#     def __init__(
+#         self,
+#         municipality_name: str,
+#     ):
+#         super().__init__(
+#             municipality_name=municipality_name,
+#             func=partial(_fetch_solar_potential_facades, confidence_level=1.0),
+#             name="aggregate_solar_potential_facades",
+#             layer_id="ch.bfe.solarenergie-eignung-fassaden",
+#             description="EXACT **FACADES SOLAR POTENTIAL**. Returns the total solar potential in GWh/year and the margin of error in GWh/year, in a tuple. COMES AT THE COST OF GREATER COMPUTE TIME. ONLY USE IF USER EXPLICITLY ASKS FOR VERY ACCURATE DATA.",
+#         )
 
 class SmallHydroPotentialTool(GeoDataTool):
     def __init__(
@@ -1419,7 +1471,7 @@ class EffectiveInfrastructureTool(GeoDataTool):
             func=_fetch_effective_infrastructure,
             name="effective_infrastructure",
             layer_id="ch.bfe.elektrizitaetsproduktionsanlagen",
-            description="Effective **energy production from photovoltaic (PV), biomass, and geothermal heating**. Returns the energy production of photovoltaic, biomass and geothermal heating in GWh/year, all in a tuple.",
+            description="Effective **energy production from photovoltaic (PV), biomass, and geothermal heating**. Returns the energy production from photovoltaic solar panels in GWh/year, the biomass energy production in GWh/year and the geothermal heating energy in GWh/year, all in a tuple.",
         )
 
 class SewageTreatmentPotentialTool(GeoDataTool):
