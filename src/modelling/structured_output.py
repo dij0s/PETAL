@@ -19,7 +19,7 @@ class RouterOutput(BaseModel):
     topic: Optional[str] = Field(description="The primary subject of the user's request, such as 'solar', 'biomass', 'heating', or 'wind'. **Leave empty if not specified.**", default=None)
     location: Optional[str] = Field(description="The location mentioned in the user request, if available (ONLY SUPPORTS THE municipality name)", default=None)
     aggregated_query: Optional[str] = Field(
-        description="A natural language summary of the complete user request, synthesized from all available context. As short as possible while being as descriptive as possible WITHOUT EXTRA HALLUCINATED INFORMATION.",
+        description="A natural language summary of the complete user request, synthesized from all available context. Make sure properly include follow-up conversations. As short as possible while being as descriptive as possible WITHOUT EXTRA HALLUCINATED INFORMATION.",
         default=None
     )
     needs_clarification: bool = Field(

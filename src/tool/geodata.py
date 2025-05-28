@@ -1004,7 +1004,6 @@ async def _fetch_heating_cooling_needs_industry(municipality_name: str) -> str:
 
     minx, miny, maxx, maxy = provider.geometry.bounds
     geometry_str = f"{minx},{miny},{maxx},{maxy}"
-    print(geometry_str)
 
     url = "https://api3.geo.admin.ch/rest/services/api/MapServer/identify"
     params = {
@@ -1522,5 +1521,5 @@ class EnergyNeedsTool(GeoDataTool):
             func=partial(_fetch_energy_needs, heuristic=lambda n_households: 3500.0 * n_households),
             name="energy_needs",
             layer_id="",
-            description="**Estimated energy (electricity) needs** for households. Returns the estimated energy (electricity) needs for households in GWh/year. This estimate only includes everyday household electricity consumption and does not account for energy used for heating or cooling (which can be retrieved separately).",
+            description="**Estimated energy (electricity for everyday use only, HEATING/COOLING ISN'T INCLUDED) needs** for households. Returns the estimated energy (electricity for everyday use only, HEATING/COOLING ISN'T INCLUDED) needs for households in GWh/year. This estimate only includes everyday household electricity consumption and does not account for energy used for heating or cooling (which can be retrieved separately).",
         )
