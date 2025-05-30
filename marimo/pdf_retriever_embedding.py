@@ -29,20 +29,6 @@ def _():
 
 @app.cell
 def _():
-    import os
-    import io
-    import base64
-    from pdf2image import convert_from_path
-    from pdf2image.exceptions import (
-        PDFInfoNotInstalledError,
-        PDFPageCountError,
-        PDFSyntaxError
-    )
-    return
-
-
-@app.cell
-def _():
     from transformers import Qwen2_5_VLForConditionalGeneration, AutoTokenizer, AutoProcessor
     from qwen_vl_utils import process_vision_info
     return (
@@ -62,15 +48,27 @@ def _():
 def _(np):
     data = np.load("./compiled_files.npz", allow_pickle=True)
     images_list = data["base64_images"]
-    return (images_list,)
+    return
 
 
 @app.cell
-def _(AutoProcessor, Qwen2_5_VLForConditionalGeneration):
+def _():
+    min_pixels = 256 * 28 * 28
+    max_pixels = 1280 * 28 * 28
+    return max_pixels, min_pixels
+
+
+@app.cell
+def _(
+    AutoProcessor,
+    Qwen2_5_VLForConditionalGeneration,
+    max_pixels,
+    min_pixels,
+):
     model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
         "Qwen/Qwen2.5-VL-7B-Instruct", torch_dtype="auto", device_map="auto"
     )
-    processor = AutoProcessor.from_pretrained("Qwen/Qwen2.5-VL-7B-Instruct")
+    processor = AutoProcessor.from_pretrained("Qwen/Qwen2.5-VL-7B-Instruct", min_pixels=min_pixels, max_pixels=max_pixels)
     return model, processor
 
 
@@ -104,6 +102,7 @@ def _():
       - Article identifiers (e.g., "Art. 4")
       - Paragraphs, bullet points, and numbered clauses
 
+    - Translate the article title into English.
     - Translate the entire content literally into English, with clear formatting to distinguish between sections and articles.
     - DO NOT rephrase legant content, only condense to takeaway important information.
 
@@ -174,7 +173,7 @@ def _(model, process_vision_info, processor, system_prompt):
         )
         inputs = inputs.to(model.device)
 
-        generated_ids = model.generate(**inputs, max_new_tokens=500)
+        generated_ids = model.generate(**inputs, max_new_tokens=500, do_sample=False) # do_sample=False equiv. temperature=0
         generated_ids_trimmed = [
             out_ids[len(in_ids) :] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
         ]
@@ -183,20 +182,6 @@ def _(model, process_vision_info, processor, system_prompt):
         )
 
         return output_text
-    return (analyze_image,)
-
-
-@app.cell
-def _(analyze_image, images_list):
-    img = images_list[0]
-    res = analyze_image(img)
-    res
-    return
-
-
-@app.cell
-def _(analyze_image, images_list):
-    analyze_image(images_list[10])
     return
 
 
