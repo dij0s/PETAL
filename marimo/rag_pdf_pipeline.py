@@ -109,8 +109,8 @@ def _(base64, io):
 
 
 @app.cell
-def _(get_img_uri, images, np):
-    base64_images = [get_img_uri(img) for img in images]
+def _(get_img_uri, images_list, np):
+    base64_images = [get_img_uri(img) for img in images_list]
     np.savez_compressed("./compiled_files.npz", base64_images=base64_images)
     return
 
