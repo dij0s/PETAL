@@ -1,0 +1,185 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.13.15"
+  },
+  "cells": [
+    {
+      "id": "Hbol",
+      "code_hash": "755b3e5a491983d745134d713df3c65f",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<span class=\"markdown prose dark:prose-invert\"><span class=\"paragraph\">The following notebook will serve as base for handling and embedding PDF files and their multimodal content (text and images) for further use in RAG-application context.</span>\n<span class=\"paragraph\">The documents are policies, prescriptions and \"design\" documents related to the energy planning and transition, in Switzerland.</span>\n<span class=\"paragraph\">Sources:\n<a href=\"https://cookbook.openai.com/examples/parse_pdf_docs_for_rag\" rel=\"noopener\" target=\"_blank\">https://cookbook.openai.com/examples/parse_pdf_docs_for_rag</a></span>\n<span class=\"paragraph\">Le traitement de documents PDF n\u00e9cessite l'installation du programme <code>poppler</code> sur l'h\u00f4te (<a href=\"https://pypi.org/project/pdf2image/\" rel=\"noopener\" target=\"_blank\">https://pypi.org/project/pdf2image/</a>).</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "1d0db38904205bec4d6f6f6a1f6cec3e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "vblA",
+      "code_hash": "210f21d444299b8ea519e69416495f7f",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "bkHC",
+      "code_hash": "d406825471a87aedd92b775273df6d9a",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "lEQa",
+      "code_hash": "2165a3ac278eb64f0d36dac4f79fbeda",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "PKri",
+      "code_hash": "34524bbaeb44effef8508a885e1f7b56",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Xref",
+      "code_hash": "3b764f9bc273caed988f7d9b63f4839e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "\rLoading checkpoint shards:   0%|         | 0/5 [00:00<?, ?it/s]"
+        },
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "\rLoading checkpoint shards:  20%|\u258f| 1/5 [00:04<00:17,  4.32s/it]"
+        },
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "\rLoading checkpoint shards:  40%|\u258d| 2/5 [00:05<00:07,  2.43s/it]"
+        },
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "\rLoading checkpoint shards:  60%|\u258c| 3/5 [00:06<00:03,  1.79s/it]"
+        },
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "\rLoading checkpoint shards:  80%|\u258a| 4/5 [00:07<00:01,  1.48s/it]"
+        },
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "\rLoading checkpoint shards: 100%|\u2588| 5/5 [00:07<00:00,  1.04s/it]\rLoading checkpoint shards: 100%|\u2588| 5/5 [00:07<00:00,  1.54s/it]\n"
+        },
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "Using a slow image processor as `use_fast` is unset and a slow processor was saved with this model. `use_fast=True` will be the default behavior in v4.52, even if the model was saved with a slow processor. This will result in minor differences in outputs. You'll still be able to use a slow processor with `use_fast=False`.\n"
+        },
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "You have video processor config saved in `preprocessor.json` file which is deprecated. Video processor configs should be saved in their own `video_preprocessor.json` file. You can rename the file or load and save the processor back which renames it automatically. Loading from `preprocessor.json` will be removed in v5.0.\n"
+        }
+      ]
+    },
+    {
+      "id": "SFPL",
+      "code_hash": "7856553cf8e16dc57aff7151aad0add1",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "BYtC",
+      "code_hash": "1f5417973476d1382841808191b4d6c8",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "RGSE",
+      "code_hash": "70a9824ce308f53ca85dc04917476f4e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "application/json": "[\"This image is a page from a Swiss law document titled \\\"Loi sur l'\\u00e9nergie\\\" (Law on Energy), abbreviated as LcEne. It was enacted on September 8, 2023, and will come into effect on January 1, 2025. The document is issued by the Grand Conseil du canton du Valais (Grand Council of the Canton of Valais).\\n\\nThe law is structured as follows:\\n\\n### Context and Purpose:\\nThe law is based on several federal laws and constitutional articles:\\n- Article 60, paragraph 2 of the Federal Energy Law of September 30, 2016 (LEne).\\n- Article 9 of the Federal Law on CO\\u2082 Emissions Reduction of December 23, 2011 (CO\\u2082 Law).\\n- Article 50, paragraph 1 of the Federal Energy Ordinance of November 1, 2017 (OEnE).\\n- Articles 31, paragraph 1; 42, paragraph 1; 54; and 58 of the Cantonal Constitution.\\n- The Cantonal Construction Law of December 15, 2016 (LC).\\n\\nThe law is proposed by the State Council.\\n\\n### Article 1: Generalities\\n#### Objectives\\nThe law aims to contribute to a sufficient, diversified, safe, economic, indigenous, and environmentally respectful energy supply in the context of sustainable development. Specifically, it seeks to:\\n1. Optimize conditions for energy production and distribution.\\n2. Ensure the efficient use of energy.\\n3. Strengthen the use of renewable energy resources, particularly indigenous ones, as well as heat rejection for electricity, heat, or other secondary energy agents.\"]"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Kclp",
+      "code_hash": "c4356f0ec8f621cbf6b9e887a9e891a8",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "application/json": "[\"This image contains a page from a Swiss legal document, specifically Article 23 and Article 24, related to energy management and efficiency. Here's a detailed breakdown:\\n\\n### Article 23: Obligation de reprise et de r\\u00e9tribution de la chaleur et des gaz de synth\\u00e8se d'origine renouvelable\\n\\n1. **Article 23**: Obligation of taking back and remunerating renewable heat and synthetic gases.\\n   - **Clause 1**: Network managers of heat or gas networks are obliged to take back renewable heat, heat rejection, or renewable synthetic gas offered to them and compatible with network operating conditions.\\n   - **Clause 2**: If the network manager and producer cannot agree on remuneration, the reclaimed energy is remunerated at the selling price of the distributed energy minus a network amortization contribution.\\n   - **Clause 3**: The network manager of heat or gas sets the connection point and type.\\n   - **Clause 4**: In case of dispute, the State Council fixes the network connection contributions.\\n\\n### Article 24: Principes de l'utilisation \\u00e9conome et efficace de l'\\u00e9nergie\\n\\n1. **Article 24**: Principles of economical and efficient energy use.\\n   - **Clause 1**: Energy must be used economically and efficiently, meaning:\\n     - a) Consuming the least possible amount of energy;\\n     - b) Using the most appropriate form of energy;\\n     - c) Investing the least possible energy to achieve a given result (high energy efficiency);\\n     - d) Recovering usable heat rejection.\\n   - **Clause 2**: The State Council specifies technical aspects and may declare professional associations\\u2019 norms generally recognized as mandatory. It sets requirements for:\\n     - a) Thermal protection against heat or cold;\\n     - b) Heat and sanitary hot water production installations;\\n     - c) Heat recovery;\\n     - d) Ventilation and cooling installations;\\n     - e) Heated pools.\\n\\n### Section 5: Utilisation \\u00e9conome et efficace de l'\\u00e9nergie\\n\\n#### Subsection 5.1: Dispositions g\\u00e9n\\u00e9rales\\n\\n1. **Subsection 5.1**: General provisions.\\n   - **Article 24**: Principles of economical and efficient energy use.\\n\\nThis page outlines obligations for network managers regarding renewable energy sources and sets principles for the efficient use of energy, including specific requirements for thermal protection, heat production, heat recovery, ventilation, cooling, and heated pools.\"]"
+          }
+        }
+      ],
+      "console": []
+    }
+  ]
+}
