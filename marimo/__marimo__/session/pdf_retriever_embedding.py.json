@@ -18,179 +18,51 @@
     },
     {
       "id": "vblA",
-      "code_hash": "210f21d444299b8ea519e69416495f7f",
+      "code_hash": "d406825471a87aedd92b775273df6d9a",
       "outputs": [],
       "console": []
     },
     {
       "id": "bkHC",
-      "code_hash": "d406825471a87aedd92b775273df6d9a",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/plain": ""
-          }
-        }
-      ],
+      "code_hash": "dc5d90c56c890885106561db186cb06b",
+      "outputs": [],
       "console": []
     },
     {
       "id": "lEQa",
-      "code_hash": "2165a3ac278eb64f0d36dac4f79fbeda",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/plain": ""
-          }
-        }
-      ],
+      "code_hash": "34524bbaeb44effef8508a885e1f7b56",
+      "outputs": [],
       "console": []
     },
     {
       "id": "PKri",
-      "code_hash": "34524bbaeb44effef8508a885e1f7b56",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/plain": ""
-          }
-        }
-      ],
+      "code_hash": "697df1b715854c86b6f446e6e1be64cf",
+      "outputs": [],
       "console": []
     },
     {
       "id": "Xref",
-      "code_hash": "697df1b715854c86b6f446e6e1be64cf",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/plain": ""
-          }
-        }
-      ],
+      "code_hash": "124c705d2726d51d1f65d4e8636b5733",
+      "outputs": [],
       "console": []
     },
     {
       "id": "SFPL",
-      "code_hash": "124c705d2726d51d1f65d4e8636b5733",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/plain": ""
-          }
-        }
-      ],
-      "console": [
-        {
-          "type": "stream",
-          "name": "stderr",
-          "text": "\rLoading checkpoint shards:   0%|         | 0/5 [00:00<?, ?it/s]"
-        },
-        {
-          "type": "stream",
-          "name": "stderr",
-          "text": "\rLoading checkpoint shards:  20%|\u258f| 1/5 [00:01<00:04,  1.10s/it]"
-        },
-        {
-          "type": "stream",
-          "name": "stderr",
-          "text": "\rLoading checkpoint shards:  40%|\u258d| 2/5 [00:01<00:02,  1.04it/s]"
-        },
-        {
-          "type": "stream",
-          "name": "stderr",
-          "text": "\rLoading checkpoint shards:  60%|\u258c| 3/5 [00:02<00:01,  1.11it/s]"
-        },
-        {
-          "type": "stream",
-          "name": "stderr",
-          "text": "\rLoading checkpoint shards:  80%|\u258a| 4/5 [00:03<00:00,  1.14it/s]"
-        },
-        {
-          "type": "stream",
-          "name": "stderr",
-          "text": "\rLoading checkpoint shards: 100%|\u2588| 5/5 [00:03<00:00,  1.56it/s]\rLoading checkpoint shards: 100%|\u2588| 5/5 [00:03<00:00,  1.30it/s]\n"
-        },
-        {
-          "type": "stream",
-          "name": "stderr",
-          "text": "Using a slow image processor as `use_fast` is unset and a slow processor was saved with this model. `use_fast=True` will be the default behavior in v4.52, even if the model was saved with a slow processor. This will result in minor differences in outputs. You'll still be able to use a slow processor with `use_fast=False`.\n"
-        },
-        {
-          "type": "stream",
-          "name": "stderr",
-          "text": "You have video processor config saved in `preprocessor.json` file which is deprecated. Video processor configs should be saved in their own `video_preprocessor.json` file. You can rename the file or load and save the processor back which renames it automatically. Loading from `preprocessor.json` will be removed in v5.0.\n"
-        }
-      ]
+      "code_hash": "6bf4631f1a8e192d7a2abc7cf364880f",
+      "outputs": [],
+      "console": []
     },
     {
       "id": "BYtC",
-      "code_hash": "6bf4631f1a8e192d7a2abc7cf364880f",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/plain": ""
-          }
-        }
-      ],
+      "code_hash": "6a9fd14c806d98d15ed8ea78a3f46b28",
+      "outputs": [],
       "console": []
     },
     {
       "id": "RGSE",
-      "code_hash": "6a9fd14c806d98d15ed8ea78a3f46b28",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/plain": ""
-          }
-        }
-      ],
+      "code_hash": "5ed9430f222d752bf99f893d41cf47ee",
+      "outputs": [],
       "console": []
-    },
-    {
-      "id": "Kclp",
-      "code_hash": "70a9824ce308f53ca85dc04917476f4e",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "application/json": "[\"This image is a page from a Swiss law document titled \\\"Loi sur l'\\u00e9nergie\\\" (Law on Energy), abbreviated as LcEne. It was enacted on September 8, 2023, and will come into effect on January 1, 2025. The document is issued by the Grand Conseil du canton du Valais (Grand Council of the Canton of Valais).\\n\\nThe law is structured as follows:\\n\\n### Context and Purpose:\\nThe law is based on several federal and cantonal laws and regulations, including:\\n- Article 60, paragraph 2 of the Federal Energy Law of September 30, 2016 (LEne);\\n- Article 9 of the Federal Law on CO\\u2082 Emissions Reduction of December 23, 2011 (CO\\u2082 Law);\\n- Article 50, paragraph 1 of the Federal Energy Ordinance of November 1, 2017 (OEne);\\n- Articles 31, paragraph 1; 42, paragraph 1; 54; and 58 of the Cantonal Constitution;\\n- The Building Law of December 15, 2016 (LC).\\n\\nThe law is proposed by the State Council.\\n\\n### Article 1: Generalities\\n#### Objectives\\nThe law aims to contribute to a sufficient, diversified, secure, economic, indigenous, and environmentally respectful energy supply within the framework of sustainable development. Its specific objectives are:\\na) To promote energy production and distribution through optimizing conditions;\\nb) To ensure the efficient use of energy;\\nc) To strengthen the use of renewable energy resources, particularly indigenous ones, such as heat rejection for electricity, heat, or other secondary energy agents.\"]"
-          }
-        }
-      ],
-      "console": [
-        {
-          "type": "stream",
-          "name": "stderr",
-          "text": "The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.\n"
-        }
-      ]
-    },
-    {
-      "id": "emfo",
-      "code_hash": "c4356f0ec8f621cbf6b9e887a9e891a8",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "application/json": "[\"This image contains a page from a Swiss legal document, specifically Article 23 and Article 24 related to energy management and renewable energy sources. Here's a detailed breakdown of the content:\\n\\n### Article 23: Obligation de reprise et de r\\u00e9tribution de la chaleur et des gaz de synth\\u00e8se d'origine renouvelable\\n\\n1. **Obligation de reprise**: Network operators (heat networks or gas networks) are required to take back renewable heat, waste heat, or synthetic gases of renewable origin that are offered to them and are compatible with network operating conditions.\\n   \\n2. **Retribution**: If the network operator and producer cannot agree on compensation, the reclaimed energy is remunerated at the price of distributed energy minus a network amortization contribution.\\n\\n3. **Point and type of connection**: The network operator fixes the point and type of connection.\\n\\n4. **Litigation resolution**: In case of dispute, the State Council determines the network connection contributions.\\n\\n### Article 24: Principes de l'utilisation \\u00e9conome et efficace de l'\\u00e9nergie\\n\\n1. **Principles of efficient energy use**: Energy must be used economically and efficiently, meaning:\\n   - Consuming the least possible amount of energy.\\n   - Using the most appropriate form of energy.\\n   - Investing the least possible energy to achieve a given result (high energy efficiency).\\n   - Recovering usable waste heat.\\n\\n2. **Technical aspects and professional norms**: The State Council specifies technical aspects and may declare professional association standards obligatory. It sets requirements for:\\n   - Thermal insulation against heat or cold.\\n   - Heat and sanitary hot water production installations.\\n   - Heat recovery.\\n   - Ventilation and cooling installations.\\n   - Heated swimming pools.\\n\\n### Section 5: Utilisation \\u00e9conome et efficace de l'\\u00e9nergie\\n\\n#### 5.1 Dispositions g\\u00e9n\\u00e9rales (General provisions)\\n\\nThis section outlines general principles for the economical and efficient use of energy, emphasizing the need to minimize energy consumption, use the most appropriate energy forms, invest minimally for high energy efficiency, and recover usable waste heat.\"]"
-          }
-        }
-      ],
-      "console": [
-        {
-          "type": "stream",
-          "name": "stderr",
-          "text": "The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.\n"
-        }
-      ]
     }
   ]
 }

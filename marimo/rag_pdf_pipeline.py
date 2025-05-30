@@ -38,19 +38,9 @@ def _():
         PDFPageCountError,
         PDFSyntaxError
     )
+    from pdfminer.high_level import extract_text
     from IPython.display import display
-    return base64, convert_from_path, display, io, os
-
-
-@app.cell
-def _():
-    from transformers import Qwen2_5_VLForConditionalGeneration, AutoTokenizer, AutoProcessor
-    from qwen_vl_utils import process_vision_info
-    return (
-        AutoProcessor,
-        Qwen2_5_VLForConditionalGeneration,
-        process_vision_info,
-    )
+    return base64, convert_from_path, extract_text, io, os
 
 
 @app.cell
@@ -67,31 +57,18 @@ def _(convert_from_path):
 
 
 @app.cell
-def _(os):
-    dataset_directory_path = "./dataset/"
-    files = os.listdir(dataset_directory_path)
-    return dataset_directory_path, files
-
-
-@app.cell
-def _(convert_doc_to_images, dataset_directory_path, files, os):
-    filepath = files[0]
-    images = convert_doc_to_images(os.path.join(dataset_directory_path, filepath))
-    return (images,)
-
-
-@app.cell
-def _():
-    #for index, image in enumerate(images):
-    #    if index == 0:
-    #        display(image)
+def _(extract_text):
+    def extract_text_from_doc(path):
+        text = extract_text(path)
+        return text
     return
 
 
 @app.cell
-def _(images):
-    images_list = list(images)
-    return (images_list,)
+def _(os):
+    dataset_directory_path = "./dataset/"
+    files = os.listdir(dataset_directory_path)
+    return dataset_directory_path, files
 
 
 @app.cell
@@ -109,84 +86,16 @@ def _(base64, io):
 
 
 @app.cell
-def _(get_img_uri, images_list, np):
-    base64_images = [get_img_uri(img) for img in images_list]
+def _(
+    convert_doc_to_images,
+    dataset_directory_path,
+    files,
+    get_img_uri,
+    np,
+    os,
+):
+    base64_images = [get_img_uri(img) for filename in files for img in convert_doc_to_images(os.path.join(dataset_directory_path, filename))]
     np.savez_compressed("./compiled_files.npz", base64_images=base64_images)
-    return
-
-
-@app.cell
-def _(AutoProcessor, Qwen2_5_VLForConditionalGeneration):
-    model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
-        "Qwen/Qwen2.5-VL-3B-Instruct", torch_dtype="auto", device_map="auto"
-    )
-    processor = AutoProcessor.from_pretrained("Qwen/Qwen2.5-VL-3B-Instruct")
-    return model, processor
-
-
-@app.cell
-def _(model, process_vision_info, processor):
-    def analyze_image(data_uri):
-        messages = [
-            {
-            "role": "user",
-            "content": [
-                {
-                    "type": "image",
-                    "image": data_uri,
-                },
-                {"type": "text", "text": "Describe this image."},
-            ],
-        }
-        ]
-
-        text = processor.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True
-        )
-        image_inputs, video_inputs = process_vision_info(messages)
-        inputs = processor(
-            text=[text],
-            images=image_inputs,
-            videos=video_inputs,
-            padding=True,
-            return_tensors="pt",
-        )
-        inputs = inputs.to("cuda")
-
-        generated_ids = model.generate(**inputs, max_new_tokens=128)
-        generated_ids_trimmed = [
-            out_ids[len(in_ids) :] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
-        ]
-        output_text = processor.batch_decode(
-            generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
-        )
-
-        return output_text
-    return (analyze_image,)
-
-
-@app.cell
-def _(get_img_uri, images_list):
-    img = images_list[0]
-    data_uri = get_img_uri(img)
-    return data_uri, img
-
-
-@app.cell
-def _(display, img):
-    display(img)
-    return
-
-
-@app.cell
-def _(analyze_image, data_uri):
-    res = analyze_image(data_uri)
-    return (res,)
-
-
-@app.cell
-def _(res):
-    res
     return
 
 

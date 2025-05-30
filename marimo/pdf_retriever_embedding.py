@@ -41,14 +41,15 @@ def _():
 @app.cell
 def _():
     import numpy as np
-    return (np,)
+    import json
+    return json, np
 
 
 @app.cell
 def _(np):
     data = np.load("./compiled_files.npz", allow_pickle=True)
     images_list = data["base64_images"]
-    return
+    return (images_list,)
 
 
 @app.cell
@@ -182,6 +183,32 @@ def _(model, process_vision_info, processor, system_prompt):
         )
 
         return output_text
+    return (analyze_image,)
+
+
+@app.cell
+def _(analyze_image, images_list, json):
+    results = {}
+
+    checkpoint_path = "./infered_pages_latest.json"
+
+    for index, data_uri in enumerate(images_list):
+        image_id = f"page_{index:04d}"
+
+        try:
+            output = analyze_image(data_uri)
+            results[image_id] = output
+            print(f"Processed {image_id}")
+        except Exception as e:
+            print(f"Error processing {image_id}: {e}")
+            results[image_id] = f"[ERROR] {str(e)}"
+
+        # checkpoint every 10
+        # pages and at the end
+        if index % 10 == 0 or index == len(images_list) - 1:
+            with open(checkpoint_path, "w", encoding="utf-8") as f:
+                json.dump(results, f, indent=2, ensure_ascii=False)
+            print(f"Checkpoint saved at page {index}")
     return
 
 
