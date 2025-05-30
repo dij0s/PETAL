@@ -54,6 +54,12 @@ def _():
 
 
 @app.cell
+def _():
+    import numpy as np
+    return (np,)
+
+
+@app.cell
 def _(convert_from_path):
     def convert_doc_to_images(path):
         yield from convert_from_path(path)
@@ -103,6 +109,13 @@ def _(base64, io):
 
 
 @app.cell
+def _(get_img_uri, images, np):
+    base64_images = [get_img_uri(img) for img in images]
+    np.savez_compressed("./compiled_files.npz", base64_images=base64_images)
+    return
+
+
+@app.cell
 def _(AutoProcessor, Qwen2_5_VLForConditionalGeneration):
     model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
         "Qwen/Qwen2.5-VL-3B-Instruct", torch_dtype="auto", device_map="auto"
@@ -126,7 +139,7 @@ def _(model, process_vision_info, processor):
             ],
         }
         ]
-    
+
         text = processor.apply_chat_template(
             messages, tokenize=False, add_generation_prompt=True
         )
@@ -139,7 +152,7 @@ def _(model, process_vision_info, processor):
             return_tensors="pt",
         )
         inputs = inputs.to("cuda")
-    
+
         generated_ids = model.generate(**inputs, max_new_tokens=128)
         generated_ids_trimmed = [
             out_ids[len(in_ids) :] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)

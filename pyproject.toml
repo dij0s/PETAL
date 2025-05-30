@@ -33,6 +33,7 @@ dev = [
     "accelerate>=1.7.0",
     "ipython>=9.2.0",
     "marimo>=0.13.15",
+    "numpy>=2.2.6",
     "pdf2image>=1.17.0",
     "qwen-vl-utils[decord]==0.0.8",
     "torchvision>=0.22.0",
