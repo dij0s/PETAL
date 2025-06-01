@@ -1313,7 +1313,7 @@ class RoofingSolarPotentialEstimatorTool(GeoDataTool):
             func=partial(_fetch_solar_potential_roofing, confidence_level=0.8),
             name="estimate_solar_potential_roofing",
             layer_id="ch.bfe.solarenergie-eignung-daecher",
-            description="Estimated **ROOFING SOLAR ENERGY POTENTIAL**. Returns the estimated solar energy that can be used for electricity (photovoltaic) in GWh/year and the energy that can be used for heating (solar thermal) in GWh/year, in a tuple.",
+            description="Estimated **roofing solar energy potential**. Returns the estimated solar energy that can be used for electricity (photovoltaic) in GWh/year and the energy that can be used for heating (solar thermal) in GWh/year, in a tuple.",
         )
 
 class FacadesSolarPotentialEstimatorTool(GeoDataTool):
@@ -1326,7 +1326,7 @@ class FacadesSolarPotentialEstimatorTool(GeoDataTool):
             func=partial(_fetch_solar_potential_facades, confidence_level=0.8),
             name="estimate_solar_potential_facades",
             layer_id="ch.bfe.solarenergie-eignung-fassaden",
-            description="Estimated **FACADES SOLAR ENERGY POTENTIAL**. Returns the estimated solar energy that can be used for electricity (photovoltaic) in GWh/year and the energy that can be used for heating (solar thermal) in GWh/year, in a tuple.",
+            description="Estimated **facades solar energy potential**. Returns the estimated solar energy that can be used for electricity (photovoltaic) in GWh/year and the energy that can be used for heating (solar thermal) in GWh/year, in a tuple.",
         )
 
 class SmallHydroPotentialTool(GeoDataTool):
@@ -1430,7 +1430,7 @@ class ThermalNetworksInfrastructureTool(GeoDataTool):
             func=_fetch_thermal_networks_infrastructure,
             name="thermal_networks_infrastructure",
             layer_id="",
-            description="Total **energy that can be delivered via the thermal networks INFRASTRUCTURE**. Returns the total energy that can be delivered via thermal networks in GWh/year. Thermal networks – including district heating-, local heating- or district cooling networks – are systems that supply heat to customers through pipelines that carry water or steam. The energy supplied by thermal networks does not necessarily come from renewable sources, but these systems are often characterised by their low CO2 emissions, for example when based on heat recovered from waste incineration.",
+            description="Total **energy that can be delivered via the thermal networks infrastructure**. Returns the total energy that can be delivered via thermal networks in GWh/year. Thermal networks – including district heating-, local heating- or district cooling networks – are systems that supply heat to customers through pipelines that carry water or steam. The energy supplied by thermal networks does not necessarily come from renewable sources, but these systems are often characterised by their low CO2 emissions, for example when based on heat recovered from waste incineration.",
         )
 
 class EffectiveInfrastructureTool(GeoDataTool):
@@ -1482,7 +1482,7 @@ class HeatingCoolingNeedsIndustryTool(GeoDataTool):
             func=_fetch_heating_cooling_needs_industry,
             name="heating_cooling_needs_industry",
             layer_id="ch.bfe.fernwaerme-nachfrage_industrie",
-            description="**Heating/cooling energy needs for the INDUSTRY**. Returns the heating/cooling energy needs for the industry in GWh/year. In strategic planning, heat demand is used to identify large connected areas that may be appropriate for a thermal network. Areas with a heat density of at least 0.7 GWh/year per hectare are considered suitable. As well as heat density, heat must be supplied at a specific temperature. Some industries require process heat at a very high temperature (sometimes 1,000°C or more).",
+            description="**Heating/cooling energy needs for the industry**. Returns the heating/cooling energy needs for the industry in GWh/year. In strategic planning, heat demand is used to identify large connected areas that may be appropriate for a thermal network. Areas with a heat density of at least 0.7 GWh/year per hectare are considered suitable. As well as heat density, heat must be supplied at a specific temperature. Some industries require process heat at a very high temperature (sometimes 1,000°C or more).",
         )
 
 class HeatingCoolingNeedsHouseholdsTool(GeoDataTool):
@@ -1495,7 +1495,7 @@ class HeatingCoolingNeedsHouseholdsTool(GeoDataTool):
             func=_fetch_heating_cooling_needs_households,
             name="heating_cooling_needs_households",
             layer_id="ch.bfe.fernwaerme-nachfrage_wohn_dienstleistungsgebaeude",
-            description="**Heating/cooling energy needs for HOUSEHOLDS**. Returns the heating/cooling energy needs for households in GWh/year. The demand for heat and cooling is a key element in the strategic planning of thermal networks for households. Building a thermal network is only viable if sufficient sales turnover can be generated from heat and/or cooling. Areas with a heat density of at least 0.7 GWh/year per hectare are considered suitable. The heating/cooling energy needs for households can be summed to the electricity energy needs for households to determine the global energy needs for households.",
+            description="**Heating/cooling energy needs for household**. Returns the heating/cooling energy needs for households in GWh/year. The demand for heat and cooling is a key element in the strategic planning of thermal networks for households. Building a thermal network is only viable if sufficient sales turnover can be generated from heat and/or cooling. Areas with a heat density of at least 0.7 GWh/year per hectare are considered suitable. The heating/cooling energy needs for households can be summed to the electricity energy needs for households to determine the global energy needs for households.",
         )
 
 class BuildingsEmissionEnergySourcesTool(GeoDataTool):
@@ -1521,5 +1521,5 @@ class EnergyNeedsTool(GeoDataTool):
             func=partial(_fetch_energy_needs, heuristic=lambda n_households: 3500.0 * n_households),
             name="energy_needs",
             layer_id="",
-            description="**Estimated energy (electricity for everyday use only, HEATING/COOLING ISN'T INCLUDED) needs** for households. Returns the estimated energy (electricity for everyday use only, HEATING/COOLING ISN'T INCLUDED) needs for households in GWh/year. This estimate only includes everyday household electricity consumption and does not account for energy used for heating or cooling (which can be retrieved separately). The heating/cooling energy needs for households can be summed to the electricity energy needs for households to determine the global energy needs for households.",
+            description="**Estimated energy (electricity for everyday use only, heating and cooling isn't included) needs** for households. Returns the estimated energy (electricity for everyday use only, heating and cooling isn't included) needs for households in GWh/year. This estimate only includes everyday household electricity consumption and does not account for energy used for heating or cooling (which can be retrieved separately). The heating/cooling energy needs for households can be summed to the electricity energy needs for households to determine the global energy needs for households.",
         )

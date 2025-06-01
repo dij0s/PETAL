@@ -162,8 +162,16 @@ class ToolProvider:
         Returns:
             tuple[list[StructuredTool], list[str]]: A tuple containing a list of relevant StructuredTool objects that match the query and filter, along with the the constraining document chunks. By default, no filtering is applied.
         """
+        tools_task = self._asearch_tools(query, max_n, k, filter)
+        constraints_task = self._asearch_constraints(query)
+        # run both results
+        # asynchronously and
+        # then only gather
+        # maybe handle query
+        # embedding differently ?
+        tools, constraints = await asyncio.gather(tools_task, constraints_task)
 
-        await self._asearch_constraints(query, k)
+        return tools, constraints
 
 
     async def _asearch_tools(self, query: str, max_n: int, k: int = 4, filter: Optional[Callable[[Document], bool]] = None) -> list[StructuredTool]:
@@ -217,27 +225,22 @@ class ToolProvider:
 
         return top_tools
 
-    async def _asearch_constraints(self, query: str, k: int = 4) -> list[str]:
+    async def _asearch_constraints(self, query: str) -> list[str]:
         """
         Search for constraining document chunks matching the query.
 
         Args:
             query (str): The search query string.
-            k (int): The number of document chunks to retrieve from the vector store.
 
         Returns:
             list[str]: A list of relevant constraining document chunks that match the query.
         """
 
-        print("here")
-        try:
-            # docs = await self._vector_store_constraints.asimilarity_search_with_score(query=query, k=k)
-            docs = self._vector_store_constraints.similarity_search_with_score(query=query, k=k)
-            print(docs)
-        except Exception as e:
-            print(f"EXCEPTION WITH REDIS : {e}")
-
-        return []
+        return [
+            doc.page_content
+            for doc, _ in await self._vector_store_constraints.asimilarity_search_with_score(query=query, k=5)
+            if isinstance(doc, Document)
+        ]
 
 def _tools_needs(municipality_name: str) -> dict[str, StructuredTool]:
     """
