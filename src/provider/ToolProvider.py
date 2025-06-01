@@ -11,6 +11,7 @@ from langchain_core.vectorstores.base import VectorStore
 from langchain_ollama import OllamaEmbeddings
 
 from langchain_redis import RedisVectorStore
+from redisvl.schema import IndexSchema
 
 from sentence_transformers import CrossEncoder
 from torch.nn import Sigmoid
@@ -82,7 +83,7 @@ class ToolProvider:
             index_name="idx:doc_vss",
             embedding=embedder,
             redis_url="redis://localhost:6379",
-            vector_query_field="vector",
+            embedding_field="vector",
             content_field="chunk_content",
         )
 
@@ -230,7 +231,8 @@ class ToolProvider:
 
         print("here")
         try:
-            docs = await self._vector_store_constraints.asimilarity_search_with_score(query=query, k=k)
+            # docs = await self._vector_store_constraints.asimilarity_search_with_score(query=query, k=k)
+            docs = self._vector_store_constraints.similarity_search_with_score(query=query, k=k)
             print(docs)
         except Exception as e:
             print(f"EXCEPTION WITH REDIS : {e}")

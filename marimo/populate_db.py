@@ -259,5 +259,28 @@ def _(client, encoded_query, np, query):
     return
 
 
+@app.cell
+def _(Query):
+    another_query = (
+        Query('(*)=>[KNN 5 @vector $query_vector AS vector_distance]')
+         .sort_by("vector_distance")
+         .return_fields("vector", "vector_distance", "chunk_content")
+         .dialect(3)
+    )
+    # *=>[KNN 5 @embedding $vector AS vector_distance] RETURN 3 chunk_content vector vector_distance SORTBY vector_distance ASC DIALECT 2 LIMIT 0 5 <class 'redisvl.query.query.VectorQuery'>
+    return (another_query,)
+
+
+@app.cell
+def _(another_query, client, encoded_query, np):
+    client.ft('idx:doc_vss').search(
+        another_query,
+        {
+          'query_vector': np.array(encoded_query, dtype=np.float32).tobytes()
+        }
+    ).docs
+    return
+
+
 if __name__ == "__main__":
     app.run()
