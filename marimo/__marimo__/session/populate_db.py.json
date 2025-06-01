@@ -1,0 +1,265 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.13.15"
+  },
+  "cells": [
+    {
+      "id": "Hbol",
+      "code_hash": "1d0db38904205bec4d6f6f6a1f6cec3e",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "8415e5e3585291d7fbf073b56bebb9e9",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "vblA",
+      "code_hash": "5cbba10b2c0143846d040d1656d2ea14",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "bkHC",
+      "code_hash": "a11ed89ecb3394796fd717c2cb97c777",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "lEQa",
+      "code_hash": "5a9a82eed9c24225e2e65df0278b09ff",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "PKri",
+      "code_hash": "acf826c78189abe352fc1e59af9748fe",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Xref",
+      "code_hash": "dbd1531d8f1b6bbd8c1e9a597a1752d2",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "SFPL",
+      "code_hash": "04f57c7fe873bd64b189261f2ec29fb9",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "BYtC",
+      "code_hash": "25825ddeb8458cf64a676d332d1627a6",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "RGSE",
+      "code_hash": "02b142d619a06a3bbd34a19080a67c60",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Kclp",
+      "code_hash": "229b00e668aad16510c69ed3dba2054e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "emfo",
+      "code_hash": "b023915dae3a9842d047cd4d399d2bda",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Hstk",
+      "code_hash": "402afbe594108707121a56fddb7d1b3e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "nWHF",
+      "code_hash": "8500674629e7578c589a6110d140d609",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "iLit",
+      "code_hash": "f1db097920447143cd3330a31ec2df22",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ZHCJ",
+      "code_hash": "5ea82991f8cd78e3bc73f8da3a2afc92",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ROlb",
+      "code_hash": "24632f18e048dd059de7fa61dfdbb4eb",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "qnkX",
+      "code_hash": "c174259a646050f333e0007190ce801f",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "TqIu",
+      "code_hash": "6009a37d4b02e703864d195ecc55867b",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Vxnm",
+      "code_hash": "dccb04e16fe7ef8fb9ed6599f126af9a",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "DnEU",
+      "code_hash": "cd9e37b450bdac86d99ccccb53d70bdc",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ulZA",
+      "code_hash": "4c16e47b05e87c49ec14fdbf6985b797",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ecfG",
+      "code_hash": "1c6100d34599cec7326b659ca682b14d",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Pvdt",
+      "code_hash": "bf6e3e6dcd38e67ab4cc80aa7ff15ad9",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ZBYS",
+      "code_hash": "efb81d4129dc16ec6a6b4239a9411074",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "aLJB",
+      "code_hash": "6799633242f901838f80a97b8c29c993",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "application/json": "[2568, 0]"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "lRPl",
+      "code_hash": "441d2a742bda6d873564edbcb78f976b",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "HNuY",
+      "code_hash": "bd835f7363a5fa3a289abff0e06fb294",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "application/json": "[\"text/plain:Document {'id': 'doc:46118147-c198-411f-b44f-5ee3b86b96b7', 'payload': None, 'vector_score': '0.314591646194', 'chunk_content': 'Locate the necessary constructions and installations for energy production from biomass in the immediate vicinity of a farm producing its own exploitable biomass for energy purposes, or in all other suitable areas, notably general interest zones dedicated to waste treatment installations.\\\\n\\\\nUse the available capacities of UIOM for the valorization of biomass electricity, except for natural wood.  \\\\nEncourage the use of energy-efficient transport modes and technologies reducing impacts on wildlife.  \\\\n---  \\\\nActions to Follow  \\\\nThe canton:'}\", \"text/plain:Document {'id': 'doc:1b429782-1654-4477-92a3-e4be8e64b201', 'payload': None, 'vector_score': '0.317856669426', 'chunk_content': '- Current Situation: In 2015, biomass energy production was 80 GWh/a through the valorization of biomass in agricultural installations, wastewater treatment plants (STEP), and municipal waste incineration plants (UIOM).\\\\n\\\\n- Target for 2035: The objective is to produce 90 GWh/a by 2035. This target relies on the installation of two additional biogas plants in agriculture. The investment is estimated at around 2 million francs.'}\", \"text/plain:Document {'id': 'doc:ef40076a-22d5-47cc-9a95-da454bd8e333', 'payload': None, 'vector_score': '0.347532629967', 'chunk_content': '- Target for 2035: The objective is to produce 90 GWh/a by 2035. This target relies on the installation of two additional biogas plants in agriculture. The investment is estimated at around 2 million francs.\\\\n\\\\n- Contribution to Renewable Electricity Production: Biomass is expected to contribute to the renewable electricity production target of 7% by 2035.  \\\\nThe page is part of a larger document outlining energy objectives and strategies for the canton of Valais, focusing on achieving a 100% renewable and indigenous energy supply by 2060.'}\"]"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "kMZJ",
+      "code_hash": "df4ca509d8769702a093df41eb75d4b3",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "VZWm",
+      "code_hash": "2165a3ac278eb64f0d36dac4f79fbeda",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    }
+  ]
+}

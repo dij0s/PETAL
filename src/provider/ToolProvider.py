@@ -10,6 +10,8 @@ from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_core.vectorstores.base import VectorStore
 from langchain_ollama import OllamaEmbeddings
 
+from langchain_redis import RedisVectorStore
+
 from sentence_transformers import CrossEncoder
 from torch.nn import Sigmoid
 
@@ -70,11 +72,20 @@ class ToolProvider:
 
     async def _build_vector_store(self, tool_registry: dict[str, dict[str, StructuredTool]]) -> None:
         # instantiate and populate
-        # vector store from tools
-        self._vector_store = InMemoryVectorStore(embedding=OllamaEmbeddings(model="nomic-embed-text:v1.5"))
-        # doing this at runtime may
-        # be beneficial for runtime
-        # tools adding support
+        # vector store for runtime
+        # tools
+        embedder = OllamaEmbeddings(model="nomic-embed-text:v1.5")
+        self._vector_store_tools = InMemoryVectorStore(embedding=embedder)
+        # instantiate redis vector
+        # store embedder
+        self._vector_store_constraints = RedisVectorStore.from_existing_index(
+            index_name="idx:doc_vss",
+            embedding=embedder,
+            redis_url="redis://localhost:6379",
+            vector_query_field="vector",
+            content_field="chunk_content",
+        )
+
         documents = [
             Document(
                 page_content=tool.description,
@@ -87,7 +98,7 @@ class ToolProvider:
             for category, tools in tool_registry.items()
             for id, tool in tools.items()
         ]
-        await self._vector_store.aadd_documents(documents)
+        await self._vector_store_tools.aadd_documents(documents)
 
     def get(self, name: str) -> Optional[StructuredTool]:
         """
@@ -137,9 +148,26 @@ class ToolProvider:
         """
         return self._last_retrieved_categories if len(self._last_retrieved_categories) > 0 else None
 
-    async def asearch(self, query: str, max_n: int, k: int = 4, filter: Optional[Callable[[Document], bool]] = None) -> list[StructuredTool]:
+    async def asearch(self, query: str, max_n: int, k: int = 4, filter: Optional[Callable[[Document], bool]] = None) -> tuple[list[StructuredTool], list[str]]:
         """
-        Search for a StructuredTool matching the query and filter.
+        Search for StructuredTool objects and constraining document chunks matching the query and filter.
+
+        Args:
+            query (str): The search query string.
+            max_n (int): The number of tools to select after crossencoder reranking.
+            k (int): The number of tools and constraining chunks to retrieve from the vector store for futher reranking.
+            filter (Callable[[Document], bool]): A callable that takes a Document and returns True if it matches the filter criteria. By default, assigned to None.
+
+        Returns:
+            tuple[list[StructuredTool], list[str]]: A tuple containing a list of relevant StructuredTool objects that match the query and filter, along with the the constraining document chunks. By default, no filtering is applied.
+        """
+
+        await self._asearch_constraints(query, k)
+
+
+    async def _asearch_tools(self, query: str, max_n: int, k: int = 4, filter: Optional[Callable[[Document], bool]] = None) -> list[StructuredTool]:
+        """
+        Search for StructuredTool objects matching the query and filter.
         First retrieves documents based on cosine similarity indicator and the applies crossencoder reranking.
 
         Args:
@@ -149,7 +177,7 @@ class ToolProvider:
             filter (Callable[[Document], bool]): A callable that takes a Document and returns True if it matches the filter criteria. By default, assigned to None.
 
         Returns:
-            list[StructuredTool]: A list of releveant StructuredTool matching the query and filter. No filtering by default.
+            list[StructuredTool]: A list of relevant StructuredTool objects that match the query and filter. By default, no filtering
         """
         # handle invalid number of
         # documents to retrieve after
@@ -159,7 +187,7 @@ class ToolProvider:
         max_n = max(1, max_n if max_n <= k else k)
         # retrieve batch of documents
         # using cosine similarity
-        docs = await self._vector_store.asimilarity_search(query=query, k=k, filter=filter)
+        docs = await self._vector_store_tools.asimilarity_search(query=query, k=k, filter=filter)
         # apply crossencoder reranking
         # and use sigmoid activation
         # function for probability (single class)
@@ -187,6 +215,27 @@ class ToolProvider:
         ]))
 
         return top_tools
+
+    async def _asearch_constraints(self, query: str, k: int = 4) -> list[str]:
+        """
+        Search for constraining document chunks matching the query.
+
+        Args:
+            query (str): The search query string.
+            k (int): The number of document chunks to retrieve from the vector store.
+
+        Returns:
+            list[str]: A list of relevant constraining document chunks that match the query.
+        """
+
+        print("here")
+        try:
+            docs = await self._vector_store_constraints.asimilarity_search_with_score(query=query, k=k)
+            print(docs)
+        except Exception as e:
+            print(f"EXCEPTION WITH REDIS : {e}")
+
+        return []
 
 def _tools_needs(municipality_name: str) -> dict[str, StructuredTool]:
     """

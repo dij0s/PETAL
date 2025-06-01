@@ -174,7 +174,8 @@ def _():
         VectorField,
     )
     from redis.commands.search.index_definition import IndexDefinition, IndexType
-    return IndexDefinition, IndexType, TextField, VectorField
+    from redis.commands.search.query import Query
+    return IndexDefinition, IndexType, Query, TextField, VectorField
 
 
 @app.cell
@@ -221,6 +222,40 @@ def _(client):
 @app.cell
 def _(indexing_failures, num_docs):
     num_docs, indexing_failures
+    return
+
+
+@app.cell
+def _(embedder):
+    encoded_query = embedder.embed_query("What is the available biomass in Sion ?")
+    return (encoded_query,)
+
+
+@app.cell
+def _(Query):
+    query = (
+        Query('(*)=>[KNN 3 @vector $query_vector AS vector_score]')
+         .sort_by('vector_score')
+         .return_fields('vector_score', 'chunk_content')
+         .dialect(2)
+    )
+    return (query,)
+
+
+@app.cell
+def _():
+    import numpy as np
+    return (np,)
+
+
+@app.cell
+def _(client, encoded_query, np, query):
+    client.ft('idx:doc_vss').search(
+        query,
+        {
+          'query_vector': np.array(encoded_query, dtype=np.float32).tobytes()
+        }
+    ).docs
     return
 
 
