@@ -75,21 +75,24 @@ async def geocontext_retriever(state):
             writer({"type": "info", "content": "Retrieving tools..."})
             toolbox: ToolProvider = await ToolProvider.acreate(router_state.location)
             tools, constraints = await toolbox.asearch(query=router_state.aggregated_query, max_n=3, k=5)
-            print(constraints)
             writer({"type": "log", "content": "I FOUND THEM!"})
             # filter out tools whose
             # data we already have
-            tools = [tool for tool in tools if tool.name not in geocontext.context.keys()]
+            tools = [tool for tool in tools if tool.name not in geocontext.context_tools.keys()]
             # invoke chosen tools
             # and update context state
             if len(tools) > 0:
                 writer({"type": "info", "content": "Fetching data from retrieved tools..."})
                 tool_data = await _ainvoke_tools(tools)
-                geocontext.context = {**geocontext.context, **tool_data}
+                geocontext.context_tools = {**geocontext.context_tools, **tool_data}
             else:
                 # needed data is already retrieved
                 writer({"type": "info", "content": "We alread have them!"})
-
+            # update context with
+            # retrieved constraints
+            # overwrite only as query
+            # dependent
+            geocontext.context_constraints = constraints
             return {
                 **state.model_dump(),
                 "messages": state.messages + [AIMessage(content="Successfully retrieved data.")],

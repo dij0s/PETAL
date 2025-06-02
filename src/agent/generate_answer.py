@@ -21,6 +21,11 @@ Available data:
 
 User request: "{aggregated_query}"
 
+Constraints and recommendations from legislation and relevant documents for effective energy planning related to the user's request are provided below.
+
+Constraints and recommendations:
+{constraints}
+
 Additionally, here are some related data sources that may be relevant for the user in the same categorie(s) "{categories}":
 {related_tools_description}
 
@@ -56,7 +61,7 @@ async def generate_answer(state):
             res[0] + f"['description': {toolbox.get(d[0]).description}, 'value': {d[1][1]}]" + "\n",
             res[1] + [d[1][0]] if d[1][0] != "" else []
         ),
-        state.geocontext.context.items(),
+        state.geocontext.context_tools.items(),
         ("", [])
     )
     # retrieve similar tools
@@ -72,7 +77,7 @@ async def generate_answer(state):
     )
     # don't consider actual tools
     # which we've already fetched
-    related_tools = [tool for tool in related_tools if tool.name not in state.geocontext.context.keys()]
+    related_tools = [tool for tool in related_tools if tool.name not in state.geocontext.context_tools.keys()]
     related_tools_description = "\n".join(tool.description for tool in related_tools)
 
     writer({"type": "info", "content": "Organizing the information."})
@@ -80,6 +85,7 @@ async def generate_answer(state):
         location=state.router.location,
         tools_data=tools_data,
         aggregated_query=state.router.aggregated_query,
+        constraints=state.geocontext.context_constraints,
         categories=last_categories,
         related_tools_description=related_tools_description
     )

@@ -32,5 +32,5 @@ class RouterOutput(BaseModel):
 class GeoContextOutput(BaseModel):
     """GeoContext Retriever output used to fetch relevant data from the user query and process it further."""
 
-    # municipality_sfso_number: Optional[int] = Field(description="The official numerical identifier assigned by the Swiss Federal Statistical Office to the municipality", default=None)
-    context: dict[str, tuple[str, Any]] = Field(description="Maps tool called to the retrieved layer and data of any type", default_factory=dict)
+    context_tools: dict[str, tuple[str, Any]] = Field(description="Maps tool called to the retrieved layer and data of any type", default_factory=dict)
+    context_constraints: list[str] = Field(description="Retrieved constraints from the described legislation and vision", default_factory=list)
