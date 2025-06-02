@@ -12,5 +12,7 @@ wheels/
 # Pytest output
 .pytest_cache
 
-# Compiled files
+# Compiled datasets
+# and marimo context
 *.npz
+__marimo__
