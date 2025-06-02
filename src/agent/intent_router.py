@@ -69,7 +69,7 @@ async def intent_router(state):
     # retrieve curent router context
     # and fill it in the prompt for
     # context carry over
-    current: RouterOutput = RouterOutput(intent=None, topic=None, location=None, needs_clarification=True)
+    current: RouterOutput = RouterOutput(intent=None, location=None, needs_clarification=True)
     if state.router is not None:
         current = state.router
 
@@ -100,7 +100,7 @@ async def intent_router(state):
                 raise Exception("No parsed output")
     except Exception as e:
         print(f"Error: {e}")
-        parsed = RouterOutput(intent=None, topic=None, location=None, needs_clarification=True)
+        parsed = RouterOutput(intent=None, location=None, needs_clarification=True)
 
     # new state does not need further
     # clarification, update overall state
@@ -124,7 +124,7 @@ async def intent_router(state):
         for k, v in updated_state.items()
         if k != "needs_clarification"
     ])
-    updated_state["needs_clarification"] = updated_state["needs_clarification"] or (not all_fields_set) or updated_state["topic"] == updated_state["location"]
+    updated_state["needs_clarification"] = updated_state["needs_clarification"] or (not all_fields_set)
     if not updated_state["needs_clarification"]:
         writer({"type": "info", "content": "Got it!"})
 
