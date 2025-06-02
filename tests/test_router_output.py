@@ -6,13 +6,11 @@ def test_router_output_valid():
     # data for valid router output
     data = {
         "intent": "data_request",
-        "topic": "solar",
         "location": "Sion",
         "needs_clarification": False
     }
     output = RouterOutput(**data)
     assert output.intent == "data_request"
-    assert output.topic == "solar"
     assert output.location == "Sion"
     assert output.needs_clarification is False
 
@@ -20,7 +18,6 @@ def test_router_output_optional_fields():
     # output with optional fields
     output = RouterOutput()
     assert output.intent is None
-    assert output.topic is None
     assert output.location is None
     # needs_clarification may default to True
     # or None depending on model as it is
@@ -30,4 +27,4 @@ def test_router_output_optional_fields():
 def test_router_output_invalid_type():
     # invalid types should raise ValidationError
     with pytest.raises(ValidationError):
-        RouterOutput(intent=123, topic=456, location=789, needs_clarification="yes")
+        RouterOutput(intent=123, location=789, needs_clarification="yes")
