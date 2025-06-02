@@ -1,5 +1,5 @@
 from langchain_core.prompts import PromptTemplate
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.messages import SystemMessage, AIMessage, HumanMessage
 from langchain_core.tools.structured import StructuredTool
 from langchain_ollama import ChatOllama
 from langgraph.config import get_stream_writer
@@ -17,40 +17,37 @@ full_language: defaultdict[str, str] = defaultdict(lambda: "English", {
     "de": "German",
 })
 
-answer_prompt = PromptTemplate.from_template("""
+system_prompt = PromptTemplate.from_template("""
 You are an AI assistant specializing in energy planning for {location}.
 
+Your task:
+- Answer the user's request only using the provided data.
+- If you don't know the answer to the user's request, just say it.
+- If there are multiple relevant data points, summarize them in a way that best addresses the user's question.
+- Present the information as if you are an expert advisor, not a software system.
+- Do not mention internal tool names, file names, or implementation details.
+- If appropriate, round down decimal values for readability, but do not change the units. ALWAYS INCLUDE UNITS IN THE ANSWER.
+- At the end, suggest one or more of the related analyses as a possible next step for the user, phrased in a friendly and helpful way.
+Be concise, helpful, and approachable.
+Please respond in {lang}, ensuring that all content is appropriately translated as needed.
+""")
+
+user_prompt_with_constraints = PromptTemplate.from_template("""
 You have already gathered the relevant data for the location "{location}". This data is provided below, with each entry including a description (explaining what the data represents and its units) and the corresponding value.
 
 Available data:
 {tools_data}
 
 User request: "{aggregated_query}"
-
 
 The legislation and other relevant documents for effective energy planning gave us some extra information on the matter:
 {constraints}
 
-Your task:
-- Answer the user's request only using the provided data.
-- If you don't know the answer to the user's request, just say it.
-- If there are multiple relevant data points, summarize them in a way that best addresses the user's question.
-- Present the information as if you are an expert advisor, not a software system.
-- Do not mention internal tool names, file names, or implementation details.
-- If appropriate, round down decimal values for readability, but do not change the units. ALWAYS INCLUDE UNITS IN THE ANSWER.
-- At the end, suggest one or more of the related analyses as a possible next step for the user, phrased in a friendly and helpful way.
-
 Here are some related data sources that may be relevant for the user in the same categorie(s) "{categories}":
 {related_tools_description}
-
-Be concise, helpful, and approachable.
-
-Please respond in {lang}, ensuring that all content is appropriately translated as needed.
 """)
 
-answer_prompt_no_constraints = PromptTemplate.from_template("""
-You are an AI assistant specializing in energy planning for {location}.
-
+user_prompt_no_constraints = PromptTemplate.from_template("""
 You have already gathered the relevant data for the location "{location}". This data is provided below, with each entry including a description (explaining what the data represents and its units) and the corresponding value.
 
 Available data:
@@ -58,21 +55,8 @@ Available data:
 
 User request: "{aggregated_query}"
 
-Your task:
-- Answer the user's request only using the provided data.
-- If you don't know the answer to the user's request, just say it.
-- If there are multiple relevant data points, summarize them in a way that best addresses the user's question.
-- Present the information as if you are an expert advisor, not a software system.
-- Do not mention internal tool names, file names, or implementation details.
-- If appropriate, round down decimal values for readability, but do not change the units. ALWAYS INCLUDE UNITS IN THE ANSWER.
-- At the end, suggest one or more of the related analyses as a possible next step for the user, phrased in a friendly and helpful way.
-
 Here are some related data sources that may be relevant for the user in the same categorie(s) "{categories}":
 {related_tools_description}
-
-Be concise, helpful, and approachable.
-
-Please respond in {lang}, ensuring that all content is appropriately translated as needed.
 """)
 
 async def generate_answer(state):
@@ -116,7 +100,7 @@ async def generate_answer(state):
 
     writer({"type": "info", "content": "Organizing the information."})
     writer({"type": "log", "content": f"Providing {state.router.intent} information, constraining context is of length {len(state.geocontext.context_constraints)}"})
-    # use prompt based on factual
+    # build prompt based on factual
     # or actionable user request
     prompt_args = {
         "location": state.router.location,
@@ -128,11 +112,14 @@ async def generate_answer(state):
     }
     if state.router.intent != "factual":
         prompt_args["constraints"] = state.geocontext.context_constraints
-        prompt_template = answer_prompt
+        user_prompt = user_prompt_with_constraints
     else:
-        prompt_template = answer_prompt_no_constraints
+        user_prompt = user_prompt_no_constraints
 
-    prompt = prompt_template.format(**prompt_args)
+    prompt = [
+        SystemMessage(content=system_prompt.format(**prompt_args)),
+        HumanMessage(content=user_prompt.format(**prompt_args))
+    ]
     response = await llm.ainvoke(prompt)
 
     # update state with response

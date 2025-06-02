@@ -1,5 +1,5 @@
 from langchain_core.prompts import PromptTemplate
-from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langchain_ollama import ChatOllama
 from langgraph.config import get_stream_writer
 
@@ -14,24 +14,26 @@ from functools import reduce
 
 # define system prompt for enhanced
 # formatting and data scheme validation
-router_prompt = PromptTemplate.from_template("""
-    You are an AI assistant helping to route user requests about energy planning in Switzerland.
+system_prompt = PromptTemplate.from_template("""
+You are an AI assistant helping to route user requests about energy planning in Switzerland.
 
-    Classify the user input into:
+Classify the user input into:
 
-    {format_description}
+{format_description}
 
-    Return ONLY the following JSON like this, with no extra text, explanation, or formatting:
+Return ONLY the following JSON like this, with no extra text, explanation, or formatting:
 
-    {format_instructions}
+{format_instructions}
+""")
 
-    Here is the previous conversation context and that you have already deduced from earlier user inputs and THE LAST USER INPUT. Use this information to help clarify the current request:
-    Previous user input: "{previous_user_input}"
-    Conversation context: "{current_router}"
-    Additional prompt from AI (if any, e.g. if the AI previously asked the user to clarify specific information, include it here): "{other}"
+user_prompt = PromptTemplate.from_template("""
+Here is the previous conversation context and that you have already deduced from earlier user inputs and THE LAST USER INPUT. Use this information to help clarify the current request:
+Previous user input: "{previous_user_input}"
+Conversation context: "{current_router}"
+Additional prompt from AI (if any, e.g. if the AI previously asked the user to clarify specific information, include it here): "{other}"
 
-    User input: "{user_input}"
-    """)
+User input: "{user_input}"
+""")
 
 llm = ChatOllama(model="llama3.2:3b", temperature=0).with_structured_output(RouterOutput)
 parser = PydanticStreamOutputParser(pydantic_object=RouterOutput, diff=True)
@@ -73,17 +75,21 @@ async def intent_router(state):
     if state.router is not None:
         current = state.router
 
-    prompt: str = router_prompt.format(
-        current_router=current.model_dump(),
-        format_description=parser.get_description(),
-        format_instructions=parser.get_format_instructions(),
-        previous_user_input=previous_human_message,
-        user_input=last_human_message,
-        other=last_ai_message
-    )
+    prompt = [
+        SystemMessage(content=system_prompt.format(
+            format_description=parser.get_description(),
+            format_instructions=parser.get_format_instructions()
+        )),
+        HumanMessage(content=user_prompt.format(
+            current_router=current.model_dump(),
+            previous_user_input=previous_human_message,
+            user_input=last_human_message,
+            other=last_ai_message
+        ))
+    ]
     # write custom event
     writer({"type": "info", "content": "Interpreting your request..."})
-    # invoke llm on user prompt
+    # invoke llm on prompt
     response = await llm.ainvoke(prompt)
     # parse response accordingly to
     # enable further actions based
