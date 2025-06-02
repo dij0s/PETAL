@@ -14,29 +14,53 @@ llm = ChatOllama(model="llama3.2:3b", temperature=0.8)
 answer_prompt = PromptTemplate.from_template("""
 You are an AI assistant specializing in energy planning for {location}.
 
-You have already gathered the relevant data for the user's requested location "{location}". This data is provided below, with each entry including a description (explaining what the data represents and its units) and the corresponding value.
+You have already gathered the relevant data for the location "{location}". This data is provided below, with each entry including a description (explaining what the data represents and its units) and the corresponding value.
 
 Available data:
 {tools_data}
 
 User request: "{aggregated_query}"
 
-Constraints and recommendations from legislation and relevant documents for effective energy planning related to the user's request are provided below.
 
-Constraints and recommendations:
+The legislation and other relevant documents for effective energy planning gave us some extra information on the matter:
 {constraints}
 
-Additionally, here are some related data sources that may be relevant for the user in the same categorie(s) "{categories}":
-{related_tools_description}
-
 Your task:
-- Answer the user's request clearly and directly, using the provided data.
+- Answer the user's request only using the provided data.
 - If you don't know the answer to the user's request, just say it.
-- Do not mention internal tool names, file names, or implementation details.
-- Present the information as if you are an expert advisor, not a software system.
 - If there are multiple relevant data points, summarize them in a way that best addresses the user's question.
+- Present the information as if you are an expert advisor, not a software system.
+- Do not mention internal tool names, file names, or implementation details.
 - If appropriate, round down decimal values for readability, but do not change the units. ALWAYS INCLUDE UNITS IN THE ANSWER.
 - At the end, suggest one or more of the related analyses as a possible next step for the user, phrased in a friendly and helpful way.
+
+Here are some related data sources that may be relevant for the user in the same categorie(s) "{categories}":
+{related_tools_description}
+
+Be concise, helpful, and approachable.
+""")
+
+answer_prompt_no_constraints = PromptTemplate.from_template("""
+You are an AI assistant specializing in energy planning for {location}.
+
+You have already gathered the relevant data for the location "{location}". This data is provided below, with each entry including a description (explaining what the data represents and its units) and the corresponding value.
+
+Available data:
+{tools_data}
+
+User request: "{aggregated_query}"
+
+Your task:
+- Answer the user's request only using the provided data.
+- If you don't know the answer to the user's request, just say it.
+- If there are multiple relevant data points, summarize them in a way that best addresses the user's question.
+- Present the information as if you are an expert advisor, not a software system.
+- Do not mention internal tool names, file names, or implementation details.
+- If appropriate, round down decimal values for readability, but do not change the units. ALWAYS INCLUDE UNITS IN THE ANSWER.
+- At the end, suggest one or more of the related analyses as a possible next step for the user, phrased in a friendly and helpful way.
+
+Here are some related data sources that may be relevant for the user in the same categorie(s) "{categories}":
+{related_tools_description}
 
 Be concise, helpful, and approachable.
 """)
@@ -81,11 +105,20 @@ async def generate_answer(state):
     related_tools_description = "\n".join(tool.description for tool in related_tools)
 
     writer({"type": "info", "content": "Organizing the information."})
+    writer({"type": "log", "content": f"Providing {state.router.intent} information, constraining context is of length {len(state.geocontext.context_constraints)}"})
+    # use prompt based on factual
+    # or actionable user request
     prompt = answer_prompt.format(
         location=state.router.location,
         tools_data=tools_data,
         aggregated_query=state.router.aggregated_query,
         constraints=state.geocontext.context_constraints,
+        categories=last_categories,
+        related_tools_description=related_tools_description
+    ) if state.router.intent != "factual" else answer_prompt_no_constraints.format(
+        location=state.router.location,
+        tools_data=tools_data,
+        aggregated_query=state.router.aggregated_query,
         categories=last_categories,
         related_tools_description=related_tools_description
     )

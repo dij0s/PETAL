@@ -1365,7 +1365,7 @@ class BiomassAvailabilityTool(GeoDataTool):
             func=_fetch_available_biomass,
             name="available_biomass",
             layer_id="",
-            description="Available woody and non-woody **biomass energy**. Returns the available woody in GWh and non-woody biomass in GWh, in a tuple. Biomass is a renewable resource for energy which can be transformed into several forms of energy: heat, electricity, biogas or liquid fuels. Non-woody types of biomass were investigated using methodically comparable approaches: manure, agricultural crop by-products, the organic part of household garbage, green waste, the organic residues from industrial waste and sewage sludge.",
+            description="Available woody and non-woody **biomass energy**. Returns the available woody in GWh and non-woody biomass in GWh, in a tuple. Biomass is a renewable resource for energy which can be transformed into several forms of energy: heat, electricity, biogas or liquid fuels. Non-woody types of biomass were investigated using methodically comparable approaches: manure, agricultural crop by-products, the organic part of household garbage, green waste, the organic residues from industrial waste and sewage sludge. The woody and non-woody biomass can easily be summed to compute the total available biomass.",
         )
 
 class HydropowerInfrastructureTool(GeoDataTool):

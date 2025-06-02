@@ -7,19 +7,15 @@ class RouterOutput(BaseModel):
     """Router output used to route user queries to appropriate agents and retrieve basic context."""
 
     intent: Optional[str] = Field(
-    description="The user's underlying goal or type of request. Must be one of: 'data' (seeking factual data or statistics), 'planning' (asking for help with planning, scenarios, or recommendations), or 'policy' (inquiring about laws, regulations, or policy matters). If it is difficult to distinguish, assume the user is inquiring about data.",
+        description=(
+            "Specifies the type of query based on user intent. Must be one of: 'factual' (if the user is directly asking for facts, data, or statistics), or 'actionable' (if the user is inquiring about actions, measures, or evaluations that can be taken or considered for the specified topic). If it is difficult to distinguish, assume the user is inquiring about 'factual'."
+        ),
         default=None
     )
-    # data_type: Optional[str] = Field(
-    #     description=(
-    #         "Specifies the type of data the user is inquiring about. Must be one of: 'measures' (precise measured values, e.g., heating needs, energy consumption), 'potential' (estimates of possible gains or capacity, e.g., how much could be produced or saved), or 'infrastructure' (counts or details of physical assets, e.g., number of wind turbines, thermal networks, hydroelectric plants)."
-    #     ),
-    #     default=None
-    # )
     topic: Optional[str] = Field(description="The primary subject of the user's request, such as 'solar', 'biomass', 'heating', or 'wind'. **Leave empty if not specified.**", default=None)
     location: Optional[str] = Field(description="The location mentioned in the user request, if available (ONLY SUPPORTS THE municipality name)", default=None)
     aggregated_query: Optional[str] = Field(
-        description="A natural language summary of the complete user request, synthesized from all available context. Make sure properly include follow-up conversations. As short as possible while being as descriptive as possible WITHOUT EXTRA HALLUCINATED INFORMATION.",
+        description="An aggregated summary of the user request, combining all available context from the conversation, including follow-up exchanges. Summarize in a way that merges the relevant turns, without adding extra or hallucinated information.",
         default=None
     )
     needs_clarification: bool = Field(

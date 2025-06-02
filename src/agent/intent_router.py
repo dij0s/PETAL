@@ -104,14 +104,14 @@ async def intent_router(state):
 
     # new state does not need further
     # clarification, update overall state
-    # buffer last location to know if
+    # buffered last location to know if
     # geocontext reset is appropriate
     last_location = current.location
     updated_state = current.model_dump()
     parsed_state = parsed.model_dump()
     for k, v in updated_state.items():
         new_v = parsed_state.get(k, None)
-        if (new_v is not None) and (new_v != v):
+        if ((new_v is not None) or (new_v != "null")) and (new_v != v):
             updated_state[k] = new_v
 
     # explicitly set the flag for

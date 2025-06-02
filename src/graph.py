@@ -91,9 +91,11 @@ async def stream_graph_generator(user_input: str) -> AsyncGenerator[tuple[str, A
         elif mode == "custom":
             if (
                 isinstance(chunk, dict)
-                and chunk.get("type") != "log"
             ):
-                yield chunk.get("type"), json.dumps(chunk)
+                if chunk.get("type") != "log":
+                    yield chunk.get("type"), json.dumps(chunk)
+                else:
+                    yield "log", json.dumps(chunk)
 
 async def stream_graph_updates(user_input: str, f: Callable[[Any], None]):
     """Custom wrapper for tokens generator to print in CLI."""

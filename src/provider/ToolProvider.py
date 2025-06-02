@@ -149,7 +149,7 @@ class ToolProvider:
         """
         return self._last_retrieved_categories if len(self._last_retrieved_categories) > 0 else None
 
-    async def asearch(self, query: str, max_n: int, k: int = 4, filter: Optional[Callable[[Document], bool]] = None) -> tuple[list[StructuredTool], list[str]]:
+    async def asearch(self, query: str, max_n: int, k: int = 4, filter: Optional[Callable[[Document], bool]] = None, drop_constraints: bool = False) -> tuple[list[StructuredTool], list[str]]:
         """
         Search for StructuredTool objects and constraining document chunks matching the query and filter.
 
@@ -158,12 +158,13 @@ class ToolProvider:
             max_n (int): The number of tools to select after crossencoder reranking.
             k (int): The number of tools and constraining chunks to retrieve from the vector store for futher reranking.
             filter (Callable[[Document], bool]): A callable that takes a Document and returns True if it matches the filter criteria. By default, assigned to None.
+            drop_constraints (bool): If constraints shall be dropped from vector store query. Defaults to False.
 
         Returns:
             tuple[list[StructuredTool], list[str]]: A tuple containing a list of relevant StructuredTool objects that match the query and filter, along with the the constraining document chunks. By default, no filtering is applied.
         """
         tools_task = self._asearch_tools(query, max_n, k, filter)
-        constraints_task = self._asearch_constraints(query)
+        constraints_task = self._asearch_constraints(query) if not drop_constraints else self._noop_return_empty_list()
         # run both results
         # asynchronously and
         # then only gather
@@ -173,6 +174,8 @@ class ToolProvider:
 
         return tools, constraints
 
+    async def _noop_return_empty_list(self) -> list[str]:
+        return []
 
     async def _asearch_tools(self, query: str, max_n: int, k: int = 4, filter: Optional[Callable[[Document], bool]] = None) -> list[StructuredTool]:
         """
