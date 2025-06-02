@@ -24,6 +24,7 @@ class State(BaseModel):
     messages: Annotated[list[AnyMessage], add_messages]
     router: Optional[RouterOutput] = None
     geocontext: Optional[GeoContextOutput] = None
+    lang: str = "en"
 
 graph_builder = StateGraph(State)
 
@@ -70,10 +71,10 @@ configuration: RunnableConfig = {
     }
 }
 
-async def stream_graph_generator(user_input: str) -> AsyncGenerator[tuple[str, Any], None]:
+async def stream_graph_generator(user_input: str, lang: str = "en") -> AsyncGenerator[tuple[str, Any], None]:
     """Yield tokens one by one as strings for streaming."""
     async for mode, chunk in graph.astream(
-        {"messages": [HumanMessage(user_input)]},
+        {"messages": [HumanMessage(user_input)], "lang": lang},
         config=configuration,
         stream_mode=["messages", "custom"]
     ):
@@ -94,8 +95,6 @@ async def stream_graph_generator(user_input: str) -> AsyncGenerator[tuple[str, A
             ):
                 if chunk.get("type") != "log":
                     yield chunk.get("type"), json.dumps(chunk)
-                else:
-                    yield "log", json.dumps(chunk)
 
 async def stream_graph_updates(user_input: str, f: Callable[[Any], None]):
     """Custom wrapper for tokens generator to print in CLI."""

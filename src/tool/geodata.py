@@ -819,7 +819,8 @@ async def _fetch_thermal_networks_infrastructure(municipality_name: str) -> str:
                         if point.within(provider.geometry):
                             props = feature.get("properties", {})
 
-                            energy = float(props.get("energy", "0")) # MWh/a
+                            energy_str = props.get("energy", None)
+                            energy = float(energy_str if energy_str is not None else 0) # MWh/a
 
                             total_energy += energy
 

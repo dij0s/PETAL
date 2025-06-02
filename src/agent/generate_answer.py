@@ -7,9 +7,15 @@ from langgraph.config import get_stream_writer
 from provider.GeoSessionProvider import GeoSessionProvider
 from provider.ToolProvider import ToolProvider
 
+from collections import defaultdict
 from functools import reduce
 
 llm = ChatOllama(model="llama3.2:3b", temperature=0.8)
+
+full_language: defaultdict[str, str] = defaultdict(lambda: "English", {
+    "fr": "French",
+    "de": "German",
+})
 
 answer_prompt = PromptTemplate.from_template("""
 You are an AI assistant specializing in energy planning for {location}.
@@ -38,6 +44,8 @@ Here are some related data sources that may be relevant for the user in the same
 {related_tools_description}
 
 Be concise, helpful, and approachable.
+
+Please respond in {lang}, ensuring that all content is appropriately translated as needed.
 """)
 
 answer_prompt_no_constraints = PromptTemplate.from_template("""
@@ -63,6 +71,8 @@ Here are some related data sources that may be relevant for the user in the same
 {related_tools_description}
 
 Be concise, helpful, and approachable.
+
+Please respond in {lang}, ensuring that all content is appropriately translated as needed.
 """)
 
 async def generate_answer(state):
@@ -108,20 +118,21 @@ async def generate_answer(state):
     writer({"type": "log", "content": f"Providing {state.router.intent} information, constraining context is of length {len(state.geocontext.context_constraints)}"})
     # use prompt based on factual
     # or actionable user request
-    prompt = answer_prompt.format(
-        location=state.router.location,
-        tools_data=tools_data,
-        aggregated_query=state.router.aggregated_query,
-        constraints=state.geocontext.context_constraints,
-        categories=last_categories,
-        related_tools_description=related_tools_description
-    ) if state.router.intent != "factual" else answer_prompt_no_constraints.format(
-        location=state.router.location,
-        tools_data=tools_data,
-        aggregated_query=state.router.aggregated_query,
-        categories=last_categories,
-        related_tools_description=related_tools_description
-    )
+    prompt_args = {
+        "location": state.router.location,
+        "tools_data": tools_data,
+        "aggregated_query": state.router.aggregated_query,
+        "categories": last_categories,
+        "related_tools_description": related_tools_description,
+        "lang": full_language.get(state.lang),
+    }
+    if state.router.intent != "factual":
+        prompt_args["constraints"] = state.geocontext.context_constraints
+        prompt_template = answer_prompt
+    else:
+        prompt_template = answer_prompt_no_constraints
+
+    prompt = prompt_template.format(**prompt_args)
     response = await llm.ainvoke(prompt)
 
     # update state with response
