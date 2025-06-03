@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from pydantic import BaseModel
 from typing import Optional
 
-from graph import GraphProvider, build
+from graph import GraphProvider
 
 load_dotenv()
 
@@ -37,7 +37,7 @@ async def startup_event():
     if REDIS_URL_MEMORIES is None:
         raise ValueError("REDIS_URL_MEMORIES environment variable must be set")
 
-    app.state._graph_provider_cm = build(REDIS_URL_MEMORIES)
+    app.state._graph_provider_cm = GraphProvider.build(REDIS_URL_MEMORIES)
     app.state.graph_provider = await app.state._graph_provider_cm.__aenter__()
 
 @app.on_event("shutdown")

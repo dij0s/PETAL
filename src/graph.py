@@ -41,6 +41,18 @@ class GraphProvider:
         self._store: Optional[AsyncRedisStore] = None
         self._graph: Optional[CompiledStateGraph] = None
 
+    @classmethod
+    def build(cls, redis_conn_string: str) -> "GraphProvider":
+        """Provides an instance of GraphProvider.
+
+        Args:
+            redis_conn_string (str): The Redis long-term memory store connection string.
+
+        Returns:
+            GraphProvider: An instance of the GraphProvider class.
+        """
+        return cls(redis_conn_string)
+
     async def __aenter__(self) -> "GraphProvider":
         async with AsyncRedisStore.from_conn_string(self._redis_conn_string) as store:
             self._store = store
@@ -150,14 +162,3 @@ class GraphProvider:
             user_input=user_input
         ):
             f(mode, chunk) # type: ignore
-
-def build(redis_conn_string: str) -> GraphProvider:
-    """Provides an instance of GraphProvider.
-
-    Args:
-        redis_conn_string (str): The Redis long-term memory store connection string.
-
-    Returns:
-        GraphProvider: An instance of the GraphProvider class.
-    """
-    return GraphProvider(redis_conn_string)
