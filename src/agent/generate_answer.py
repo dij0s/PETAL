@@ -43,7 +43,7 @@ Available data:
 
 User request: "{aggregated_query}"
 
-The legislation and other relevant documents for effective energy planning gave us some extra information on the matter:
+The legislation and other relevant documents for effective energy planning gave us some extra information on the matter. Make sure to include it as these are the guidelines from the state and country:
 {constraints}
 
 Here are some related data sources that may be relevant for the user in the same categorie(s) "{categories}":

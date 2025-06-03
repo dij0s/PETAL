@@ -31,21 +31,15 @@ class GraphProvider:
     Follows the context provider pattern for consumers.
     """
 
-    def __init__(self, redis_conn_string: str, thread_id: str, user_id: str) -> None:
+    def __init__(self, redis_conn_string: str) -> None:
         self._redis_conn_string: str = redis_conn_string
-
-        self._thread_id: str = thread_id
-        self._user_id: str = user_id
-
         # temporary short-term memory saver
         # for conversation-like experience
         self._checkpointer: InMemorySaver = InMemorySaver()
         # long-term memory saver
         # for user memories
         self._store: Optional[AsyncRedisStore] = None
-
         self._graph: Optional[CompiledStateGraph] = None
-        self._configuration: Optional[dict] = None
 
     async def __aenter__(self) -> "GraphProvider":
         async with AsyncRedisStore.from_conn_string(self._redis_conn_string) as store:
@@ -86,12 +80,6 @@ class GraphProvider:
             # compile graph and define
             # runtime configuration
             self._graph = graph_builder.compile(checkpointer=self._checkpointer, store=self._store)
-            self._configuration = {
-                "configurable": {
-                    "thread_id": self._user_id,
-                    "user_id": self._thread_id
-                }
-            }
 
             return self
 
@@ -101,10 +89,13 @@ class GraphProvider:
         # by its provider
         pass
 
-    async def stream_graph_generator(self, user_input: str, lang: str = "en") -> AsyncGenerator[tuple[str, Any], None]:
-        """Asynchronously generates a stream of graph outputs based on user input.
+    async def stream_graph_generator(self, thread_id: str, user_id: str, user_input: str, lang: str = "en") -> AsyncGenerator[tuple[str, Any], None]:
+        """
+        Asynchronously generates a stream of graph outputs based on user input.
 
         Args:
+            thread_id (str): The thread identifier for the conversation.
+            user_id (str): The unique user identifier.
             user_input (str): The user's input message to process in the graph.
             lang (str, optional): The language code for processing. Defaults to "en".
 
@@ -113,9 +104,16 @@ class GraphProvider:
         """
         try:
             if isinstance(self._graph, CompiledStateGraph):
+                configuration: dict = {
+                    "configurable": {
+                        "thread_id": thread_id,
+                        "user_id": user_id,
+                    }
+                }
+
                 async for mode, chunk in self._graph.astream(
                     {"messages": [HumanMessage(user_input)], "lang": lang},
-                    config=self._configuration, # type: ignore
+                    config=configuration, # type: ignore
                     stream_mode=["messages", "custom"]
                 ):
                     if mode == "messages":
@@ -137,6 +135,7 @@ class GraphProvider:
     async def stream_graph_updates(self, user_input: str, f: Callable[[str, Any], None]):
         """
         Asynchronously streams graph updates based on user input and applies a callback function.
+        Implemented for CLI use.
 
         Args:
             user_input (str): The user's input message to process in the graph.
@@ -145,18 +144,20 @@ class GraphProvider:
         Yields:
             None: This method does not yield but calls the callback function for each output.
         """
-        async for mode, chunk in self.stream_graph_generator(user_input):
+        async for mode, chunk in self.stream_graph_generator(
+            thread_id="0",
+            user_id="0",
+            user_input=user_input
+        ):
             f(mode, chunk) # type: ignore
 
-def provide_graph(redis_conn_string: str, thread_id: str, user_id: str) -> GraphProvider:
+def provide_graph(redis_conn_string: str) -> GraphProvider:
     """Provides an instance of GraphProvider.
 
     Args:
         redis_conn_string (str): The Redis long-term memory store connection string.
-        thread_id (str): The thread identifier for the conversation.
-        user_id (str): The unique user identifier.
 
     Returns:
         GraphProvider: An instance of the GraphProvider class.
     """
-    return GraphProvider(redis_conn_string, thread_id, user_id)
+    return GraphProvider(redis_conn_string)

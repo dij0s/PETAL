@@ -20,7 +20,7 @@ async def main():
 
         print(chunk, end="\n", flush=True)
 
-    async with provide_graph(REDIS_URL_MEMORIES, "1", "1") as graph:
+    async with provide_graph(REDIS_URL_MEMORIES) as graph:
         while True:
             try:
                 user_input = input("\nUser: ")
