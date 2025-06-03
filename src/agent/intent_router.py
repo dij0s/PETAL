@@ -117,7 +117,8 @@ async def intent_router(state):
     parsed_state = parsed.model_dump()
     for k, v in updated_state.items():
         new_v = parsed_state.get(k, None)
-        if ((new_v is not None) or (new_v != "null")) and (new_v != v):
+        if (new_v is not None) and (new_v != "null") and (new_v != v):
+            print(f"setting {updated_state[k]} to {new_v}")
             updated_state[k] = new_v
 
     # explicitly set the flag for
