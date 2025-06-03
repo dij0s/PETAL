@@ -88,7 +88,7 @@ async def geocontext_retriever(state):
                 geocontext.context_tools = {**geocontext.context_tools, **tool_data}
             else:
                 # needed data is already retrieved
-                writer({"type": "info", "content": "We alread have them!"})
+                writer({"type": "info", "content": "We already have them!"})
             # update context with
             # retrieved constraints
             # overwrite only as query

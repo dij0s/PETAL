@@ -1,13 +1,13 @@
 import os
 from dotenv import load_dotenv
+load_dotenv()
 
 import asyncio
 
-from graph import provide_graph
+from graph import build
 
 async def main():
     """CLI for interacting with the graph via user input."""
-    load_dotenv()
 
     REDIS_URL_MEMORIES = os.getenv("REDIS_URL_MEMORIES")
     if REDIS_URL_MEMORIES is None:
@@ -20,7 +20,7 @@ async def main():
 
         print(chunk, end="\n", flush=True)
 
-    async with provide_graph(REDIS_URL_MEMORIES) as graph:
+    async with build(REDIS_URL_MEMORIES) as graph:
         while True:
             try:
                 user_input = input("\nUser: ")

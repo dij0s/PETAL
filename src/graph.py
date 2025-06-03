@@ -151,7 +151,7 @@ class GraphProvider:
         ):
             f(mode, chunk) # type: ignore
 
-def provide_graph(redis_conn_string: str) -> GraphProvider:
+def build(redis_conn_string: str) -> GraphProvider:
     """Provides an instance of GraphProvider.
 
     Args:

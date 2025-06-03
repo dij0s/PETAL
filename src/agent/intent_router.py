@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 
 from langchain_core.prompts import PromptTemplate
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
@@ -23,16 +24,30 @@ Classify the user input into:
 
 {format_description}
 
-Return ONLY the following JSON like this, with no extra text, explanation, or formatting:
+Examples:
 
-{format_instructions}
+User: "What are the energy needs for households in Sion?"
+System: [answers about all energy needs]
+User: "Thanks a lot but when I ask for the energy needs for households, I only mean the electricity needs.."
+→ needs_memoization: True (user is correcting/clarifying)
+
+User: "What are the heating and cooling needs in the industry?"
+→ needs_memoization: False (new question, not a correction)
+
+User: "No, I meant for my apartment building, not the whole city."
+→ needs_memoization: True (explicit correction with "No, I meant")
+
+User: "Thanks!"
+→ needs_memoization: False (just thanking, no correction)
 """)
 
 user_prompt = PromptTemplate.from_template("""
-Here is the previous conversation context and that you have already deduced from earlier user inputs and THE LAST USER INPUT. Use this information to help clarify the current request:
+Here is the previous conversation context and that you have already deduced from earlier user inputs and THE LAST USER INPUT.
+Use this information to help clarify the current request:
+
 Previous user input: "{previous_user_input}"
 Conversation context: "{current_router}"
-Additional prompt from AI (if any, e.g. if the AI previously asked the user to clarify specific information, include it here): "{other}"
+Additional prompt from AI (if any, e.g. if the AI previously asked the user to clarify specific information, include it here): "{ai_message}"
 
 User input: "{user_input}"
 """)
@@ -87,7 +102,7 @@ async def intent_router(state):
             current_router=current.model_dump(),
             previous_user_input=previous_human_message,
             user_input=last_human_message,
-            other=last_ai_message
+            ai_message=last_ai_message
         ))
     ]
     # write custom event
@@ -102,6 +117,7 @@ async def intent_router(state):
 
     # assume state, by default, is Pydantic
     parsed: RouterOutput | Any = response
+    print(f"\n\nHere's the returned response from the LLM: {parsed}\n\n")
     try:
         if isinstance(response, dict) and "content" in response:
             parsed = parser.parse(response["content"])
@@ -123,19 +139,16 @@ async def intent_router(state):
         if (new_v is not None) and (new_v != "null") and (new_v != v):
             updated_state[k] = new_v
 
-    # explicitly set the flag for
-    # extra clarification if any fields
-    # except "needs_clarification" aren't set
-    # and if municipality's name is assumed
-    # to be the topic
-    all_fields_set = all([
-        v is not None
-        for k, v in updated_state.items()
-        if k != "needs_clarification"
-    ])
-    updated_state["needs_clarification"] = updated_state["needs_clarification"] or (not all_fields_set)
-    if not updated_state["needs_clarification"]:
-        writer({"type": "info", "content": "Got it!"})
+    # explicitly set the flag for extra
+    # clarification to False if all the
+    # context fields are set
+    if updated_state["needs_clarification"]:
+        all_fields_set = all([
+            v is not None
+            for k, v in updated_state.items()
+            if k not in ["needs_clarification", "needs_memoization"]
+        ])
+        updated_state["needs_clarification"] = not all_fields_set
 
     updated_router = RouterOutput(**updated_state)
     print(updated_router)

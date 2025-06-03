@@ -137,12 +137,13 @@ class PydanticStreamOutputParser(BaseCumulativeTransformOutputParser[TBaseModel]
             return "Return a JSON object."
 
         reduced_schema = dict(schema.items())
-        # Remove extraneous fields.
+        # remove extraneous fields.
         if "title" in reduced_schema:
             del reduced_schema["title"]
         if "type" in reduced_schema:
             del reduced_schema["type"]
-        # Ensure json in context is well-formed with double quotes.
+        # ensure json in context is
+        # well-formed with double quotes.
         schema_str = json.dumps(reduced_schema, ensure_ascii=False)
         return _PYDANTIC_STREAM_FORMAT_INSTRUCTIONS.format(schema=schema_str)
 

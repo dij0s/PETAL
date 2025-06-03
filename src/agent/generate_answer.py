@@ -43,7 +43,7 @@ Available data:
 
 User request: "{aggregated_query}"
 
-The legislation and other relevant documents for effective energy planning gave us some extra information on the matter. Make sure to include it as these are the guidelines from the state and country:
+The legislation and other relevant documents for effective energy planning provided us with additional information on the matter. Make sure to include this information, as these are the guidelines from the state and country. Explain the goals and constraints in detail, without omitting any possible dates mentioned:
 {constraints}
 
 Here are some related data sources that may be relevant for the user in the same categorie(s) "{categories}":
