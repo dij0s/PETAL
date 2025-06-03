@@ -3,12 +3,15 @@ from dotenv import load_dotenv
 
 from langchain_core.prompts import PromptTemplate
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
+from langchain_core.runnables import RunnableConfig
 from langchain_ollama import ChatOllama
+from langgraph.store.base import BaseStore
 from langgraph.config import get_stream_writer
 
 from modelling.PydanticStreamOutputParser import PydanticStreamOutputParser
 from modelling.structured_output import GeoContextOutput, RouterOutput
 from modelling.utils import reduce_missing_attributes
+from storage.update_memories import update_memories
 
 from typing import Optional, Any
 from pydantic import BaseModel, Field, ValidationError
@@ -56,7 +59,7 @@ MODEL = os.getenv("OLLAMA_MODEL_LLM", "llama3.2:3b")
 llm = ChatOllama(model=MODEL, temperature=0).with_structured_output(RouterOutput)
 parser = PydanticStreamOutputParser(pydantic_object=RouterOutput, diff=True)
 
-async def intent_router(state):
+async def intent_router(state,*, config: RunnableConfig, store: BaseStore):
     """
     Routes user intent based on the latest human message in the conversation state.
 
@@ -77,9 +80,9 @@ async def intent_router(state):
     """
     writer = get_stream_writer()
     # retrieve messages for prompt
-    human_messages = [msg.content for msg in reversed(state.messages) if isinstance(msg, HumanMessage)]
-    last_human_message = human_messages[0] if human_messages else ""
-    previous_human_message = human_messages[1] if len(human_messages) > 1 else ""
+    human_messages: list[str] = [msg.content for msg in reversed(state.messages) if isinstance(msg, HumanMessage)] # type: ignore
+    last_human_message: str = human_messages[0] if human_messages else ""
+    previous_human_message: str = human_messages[1] if len(human_messages) > 1 else ""
     # retrieve last AI message to
     # assess the context to which
     # the user replied
@@ -150,8 +153,16 @@ async def intent_router(state):
         ])
         updated_state["needs_clarification"] = not all_fields_set
 
+
+    # memoize information if needed
+    # and toggle flag back to False
+    # as this is only used in the
+    # business logic itself
+    if updated_state["needs_memoization"]:
+        await update_memories(last_human_message, previous_human_message, config, store)
+        updated_state["needs_memoization"] = False
+
     updated_router = RouterOutput(**updated_state)
-    print(updated_router)
     # reset geocontext on location change
     if last_location != updated_router.location:
         return {

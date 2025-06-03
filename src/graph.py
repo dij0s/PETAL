@@ -1,8 +1,10 @@
+import os
 import json
 
 from langgraph.graph import StateGraph, START, END, add_messages
 from langgraph.graph.state import CompiledStateGraph
 from langchain_core.messages import AIMessageChunk, AnyMessage, HumanMessage
+from langchain_ollama import OllamaEmbeddings
 
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.store.redis.aio import AsyncRedisStore
@@ -54,52 +56,66 @@ class GraphProvider:
         return cls(redis_conn_string)
 
     async def __aenter__(self) -> "GraphProvider":
-        async with AsyncRedisStore.from_conn_string(self._redis_conn_string) as store:
-            self._store = store
-            # graph definition
-            graph_builder = StateGraph(State)
-            graph_builder.add_node("intent_router", intent_router)
-            graph_builder.add_node("clarification", clarify_query)
-            graph_builder.add_node("geocontext_retriever", geocontext_retriever)
-            graph_builder.add_node("generate_answer", generate_answer)
+        EMBEDDING_MODEL = os.getenv("OLLAMA_MODEL_EMBEDDING", "nomic-embed-text:v1.5")
+        EMBEDDING_MODEL_DIMS = os.getenv("OLLAMA_MODEL_EMBEDDING_DIMS", "768")
+        embedder = OllamaEmbeddings(model=EMBEDDING_MODEL)
 
-            def route_condition(state: State):
-                try:
-                    if state.router is not None and state.router.needs_clarification:
-                        return "clarification"
-                    else:
-                        return "geocontext_retriever"
-                except Exception as e:
-                    print(f"Error: {e}")
+        index = {
+            "dims": EMBEDDING_MODEL_DIMS,
+            "embed": embedder,
+            "fields": ["memory", "context"]
+        }
+        # instantiate store without
+        # using API builtin provider
+        # pattern to handle lifecycle
+        # manually
+        self._store = await AsyncRedisStore(redis_url=self._redis_conn_string, index=index).__aenter__() # type: ignore
+        # graph definition
+        graph_builder = StateGraph(State)
+        graph_builder.add_node("intent_router", intent_router)
+        graph_builder.add_node("clarification", clarify_query)
+        graph_builder.add_node("geocontext_retriever", geocontext_retriever)
+        graph_builder.add_node("generate_answer", generate_answer)
 
-            def geocontext_condition(state: State):
-                try:
-                    if state.router is not None and state.router.needs_clarification:
-                        return "clarification"
-                    else:
-                        return "generate_answer"
-                except Exception as e:
-                    print(f"Error: {e}")
+        def router_condition(state: State):
+            try:
+                if state.router is not None and state.router.needs_clarification:
+                    return "clarification"
+                else:
+                    return "geocontext_retriever"
+            except Exception as e:
+                print(f"Error: {e}")
 
-            graph_builder.add_edge(START, "intent_router")
-            graph_builder.add_conditional_edges("intent_router", route_condition)
-            graph_builder.add_conditional_edges("geocontext_retriever", geocontext_condition)
-            # reaching the clarification node should
-            # stop the flow too to then process
-            # extra user-given context
-            graph_builder.add_edge("clarification", END)
-            graph_builder.add_edge("generate_answer", END)
-            # compile graph and define
-            # runtime configuration
-            self._graph = graph_builder.compile(checkpointer=self._checkpointer, store=self._store)
+        def geocontext_condition(state: State):
+            try:
+                if state.router is not None and state.router.needs_clarification:
+                    return "clarification"
+                else:
+                    return "generate_answer"
+            except Exception as e:
+                print(f"Error: {e}")
 
-            return self
+        graph_builder.add_edge(START, "intent_router")
+        graph_builder.add_edge("intent_router", END)
+        graph_builder.add_conditional_edges("intent_router", router_condition)
+        graph_builder.add_conditional_edges("geocontext_retriever", geocontext_condition)
+        # reaching the clarification node should
+        # stop the flow too to then process
+        # extra user-given context
+        graph_builder.add_edge("clarification", END)
+        graph_builder.add_edge("generate_answer", END)
+        # compile graph and define
+        # runtime configuration
+        self._graph = graph_builder.compile(checkpointer=self._checkpointer, store=self._store)
+
+        return self
 
     async def __aexit__(self, exc_type, exc, tb):
-        # not implemented as async redis
-        # store's lifecycle is handled
-        # by its provider
-        pass
+        # properly handle lifecycle
+        # of redis store from wrapper
+        # context provider
+        if self._store:
+            await self._store.__aexit__(exc_type, exc, tb)
 
     async def stream_graph_generator(self, thread_id: str, user_id: str, user_input: str, lang: str = "en") -> AsyncGenerator[tuple[str, Any], None]:
         """

@@ -79,7 +79,7 @@ async def generate_answer(state):
     toolbox: ToolProvider = await ToolProvider.acreate(state.router.location)
     tools_data, layers = reduce(
         lambda res, d: (
-            res[0] + f"['description': {toolbox.get(d[0]).description}, 'value': {d[1][1]}]" + "\n",
+            res[0] + f"['description': {toolbox.get(d[0]).description}, 'value': {d[1][1]}]" + "\n", # type: ignore
             res[1] + [d[1][0]] if d[1][0] != "" else []
         ),
         state.geocontext.context_tools.items(),
@@ -136,5 +136,5 @@ async def generate_answer(state):
 
     return {
         **state.model_dump(),
-        "messages": state.messages + [AIMessage(content=response.content)]
+        "messages": state.messages + [AIMessage(content=response.content)],
     }
