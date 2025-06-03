@@ -41,3 +41,9 @@ class GeoContextOutput(BaseModel):
         description="Retrieved constraints from the described legislation and vision",
         default_factory=list
     )
+
+class Memory(BaseModel):
+    """Memory schema definition."""
+
+    memory: str = Field()
+    context: str = Field()

@@ -3,11 +3,15 @@ import os
 from langchain_core.prompts import PromptTemplate
 from langchain_core.messages import SystemMessage, AIMessage, HumanMessage
 from langchain_core.tools.structured import StructuredTool
+from langchain_core.runnables import RunnableConfig
 from langchain_ollama import ChatOllama
+from langgraph.store.base import BaseStore
 from langgraph.config import get_stream_writer
 
 from provider.GeoSessionProvider import GeoSessionProvider
 from provider.ToolProvider import ToolProvider
+
+from storage.memories import fetch_memories
 
 from collections import defaultdict
 from functools import reduce
@@ -22,6 +26,9 @@ full_language: defaultdict[str, str] = defaultdict(lambda: "English", {
 
 system_prompt = PromptTemplate.from_template("""
 You are an AI assistant specializing in energy planning for {location}.
+
+User preferences and clarifications from past conversations:
+{memories_description}
 
 Your task:
 - Answer the user's request only using the provided data.
@@ -55,6 +62,9 @@ You have already gathered the relevant data for the location "{location}". This 
 
 Available data:
 {tools_data}
+
+IMPORTANT - User's specific preferences from past conversations:
+{memories_description}
 
 User request: "{aggregated_query}"
 
@@ -105,6 +115,11 @@ async def generate_answer(state):
     writer({"type": "log", "content": f"Providing {state.router.intent} information, constraining context is of length {len(state.geocontext.context_constraints)}"})
     # build prompt based on factual
     # or actionable user request
+    memories_description = "\n".join([
+        f"- When user asks about: {item.context}, they specifically mean: {item.memory}."
+        for item in state.memories
+    ])
+
     prompt_args = {
         "location": state.router.location,
         "tools_data": tools_data,
@@ -112,6 +127,7 @@ async def generate_answer(state):
         "categories": last_categories,
         "related_tools_description": related_tools_description,
         "lang": full_language.get(state.lang),
+        "memories_description": memories_description
     }
     if state.router.intent != "factual":
         prompt_args["constraints"] = state.geocontext.context_constraints

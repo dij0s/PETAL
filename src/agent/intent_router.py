@@ -9,9 +9,9 @@ from langgraph.store.base import BaseStore
 from langgraph.config import get_stream_writer
 
 from modelling.PydanticStreamOutputParser import PydanticStreamOutputParser
-from modelling.structured_output import GeoContextOutput, RouterOutput
+from modelling.structured_output import GeoContextOutput, RouterOutput, Memory
 from modelling.utils import reduce_missing_attributes
-from storage.update_memories import update_memories
+from storage.memories import fetch_memories, update_memories
 
 from typing import Optional, Any
 from pydantic import BaseModel, Field, ValidationError
@@ -25,7 +25,7 @@ You are an AI assistant helping to route user requests about energy planning in 
 
 Classify the user input into:
 
-{format_description}
+{format_description_llm}
 
 Examples:
 
@@ -52,6 +52,9 @@ Previous user input: "{previous_user_input}"
 Conversation context: "{current_router}"
 Additional prompt from AI (if any, e.g. if the AI previously asked the user to clarify specific information, include it here): "{ai_message}"
 
+IMPORTANT - User's specific preferences from past conversations:
+{memories_description}
+
 User input: "{user_input}"
 """)
 
@@ -59,7 +62,7 @@ MODEL = os.getenv("OLLAMA_MODEL_LLM", "llama3.2:3b")
 llm = ChatOllama(model=MODEL, temperature=0).with_structured_output(RouterOutput)
 parser = PydanticStreamOutputParser(pydantic_object=RouterOutput, diff=True)
 
-async def intent_router(state,*, config: RunnableConfig, store: BaseStore):
+async def intent_router(state, *, config: RunnableConfig, store: BaseStore):
     """
     Routes user intent based on the latest human message in the conversation state.
 
@@ -88,7 +91,12 @@ async def intent_router(state,*, config: RunnableConfig, store: BaseStore):
     # the user replied
     ai_messages = [msg.content for msg in reversed(state.messages) if isinstance(msg, AIMessage)]
     last_ai_message = ai_messages[0] if ai_messages else ""
-
+    # retrieve user memories
+    memories = await fetch_memories(config, store, last_human_message)
+    memories_description = "\n".join([
+        f"- When user asks about: {item.context}, they specifically mean: {item.memory}."
+        for item in memories
+    ])
     # retrieve curent router context
     # and fill it in the prompt for
     # context carry over
@@ -98,14 +106,14 @@ async def intent_router(state,*, config: RunnableConfig, store: BaseStore):
 
     prompt = [
         SystemMessage(content=system_prompt.format(
-            format_description=parser.get_description(),
-            format_instructions=parser.get_format_instructions()
+            format_description_llm=parser.get_description(),
         )),
         HumanMessage(content=user_prompt.format(
             current_router=current.model_dump(),
             previous_user_input=previous_human_message,
             user_input=last_human_message,
-            ai_message=last_ai_message
+            ai_message=last_ai_message,
+            memories_description=memories_description
         ))
     ]
     # write custom event
@@ -120,7 +128,6 @@ async def intent_router(state,*, config: RunnableConfig, store: BaseStore):
 
     # assume state, by default, is Pydantic
     parsed: RouterOutput | Any = response
-    print(f"\n\nHere's the returned response from the LLM: {parsed}\n\n")
     try:
         if isinstance(response, dict) and "content" in response:
             parsed = parser.parse(response["content"])
@@ -159,17 +166,21 @@ async def intent_router(state,*, config: RunnableConfig, store: BaseStore):
     # as this is only used in the
     # business logic itself
     if updated_state["needs_memoization"]:
-        await update_memories(last_human_message, previous_human_message, config, store)
+        await update_memories(config, store, last_human_message, previous_human_message)
+        writer({"type": "info", "content": "I'll know that the next time!"})
+
         updated_state["needs_memoization"] = False
 
     updated_router = RouterOutput(**updated_state)
+    print(updated_router)
     # reset geocontext on location change
     if last_location != updated_router.location:
         return {
             **state.model_dump(),
             "messages": state.messages,
             "router": updated_router,
-            "geocontext": GeoContextOutput()
+            "geocontext": GeoContextOutput(),
+            "memories": memories
         }
     # update graph state
     # not destructuring the messages
@@ -180,5 +191,6 @@ async def intent_router(state,*, config: RunnableConfig, store: BaseStore):
     return {
         **state.model_dump(),
         "messages": state.messages,
-        "router": updated_router
+        "router": updated_router,
+        "memories": memories
     }

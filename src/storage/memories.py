@@ -6,7 +6,37 @@ from langchain_core.runnables.config import RunnableConfig
 from langchain_core.messages import HumanMessage
 from langgraph.store.base import BaseStore
 
-async def update_memories(last_human_message: str, previous_human_message: str, config: RunnableConfig, store: BaseStore) -> None:
+from modelling.structured_output import Memory
+
+async def fetch_memories(config: RunnableConfig, store: BaseStore, query: str) -> list[Memory]:
+    """
+    Fetches the user's memories from the long-term memory store.
+
+    This function retrieves all memories associated with the user specified in the
+    provided configuration from the given memory store.
+
+    Args:
+        config (RunnableConfig): The configuration for the runnable, containing user information.
+        store (BaseStore): The long-term memory store to fetch memories from.
+
+    Returns:
+        list[Memory]: A list of Memory items.
+    """
+    try:
+        user_id = config["configurable"].get("user_id") # type: ignore
+        if user_id is None:
+            raise Exception("Could not retrieve user_id from runtime configuration.")
+
+        namespace = ("memories", user_id)
+        return [
+            Memory(**item.value)
+            for item in await store.asearch(namespace, query=query, limit=3)
+        ]
+    except Exception as e:
+        print(f"Exception: {e}")
+        return []
+
+async def update_memories(config: RunnableConfig, store: BaseStore, last_human_message: str, previous_human_message: str) -> None:
     """
     Updates the user's memories in the long-term memory store.
 

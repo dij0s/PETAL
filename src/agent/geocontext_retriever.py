@@ -97,7 +97,7 @@ async def geocontext_retriever(state):
             return {
                 **state.model_dump(),
                 "messages": state.messages + [AIMessage(content="Successfully retrieved data.")],
-                "geocontext": geocontext
+                "geocontext": geocontext,
             }
 
             return state
@@ -107,7 +107,7 @@ async def geocontext_retriever(state):
             return {
                 **state.model_dump(),
                 "messages": state.messages,
-                "router": router_state
+                "router": router_state,
             }
     except Exception as e:
         print(f"Exception: {e}")

@@ -16,13 +16,14 @@ from agent.intent_router import intent_router
 from agent.clarify_query import clarify_query
 from agent.geocontext_retriever import geocontext_retriever
 from agent.generate_answer import generate_answer
-from modelling.structured_output import RouterOutput, GeoContextOutput
+from modelling.structured_output import Memory, RouterOutput, GeoContextOutput
 
 # overall state of the graph
 class State(BaseModel):
     messages: Annotated[list[AnyMessage], add_messages]
     router: Optional[RouterOutput] = None
     geocontext: Optional[GeoContextOutput] = None
+    memories: list[Memory] = []
     lang: str = "en"
 
 class GraphProvider:

@@ -1484,7 +1484,7 @@ class HeatingCoolingNeedsIndustryTool(GeoDataTool):
             func=_fetch_heating_cooling_needs_industry,
             name="heating_cooling_needs_industry",
             layer_id="ch.bfe.fernwaerme-nachfrage_industrie",
-            description="**Heating/cooling energy needs for the industry**. Returns the heating/cooling energy needs for the industry in GWh/year. In strategic planning, heat demand is used to identify large connected areas that may be appropriate for a thermal network. Areas with a heat density of at least 0.7 GWh/year per hectare are considered suitable. As well as heat density, heat must be supplied at a specific temperature. Some industries require process heat at a very high temperature (sometimes 1,000°C or more).",
+            description="**Heating/cooling energy needs for the industry**. Returns the heating/cooling energy needs for the industry in GWh/year. In strategic planning, heat demand is used to identify large connected areas that may be appropriate for a thermal network.",
         )
 
 class HeatingCoolingNeedsHouseholdsTool(GeoDataTool):
@@ -1497,7 +1497,7 @@ class HeatingCoolingNeedsHouseholdsTool(GeoDataTool):
             func=_fetch_heating_cooling_needs_households,
             name="heating_cooling_needs_households",
             layer_id="ch.bfe.fernwaerme-nachfrage_wohn_dienstleistungsgebaeude",
-            description="**Heating/cooling energy needs for household**. Returns the heating/cooling energy needs for households in GWh/year. The demand for heat and cooling is a key element in the strategic planning of thermal networks for households. Building a thermal network is only viable if sufficient sales turnover can be generated from heat and/or cooling. Areas with a heat density of at least 0.7 GWh/year per hectare are considered suitable. The heating/cooling energy needs for households can be summed to the electricity energy needs for households to determine the global energy needs for households.",
+            description="**Heating/cooling energy needs for household**. Returns the heating/cooling energy needs for households in GWh/year. The demand for heat and cooling is a key element in the strategic planning of thermal networks for households. Building a thermal network is only viable if sufficient sales turnover can be generated from heat and/or cooling. The heating/cooling energy needs for households can be summed to the electricity energy needs for households to determine the global energy needs for households.",
         )
 
 class BuildingsEmissionEnergySourcesTool(GeoDataTool):
