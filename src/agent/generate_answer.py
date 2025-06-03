@@ -1,3 +1,5 @@
+import os
+
 from langchain_core.prompts import PromptTemplate
 from langchain_core.messages import SystemMessage, AIMessage, HumanMessage
 from langchain_core.tools.structured import StructuredTool
@@ -10,7 +12,8 @@ from provider.ToolProvider import ToolProvider
 from collections import defaultdict
 from functools import reduce
 
-llm = ChatOllama(model="llama3.2:3b", temperature=0.8)
+MODEL = os.getenv("OLLAMA_MODEL_LLM", "llama3.2:3b")
+llm = ChatOllama(model=MODEL, temperature=0.8)
 
 full_language: defaultdict[str, str] = defaultdict(lambda: "English", {
     "fr": "French",

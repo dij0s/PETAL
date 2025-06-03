@@ -1,3 +1,4 @@
+import os
 import uuid
 
 from typing import Callable, Optional
@@ -75,14 +76,18 @@ class ToolProvider:
         # instantiate and populate
         # vector store for runtime
         # tools
-        embedder = OllamaEmbeddings(model="nomic-embed-text:v1.5")
+        EMBEDDING_MODEL = os.getenv("OLLAMA_MODEL_EMBEDDING", "nomic-embed-text:v1.5")
+        INDEX_NAME = os.getenv("REDIS_INDEX_CONSTRAINTS", "idx:doc_vss")
+        REDIS_URL = os.getenv("REDIS_URL_CONSTRAINTS", "redis://localhost:6379")
+
+        embedder = OllamaEmbeddings(model=EMBEDDING_MODEL)
         self._vector_store_tools = InMemoryVectorStore(embedding=embedder)
         # instantiate redis vector
         # store embedder
         self._vector_store_constraints = RedisVectorStore.from_existing_index(
-            index_name="idx:doc_vss",
+            index_name=INDEX_NAME,
             embedding=embedder,
-            redis_url="redis://localhost:6379",
+            redis_url=REDIS_URL,
             embedding_field="vector",
             content_field="chunk_content",
         )

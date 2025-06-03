@@ -1,3 +1,5 @@
+import os
+
 from langchain_core.prompts import PromptTemplate
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langchain_ollama import ChatOllama
@@ -35,7 +37,8 @@ Additional prompt from AI (if any, e.g. if the AI previously asked the user to c
 User input: "{user_input}"
 """)
 
-llm = ChatOllama(model="llama3.2:3b", temperature=0).with_structured_output(RouterOutput)
+MODEL = os.getenv("OLLAMA_MODEL_LLM", "llama3.2:3b")
+llm = ChatOllama(model=MODEL, temperature=0).with_structured_output(RouterOutput)
 parser = PydanticStreamOutputParser(pydantic_object=RouterOutput, diff=True)
 
 async def intent_router(state):

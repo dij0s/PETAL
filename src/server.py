@@ -2,10 +2,15 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sse_starlette.sse import EventSourceResponse
 
+import os
+from dotenv import load_dotenv
+
 from pydantic import BaseModel
 from typing import Optional
 
 from graph import GraphProvider, provide_graph
+
+load_dotenv()
 
 app = FastAPI()
 
@@ -27,7 +32,11 @@ class PromptRequest(BaseModel):
 
 @app.on_event("startup")
 async def startup_event():
-    app.state._graph_provider_cm = provide_graph("redis://localhost:6379", "1", "1")
+    REDIS_URL_MEMORIES = os.getenv("REDIS_URL_MEMORIES")
+    if REDIS_URL_MEMORIES is None:
+        raise ValueError("REDIS_URL_MEMORIES environment variable must be set")
+
+    app.state._graph_provider_cm = provide_graph(REDIS_URL_MEMORIES, "1", "1")
     app.state.graph_provider = await app.state._graph_provider_cm.__aenter__()
 
 @app.on_event("shutdown")

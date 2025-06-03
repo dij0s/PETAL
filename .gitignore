@@ -16,3 +16,6 @@ wheels/
 # and marimo context
 *.npz
 __marimo__
+
+# environment file
+.env

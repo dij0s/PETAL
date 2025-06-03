@@ -1,3 +1,5 @@
+import os
+
 from langchain_core.prompts import PromptTemplate
 from langchain_core.messages import AIMessage, SystemMessage, HumanMessage
 from langchain_ollama import ChatOllama
@@ -5,7 +7,8 @@ from langgraph.config import get_stream_writer
 
 from modelling.utils import reduce_missing_attributes
 
-llm = ChatOllama(model="llama3.2:3b", temperature=0.95)
+MODEL = os.getenv("OLLAMA_MODEL_LLM", "llama3.2:3b")
+llm = ChatOllama(model=MODEL, temperature=0.95)
 
 system_prompt = PromptTemplate.from_template("""
 You are an AI assistant helping to clarify user requests about energy planning in Switzerland.
