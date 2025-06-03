@@ -1241,7 +1241,6 @@ async def _fetch_energy_needs(municipality_name: str, heuristic: Callable[[int],
                     attributes = data.get("results", [])[0].get("attributes", [])
                     # secondary households aren't considered
                     primary_households = attributes.get("zwg_3010", 0)
-                    print(f"There are {primary_households} primary households in {provider.municipality_sfso_number}.")
                     estimated_needs = heuristic(primary_households) # kWh/year
 
                     estimated_needs_GWh = estimated_needs / 1e6

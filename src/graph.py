@@ -1,23 +1,20 @@
-import asyncio
 import json
 
-from langchain_core.runnables import RunnableConfig
-from langchain_ollama import ChatOllama
 from langgraph.graph import StateGraph, START, END, add_messages
+from langgraph.graph.state import CompiledStateGraph
 from langchain_core.messages import AIMessageChunk, AnyMessage, HumanMessage
 
 from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.store.redis.aio import AsyncRedisStore
 
 from typing import Annotated, AsyncGenerator, Optional, Callable, Any
 from pydantic import BaseModel
-
-from agent import generate_answer
-from modelling.structured_output import RouterOutput, GeoContextOutput
 
 from agent.intent_router import intent_router
 from agent.clarify_query import clarify_query
 from agent.geocontext_retriever import geocontext_retriever
 from agent.generate_answer import generate_answer
+from modelling.structured_output import RouterOutput, GeoContextOutput
 
 # overall state of the graph
 class State(BaseModel):
@@ -26,77 +23,140 @@ class State(BaseModel):
     geocontext: Optional[GeoContextOutput] = None
     lang: str = "en"
 
-graph_builder = StateGraph(State)
+class GraphProvider:
+    """
+    Manages the lifecycle and configuration of the
+    LangGraph StateGraph for conversational flows.
 
-graph_builder.add_node("intent_router", intent_router)
-graph_builder.add_node("clarification", clarify_query)
-graph_builder.add_node("geocontext_retriever", geocontext_retriever)
-graph_builder.add_node("generate_answer", generate_answer)
+    Follows the context provider pattern for consumers.
+    """
 
-def route_condition(state: State):
-    try:
-        if state.router is not None and state.router.needs_clarification:
-            return "clarification"
-        else:
-            return "geocontext_retriever"
-    except Exception as e:
-        print(f"Error: {e}")
+    def __init__(self, redis_conn_string: str, thread_id: str, user_id: str) -> None:
+        self._redis_conn_string: str = redis_conn_string
 
-def geocontext_condition(state: State):
-    try:
-        if state.router is not None and state.router.needs_clarification:
-            return "clarification"
-        else:
-            return "generate_answer"
-    except Exception as e:
-        print(f"Error: {e}")
+        self._thread_id: str = thread_id
+        self._user_id: str = user_id
 
-graph_builder.add_edge(START, "intent_router")
-graph_builder.add_conditional_edges("intent_router", route_condition)
-graph_builder.add_conditional_edges("geocontext_retriever", geocontext_condition)
-# reaching the clarification node should
-# stop the flow too to then process
-# extra user-given context
-graph_builder.add_edge("clarification", END)
-graph_builder.add_edge("generate_answer", END)
+        # temporary short-term memory saver
+        # for conversation-like experience
+        self._checkpointer: InMemorySaver = InMemorySaver()
+        # long-term memory saver
+        # for user memories
+        self._store: Optional[AsyncRedisStore] = None
 
-# temporary short-term memory saver
-# for conversation-like experience
-checkpointer = InMemorySaver()
-graph = graph_builder.compile(checkpointer=checkpointer)
+        self._graph: Optional[CompiledStateGraph] = None
+        self._configuration: Optional[dict] = None
 
-configuration: RunnableConfig = {
-    "configurable": {
-        "thread_id": "1"
-    }
-}
+    async def __aenter__(self) -> "GraphProvider":
+        async with AsyncRedisStore.from_conn_string(self._redis_conn_string) as store:
+            self._store = store
+            # graph definition
+            graph_builder = StateGraph(State)
+            graph_builder.add_node("intent_router", intent_router)
+            graph_builder.add_node("clarification", clarify_query)
+            graph_builder.add_node("geocontext_retriever", geocontext_retriever)
+            graph_builder.add_node("generate_answer", generate_answer)
 
-async def stream_graph_generator(user_input: str, lang: str = "en") -> AsyncGenerator[tuple[str, Any], None]:
-    """Yield tokens one by one as strings for streaming."""
-    async for mode, chunk in graph.astream(
-        {"messages": [HumanMessage(user_input)], "lang": lang},
-        config=configuration,
-        stream_mode=["messages", "custom"]
-    ):
-        # only yield individual tokens
-        # coming from last node in the
-        # graph
-        if mode == "messages":
-            token, metadata = chunk
-            if (
-                isinstance(token, AIMessageChunk)
-                and isinstance(metadata, dict)
-                and metadata.get("langgraph_node") in ["clarification", "generate_answer"]
-            ):
-                yield "token", token.content
-        elif mode == "custom":
-            if (
-                isinstance(chunk, dict)
-            ):
-                if chunk.get("type") != "log":
-                    yield chunk.get("type"), json.dumps(chunk)
+            def route_condition(state: State):
+                try:
+                    if state.router is not None and state.router.needs_clarification:
+                        return "clarification"
+                    else:
+                        return "geocontext_retriever"
+                except Exception as e:
+                    print(f"Error: {e}")
 
-async def stream_graph_updates(user_input: str, f: Callable[[Any], None]):
-    """Custom wrapper for tokens generator to print in CLI."""
-    async for mode, chunk in stream_graph_generator(user_input):
-        f(mode, chunk)
+            def geocontext_condition(state: State):
+                try:
+                    if state.router is not None and state.router.needs_clarification:
+                        return "clarification"
+                    else:
+                        return "generate_answer"
+                except Exception as e:
+                    print(f"Error: {e}")
+
+            graph_builder.add_edge(START, "intent_router")
+            graph_builder.add_conditional_edges("intent_router", route_condition)
+            graph_builder.add_conditional_edges("geocontext_retriever", geocontext_condition)
+            # reaching the clarification node should
+            # stop the flow too to then process
+            # extra user-given context
+            graph_builder.add_edge("clarification", END)
+            graph_builder.add_edge("generate_answer", END)
+            # compile graph and define
+            # runtime configuration
+            self._graph = graph_builder.compile(checkpointer=self._checkpointer, store=self._store)
+            self._configuration = {
+                "configurable": {
+                    "thread_id": self._user_id,
+                    "user_id": self._thread_id
+                }
+            }
+
+            return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        # not implemented as async redis
+        # store's lifecycle is handled
+        # by its provider
+        pass
+
+    async def stream_graph_generator(self, user_input: str, lang: str = "en") -> AsyncGenerator[tuple[str, Any], None]:
+        """Asynchronously generates a stream of graph outputs based on user input.
+
+        Args:
+            user_input (str): The user's input message to process in the graph.
+            lang (str, optional): The language code for processing. Defaults to "en".
+
+        Yields:
+            AsyncGenerator[tuple[str, Any], None]: A tuple containing the mode (e.g., "token", "custom") and the corresponding output chunk.
+        """
+        try:
+            if isinstance(self._graph, CompiledStateGraph):
+                async for mode, chunk in self._graph.astream(
+                    {"messages": [HumanMessage(user_input)], "lang": lang},
+                    config=self._configuration, # type: ignore
+                    stream_mode=["messages", "custom"]
+                ):
+                    if mode == "messages":
+                        token, metadata = chunk
+                        if (
+                            isinstance(token, AIMessageChunk)
+                            and isinstance(metadata, dict)
+                            and metadata.get("langgraph_node") in ["clarification", "generate_answer"]
+                        ):
+                            yield "token", token.content
+                    elif mode == "custom":
+                        if isinstance(chunk, dict) and chunk.get("type") != "log":
+                            yield chunk.get("type"), json.dumps(chunk) # type: ignore
+            else:
+                raise Exception("GraphProvider must be instantiated before using it.")
+        except Exception as e:
+            print(f"Exception: {e}")
+
+    async def stream_graph_updates(self, user_input: str, f: Callable[[str, Any], None]):
+        """
+        Asynchronously streams graph updates based on user input and applies a callback function.
+
+        Args:
+            user_input (str): The user's input message to process in the graph.
+            f (Callable[[str, Any], None]): A callback function that processes each output chunk's mode and content from the graph.
+
+        Yields:
+            None: This method does not yield but calls the callback function for each output.
+        """
+        async for mode, chunk in self.stream_graph_generator(user_input):
+            f(mode, chunk) # type: ignore
+
+def provide_graph(redis_conn_string: str, thread_id: str, user_id: str) -> GraphProvider:
+    """Provides an instance of GraphProvider.
+
+    Args:
+        redis_conn_string (str): The Redis long-term memory store connection string.
+        thread_id (str): The thread identifier for the conversation.
+        user_id (str): The unique user identifier.
+
+    Returns:
+        GraphProvider: An instance of the GraphProvider class.
+    """
+    return GraphProvider(redis_conn_string, thread_id, user_id)
