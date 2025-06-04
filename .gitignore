@@ -13,8 +13,10 @@ wheels/
 .pytest_cache
 
 # Compiled datasets
-# and marimo context
 *.npz
+extracted_pages.json
+
+# Marimo context
 __marimo__
 
 # environment file
