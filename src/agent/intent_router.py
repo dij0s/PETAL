@@ -52,9 +52,6 @@ Previous user input: "{previous_user_input}"
 Conversation context: "{current_router}"
 Additional prompt from AI (if any, e.g. if the AI previously asked the user to clarify specific information, include it here): "{ai_message}"
 
-IMPORTANT - User's specific preferences from past conversations:
-{memories_description}
-
 User input: "{user_input}"
 """)
 
@@ -91,12 +88,6 @@ async def intent_router(state, *, config: RunnableConfig, store: BaseStore):
     # the user replied
     ai_messages = [msg.content for msg in reversed(state.messages) if isinstance(msg, AIMessage)]
     last_ai_message = ai_messages[0] if ai_messages else ""
-    # retrieve user memories
-    memories = await fetch_memories(config, store, last_human_message)
-    memories_description = "\n".join([
-        f"- When user asks about: {item.context}, they specifically mean: {item.memory}."
-        for item in memories
-    ])
     # retrieve curent router context
     # and fill it in the prompt for
     # context carry over
@@ -113,7 +104,6 @@ async def intent_router(state, *, config: RunnableConfig, store: BaseStore):
             previous_user_input=previous_human_message,
             user_input=last_human_message,
             ai_message=last_ai_message,
-            memories_description=memories_description
         ))
     ]
     # write custom event
@@ -146,7 +136,7 @@ async def intent_router(state, *, config: RunnableConfig, store: BaseStore):
     parsed_state = parsed.model_dump()
     for k, v in updated_state.items():
         new_v = parsed_state.get(k, None)
-        if (new_v is not None) and (new_v != "null") and (new_v != v):
+        if new_v not in (None, "null", "", v) and (new_v != v):
             updated_state[k] = new_v
 
     # explicitly set the flag for extra
@@ -180,7 +170,6 @@ async def intent_router(state, *, config: RunnableConfig, store: BaseStore):
             "messages": state.messages,
             "router": updated_router,
             "geocontext": GeoContextOutput(),
-            "memories": memories
         }
     # update graph state
     # not destructuring the messages
@@ -192,5 +181,4 @@ async def intent_router(state, *, config: RunnableConfig, store: BaseStore):
         **state.model_dump(),
         "messages": state.messages,
         "router": updated_router,
-        "memories": memories
     }

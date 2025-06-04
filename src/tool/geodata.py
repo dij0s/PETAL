@@ -1497,7 +1497,7 @@ class HeatingCoolingNeedsHouseholdsTool(GeoDataTool):
             func=_fetch_heating_cooling_needs_households,
             name="heating_cooling_needs_households",
             layer_id="ch.bfe.fernwaerme-nachfrage_wohn_dienstleistungsgebaeude",
-            description="**Heating/cooling energy needs for household**. Returns the heating/cooling energy needs for households in GWh/year. The demand for heat and cooling is a key element in the strategic planning of thermal networks for households. Building a thermal network is only viable if sufficient sales turnover can be generated from heat and/or cooling. The heating/cooling energy needs for households can be summed to the electricity energy needs for households to determine the global energy needs for households.",
+            description="**Heating/cooling energy needs for household**. Returns the heating/cooling energy needs for households in GWh/year. It does not include electricity for everyday use. The demand for heat and cooling is a key element in the strategic planning of thermal networks for households. Building a thermal network is only viable if sufficient sales turnover can be generated from heat and/or cooling. The heating/cooling energy needs for households can be summed to the electricity energy needs for households to determine the global energy needs for households.",
         )
 
 class BuildingsEmissionEnergySourcesTool(GeoDataTool):

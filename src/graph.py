@@ -23,7 +23,6 @@ class State(BaseModel):
     messages: Annotated[list[AnyMessage], add_messages]
     router: Optional[RouterOutput] = None
     geocontext: Optional[GeoContextOutput] = None
-    memories: list[Memory] = []
     lang: str = "en"
 
 class GraphProvider:
@@ -175,7 +174,7 @@ class GraphProvider:
         """
         async for mode, chunk in self.stream_graph_generator(
             thread_id="0",
-            user_id="0",
+            user_id="000",
             user_input=user_input
         ):
             f(mode, chunk) # type: ignore

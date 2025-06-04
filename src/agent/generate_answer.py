@@ -27,11 +27,13 @@ full_language: defaultdict[str, str] = defaultdict(lambda: "English", {
 system_prompt = PromptTemplate.from_template("""
 You are an AI assistant specializing in energy planning for {location}.
 
-User preferences and clarifications from past conversations:
+IMPORTANT - User's specific preferences from past conversations.
+Note: Preferences may mention a location, but they are not bound to it. Interpret user preferences as general:
 {memories_description}
 
 Your task:
 - Answer the user's request only using the provided data.
+- Your answer should strictly comply with the user's preferences as described above.
 - If you don't know the answer to the user's request, just say it.
 - If there are multiple relevant data points, summarize them in a way that best addresses the user's question.
 - Present the information as if you are an expert advisor, not a software system.
@@ -63,16 +65,13 @@ You have already gathered the relevant data for the location "{location}". This 
 Available data:
 {tools_data}
 
-IMPORTANT - User's specific preferences from past conversations:
-{memories_description}
-
 User request: "{aggregated_query}"
 
 Here are some related data sources that may be relevant for the user in the same categorie(s) "{categories}":
 {related_tools_description}
 """)
 
-async def generate_answer(state):
+async def generate_answer(state, *, config: RunnableConfig, store: BaseStore):
     """
     Generates an appropriate answer to the user's request.
 
@@ -115,10 +114,13 @@ async def generate_answer(state):
     writer({"type": "log", "content": f"Providing {state.router.intent} information, constraining context is of length {len(state.geocontext.context_constraints)}"})
     # build prompt based on factual
     # or actionable user request
+    # retrieve user memories
+    memories = await fetch_memories(config, store, state.router.aggregated_query)
     memories_description = "\n".join([
-        f"- When user asks about: {item.context}, they specifically mean: {item.memory}."
-        for item in state.memories
+        f"- When the user asked about: {item.context}, they specifically meant: {item.memory}."
+        for item in memories
     ])
+    print(memories_description)
 
     prompt_args = {
         "location": state.router.location,
