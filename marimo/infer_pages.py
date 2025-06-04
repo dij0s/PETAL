@@ -8,14 +8,18 @@ app = marimo.App(width="medium")
 def _(mo):
     mo.md(
         r"""
-    The following notebook will serve as base for handling and embedding PDF files and their multimodal content (text and images) for further use in RAG-application context.
+    This notebook uses ColPali-v1.3 to embed and score PDF page images and their extracted text content for downstream RAG applications.
 
-    The documents are policies, prescriptions and "design" documents related to the energy planning and transition, in Switzerland.
+    The input is produced by `extract_content.py` and consists of a JSON file with documents, each containing pages with:
+    - `"pixmap_render"`: base64 PNG image (data URI)
+    - `"content"`: extracted text
 
-    Sources:
-    https://cookbook.openai.com/examples/parse_pdf_docs_for_rag
+    The script computes similarity scores between each page's image and its text content.
 
-    Le traitement de documents PDF nécessite l'installation du programme ```poppler``` sur l'hôte (https://pypi.org/project/pdf2image/).
+    Requirements:
+    - `colpali_engine`
+    - `torch`
+    - `Pillow`
     """
     )
     return
@@ -29,187 +33,85 @@ def _():
 
 @app.cell
 def _():
-    from transformers import Qwen2_5_VLForConditionalGeneration, AutoTokenizer, AutoProcessor
-    from qwen_vl_utils import process_vision_info
-    return (
-        AutoProcessor,
-        Qwen2_5_VLForConditionalGeneration,
-        process_vision_info,
-    )
-
-
-@app.cell
-def _():
-    import numpy as np
     import json
-    return json, np
-
-
-@app.cell
-def _(np):
-    data = np.load("./compiled_files.npz", allow_pickle=True)
-    images_list = data["base64_images"]
-    return (images_list,)
+    import base64
+    import io
+    from PIL import Image
+    import torch
+    from typing import List
+    from colpali_engine.models import ColPali, ColPaliProcessor
+    return json, base64, io, Image, torch, List, ColPali, ColPaliProcessor
 
 
 @app.cell
 def _():
-    min_pixels = 256 * 28 * 28
-    max_pixels = 1280 * 28 * 28
-    return max_pixels, min_pixels
+    EXTRACTED_JSON_PATH = "./extracted_pages.json"
+    OUTPUT_JSON_PATH = "./colpali_scores.json"
+    MODEL_NAME = "vidore/colpali-v1.3"
+    DEVICE = "cuda:0" if torch.cuda.is_available() else "cpu"
+    return EXTRACTED_JSON_PATH, OUTPUT_JSON_PATH, MODEL_NAME, DEVICE
 
 
 @app.cell
-def _(
-    AutoProcessor,
-    Qwen2_5_VLForConditionalGeneration,
-    max_pixels,
-    min_pixels,
-):
-    model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
-        "Qwen/Qwen2.5-VL-7B-Instruct", torch_dtype="auto", device_map="auto"
-    )
-    processor = AutoProcessor.from_pretrained("Qwen/Qwen2.5-VL-7B-Instruct", min_pixels=min_pixels, max_pixels=max_pixels)
+def _(base64, io, Image):
+    def decode_base64_image(data_uri: str) -> Image.Image:
+        header, encoded = data_uri.split(",", 1)
+        image_bytes = base64.b64decode(encoded)
+        return Image.open(io.BytesIO(image_bytes))
+    return decode_base64_image,
+
+
+@app.cell
+def _(ColPali, ColPaliProcessor, MODEL_NAME, DEVICE, torch):
+    model = ColPali.from_pretrained(
+        MODEL_NAME,
+        torch_dtype=torch.bfloat16,
+        device_map=DEVICE,
+    ).eval()
+    processor = ColPaliProcessor.from_pretrained(MODEL_NAME)
     return model, processor
 
 
 @app.cell
-def _():
-    system_prompt = """
-    You will be provided with an image of a PDF page. The content is written in **French** and originates from either:
+def _(EXTRACTED_JSON_PATH, json, decode_base64_image):
+    with open(EXTRACTED_JSON_PATH, "r", encoding="utf-8") as f:
+        documents = json.load(f)
 
-    1. Official Swiss legislation, which follows a strict structure (e.g., numbered titles, subtitles, and articles such as "Art. XX"), or  
-    2. Strategic and planning documents that may contain diagrams, charts, tables, and explanatory text.
+    images = []
+    queries = []
+    page_ids = []
 
-    Your role is to extract and deliver a **literal, and detailed translation** of the content in **English**. **You MUST translate ALL meaningful content from French to English.** This is required for legal and regulatory compliance.
+    for doc in documents:
+        for page in doc["pages"]:
+            img = decode_base64_image(page["pixmap_render"])
+            images.append(img)
+            queries.append(page["content"])
+            page_ids.append(f"{doc['filename']}_page_{page['page_number']}")
 
-    **Your output must cover the full content of the page but can be summarized to takeway the important information. Do not emit what is important.**
-
-    ---
-
-    ## Context and Purpose:
-
-    The goal is to extract and preserve all important information from each page. The output will later be used in a **Retrieval-Augmented Generation (RAG)** system. This system will respond to user queries to determine **what must or should be done**, based on the content of Swiss legislation and government-designed energy planning.
-
-    Your output must therefore be exhaustive, clear, and suitable for machine indexing and retrieval.
-
-    ---
-
-    ## If the document is legislative (structured):
-
-    - A single page may contain **multiple articles or sections** — include **all of them** in your output.
-    - Preserve the hierarchical structure exactly:
-      - Titles and subtitles (e.g., "1", "1.1")
-      - Article identifiers (e.g., "Art. 4")
-      - Paragraphs, bullet points, and numbered clauses
-
-    - Translate the article title into English.
-    - Translate the entire content literally into English, with clear formatting to distinguish between sections and articles.
-    - DO NOT rephrase legant content, only condense to takeaway important information.
-
-    ---
-
-    ## If the document is unstructured or contains visual elements:
-
-    - Thoroughly describe any **charts, diagrams, plots, or visuals**:
-      - Explain the meaning of each component and the relationships depicted.
-      - Translate any text, annotations, or labels into English.
-
-    - For **tables**, explain the data clearly and narratively.
-      - Example: “The table shows electricity production in 2022: hydropower accounts for 58%, solar for 12%, and nuclear for 20%.”
-
-    - Translate all written text fully.
-    - Define technical terms in simple, accessible English when appropriate.
-    - If strategic objectives or forecasts are present, explain their meaning and implications.
-
-    ---
-
-    ## General Guidelines:
-
-    - DO NOT mention page numbers, layout, visual formatting, or document type.
-    - DO translate all meaningful French content — **literal and complete translation is mandatory**.
-    - DO maintain logical structure and section order.
-    - DO explain legal, regulatory, or strategic context when evident.
-    - DO ensure that the output represents the **entire content of the page**, even if it includes multiple components.
-
-    ---
-
-    ## Output Format:
-
-    {Translated content of the full page}
-    """
-    return (system_prompt,)
+    return images, queries, page_ids
 
 
 @app.cell
-def _(model, process_vision_info, processor, system_prompt):
-    def analyze_image(data_uri):
-        messages = [
-            {
-                "role": "system",
-                "content": system_prompt
-            },
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "image",
-                        "image": data_uri,
-                    },
-                    {"type": "text", "text": "Describe, in detail, this image."},
-                ],
-            }
-        ]
+def _(images, queries, model, processor, torch):
+    # Batch process all images and queries
+    batch_images = processor.process_images(images).to(model.device)
+    batch_queries = processor.process_queries(queries).to(model.device)
 
-        text = processor.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True
-        )
-        image_inputs, video_inputs = process_vision_info(messages)
-        inputs = processor(
-            text=[text],
-            images=image_inputs,
-            videos=video_inputs,
-            padding=True,
-            return_tensors="pt",
-        )
-        inputs = inputs.to(model.device)
+    with torch.no_grad():
+        image_embeddings = model(**batch_images)
+        query_embeddings = model(**batch_queries)
 
-        generated_ids = model.generate(**inputs, max_new_tokens=500, do_sample=False) # do_sample=False equiv. temperature=0
-        generated_ids_trimmed = [
-            out_ids[len(in_ids) :] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
-        ]
-        output_text = processor.batch_decode(
-            generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
-        )
-
-        return output_text
-    return (analyze_image,)
+    scores = processor.score_multi_vector(query_embeddings, image_embeddings)
+    return scores
 
 
 @app.cell
-def _(analyze_image, images_list, json):
-    results = {}
-
-    checkpoint_path = "./infered_pages_latest.json"
-
-    for index, data_uri in enumerate(images_list):
-        image_id = f"page_{index:04d}"
-
-        try:
-            output = analyze_image(data_uri)
-            results[image_id] = output
-            print(f"Processed {image_id}")
-        except Exception as e:
-            print(f"Error processing {image_id}: {e}")
-            results[image_id] = f"[ERROR] {str(e)}"
-
-        # checkpoint every 10
-        # pages and at the end
-        if index % 10 == 0 or index == len(images_list) - 1:
-            with open(checkpoint_path, "w", encoding="utf-8") as f:
-                json.dump(results, f, indent=2, ensure_ascii=False)
-            print(f"Checkpoint saved at page {index}")
-    return
+def _(scores, page_ids, json, OUTPUT_JSON_PATH):
+    results = {pid: float(score) for pid, score in zip(page_ids, scores.tolist())}
+    with open(OUTPUT_JSON_PATH, "w", encoding="utf-8") as f:
+        json.dump(results, f, indent=2)
+    print(f"Saved scores to {OUTPUT_JSON_PATH}")
+    return results
 
 
 if __name__ == "__main__":
