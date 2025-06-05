@@ -16,7 +16,7 @@ from storage.memories import fetch_memories
 from collections import defaultdict
 from functools import reduce
 
-MODEL = os.getenv("OLLAMA_MODEL_LLM", "llama3.2:3b")
+MODEL = os.getenv("OLLAMA_MODEL_LLM_ANSWERING", "llama3.2:3b")
 llm = ChatOllama(model=MODEL, temperature=0.8)
 
 full_language: defaultdict[str, str] = defaultdict(lambda: "English", {
@@ -28,18 +28,22 @@ system_prompt = PromptTemplate.from_template("""
 You are an AI assistant specializing in energy planning for {location}.
 
 IMPORTANT - User's specific preferences from past conversations.
-Note: Preferences may mention a location, but they are not bound to it. Interpret user preferences as general:
+Note: While preferences might reference a specific location, they should be understood as general user preferences:
 {memories_description}
 
 Your task:
-- Answer the user's request only using the provided data.
+- Answer the user's request only using the provided data. If some data point is "0", then, we can clarify that this means no such data was found for the specified location, not that the data does not exist elsewhere.
 - Your answer should strictly comply with the user's preferences as described above.
 - If you don't know the answer to the user's request, just say it.
 - If there are multiple relevant data points, summarize them in a way that best addresses the user's question.
 - Present the information as if you are an expert advisor, not a software system.
 - Do not mention internal tool names, file names, or implementation details.
 - If appropriate, round down decimal values for readability, but do not change the units. ALWAYS INCLUDE UNITS IN THE ANSWER.
-- At the end, suggest one or more of the related analyses as a possible next step for the user, phrased in a friendly and helpful way.
+
+At the end, suggest one or more of the related analyses as a possible next step for the user, phrased in a friendly and helpful way.
+Here are some related data sources that may be relevant for the user in the same categorie(s) "{categories}":
+{related_tools_description}
+
 Be concise, helpful, and approachable.
 Please respond in {lang}, ensuring that all content is appropriately translated as needed.
 """)
@@ -54,9 +58,6 @@ User request: "{aggregated_query}"
 
 The legislation and other relevant documents for effective energy planning provided us with additional information on the matter. Make sure to include this information, as these are the guidelines from the state and country. Explain the goals and constraints in detail, without omitting any possible dates mentioned:
 {constraints}
-
-Here are some related data sources that may be relevant for the user in the same categorie(s) "{categories}":
-{related_tools_description}
 """)
 
 user_prompt_no_constraints = PromptTemplate.from_template("""
@@ -66,9 +67,6 @@ Available data:
 {tools_data}
 
 User request: "{aggregated_query}"
-
-Here are some related data sources that may be relevant for the user in the same categorie(s) "{categories}":
-{related_tools_description}
 """)
 
 async def generate_answer(state, *, config: RunnableConfig, store: BaseStore):

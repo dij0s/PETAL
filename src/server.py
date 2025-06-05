@@ -4,13 +4,13 @@ from sse_starlette.sse import EventSourceResponse
 
 import os
 from dotenv import load_dotenv
+load_dotenv()
 
 from pydantic import BaseModel
 from typing import Optional
 
-from graph import GraphProvider
+from provider.GraphProvider import GraphProvider
 
-load_dotenv()
 
 app = FastAPI()
 

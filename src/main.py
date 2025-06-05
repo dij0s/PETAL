@@ -4,7 +4,7 @@ load_dotenv()
 
 import asyncio
 
-from graph import GraphProvider
+from provider.GraphProvider import GraphProvider
 
 async def main():
     """CLI for interacting with the graph via user input."""
