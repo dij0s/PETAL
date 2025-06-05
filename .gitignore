@@ -15,6 +15,7 @@ wheels/
 # Compiled datasets
 *.npz
 extracted_pages.json
+documents_with_visual_analysis.json
 
 # Marimo context
 __marimo__

@@ -15,14 +15,14 @@ def _():
     import json
     import re
     from functools import reduce
-    return json, re, reduce
+    return (json,)
 
 
 @app.cell
 def _():
     from langchain.text_splitter import RecursiveCharacterTextSplitter, MarkdownHeaderTextSplitter
     from langchain_core.documents.base import Document
-    return Document, MarkdownHeaderTextSplitter, RecursiveCharacterTextSplitter
+    return
 
 
 @app.cell
@@ -34,59 +34,43 @@ def _():
 
 @app.cell
 def _(json):
-    dataset_filepath = "./infered_pages_latest.json"
+    dataset_filepath = "./documents_with_visual_analysis.json"
     with open(dataset_filepath, "r") as file:
-        infered_pages = json.load(file)
-    return (infered_pages,)
+        pages = json.load(file)
+    return (pages,)
 
 
 @app.cell
-def _(infered_pages):
-    infered_pages
+def _(pages):
+    [p for p in pages.items()][252]
+    #pages["doc_000_page_0001"]
     return
 
 
 @app.cell
-def _(MarkdownHeaderTextSplitter, RecursiveCharacterTextSplitter):
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=350, chunk_overlap=50)
-    md_splitter = MarkdownHeaderTextSplitter(headers_to_split_on=[("#", "Header 1"), ("##", "Header 2"), ("###", "Header 3"), ("**", "Heavy")])
-    return md_splitter, text_splitter
+def _():
+    #text_splitter = RecursiveCharacterTextSplitter(chunk_size=350, chunk_overlap=50)
+    #md_splitter = MarkdownHeaderTextSplitter(headers_to_split_on=[("#", "Header 1"), ("##", "Header 2"), ("###", "Header 3"), ("**", "Heavy")])
+    return
 
 
 @app.cell
-def _(md_splitter, text_splitter):
-    def split_page(page_content: str):
-        md_split_text = md_splitter.split_text(page_content)
-        split_text = text_splitter.split_documents(md_split_text)
-        return split_text
-    return (split_page,)
+def _():
+    #def split_page(page_content: str):
+    #    md_split_text = md_splitter.split_text(page_content)
+    #    split_text = text_splitter.split_documents(md_split_text)
+    #    return split_text
+    return
 
 
 @app.cell
-def _(re):
-    def clean_markdown(text: str):
-        text = re.sub(r"^#+\s*", "", text, flags=re.MULTILINE) # remove headings
-        text = re.sub(r"(\*\*|\*|__|_)(.*?)\1", r"\2", text) # remove italic and bold
-        text = re.sub(r"^\s*(\(?\d+[a-z]?[.)]|\(?[a-zA-Z][.)])\s+", "", text, flags=re.MULTILINE) # remove "points"
-        return text.strip()
-    return (clean_markdown,)
-
-
-@app.cell
-def _(Document, clean_markdown, infered_pages, reduce, split_page):
-    paired_pages_documents = reduce(
-        lambda res, split_chunks: [
-            *res,
-            *[
-                Document(page_content=clean_markdown(p1.page_content) + "\n\n" +                        clean_markdown(p2.page_content))
-                for p1, p2 in zip(split_chunks[:-1], split_chunks[1:])
-            ]
-        ],
-        map(lambda v: split_page(v[0]), infered_pages.values()),
-        []
-    )
-    paired_pages_documents
-    return (paired_pages_documents,)
+def _():
+    #def clean_markdown(text: str):
+    #    text = re.sub(r"^#+\s*", "", text, flags=re.MULTILINE) # remove headings
+    #    text = re.sub(r"(\*\*|\*|__|_)(.*?)\1", r"\2", text) # remove italic and bold
+    #    text = re.sub(r"^\s*(\(?\d+[a-z]?[.)]|\(?[a-zA-Z][.)])\s+", "", text, flags=re.MULTILINE) # remove "points"
+    #    return text.strip()
+    return
 
 
 @app.cell
@@ -109,10 +93,13 @@ def _(redis):
 
 
 @app.cell
-def _(paired_pages_documents, pipeline, uuid):
-    for doc in map(lambda d: d.page_content, paired_pages_documents):
+def _(pages, pipeline, uuid):
+    for page in pages.values():
         json_doc = {
-            "chunk_content": doc
+            "document_filename": page["document_filename"],
+            "page_number": page["page_index"],
+            "description": page["visual_analysis"]["analysis"],
+            "raw_content": page["content"]
         }
         redis_key = f"doc:{uuid.uuid4()}"
         pipeline.json().set(redis_key, "$", json_doc)
@@ -129,13 +116,13 @@ def _(client):
 
 @app.cell
 def _(client):
-    client.json().get("doc:0256aecb-0dde-4ecc-b4ac-9f23c6a25bdc")
+    client.json().get("doc:02c8bbb1-5977-4570-8e61-ca2b1bc0ae36")
     return
 
 
 @app.cell
 def _(client, keys):
-    descriptions = client.json().mget(keys, "$.chunk_content")
+    descriptions = client.json().mget(keys, "$.description")
     descriptions = [item for sublist in descriptions for item in sublist]
     descriptions
     return (descriptions,)
@@ -163,7 +150,7 @@ def _(embeddings, keys, pipeline):
 
 @app.cell
 def _(client):
-    client.json().get("doc:00ee380f-2852-4ff0-bf4c-f36cf01791a6")
+    client.json().get("doc:02c8bbb1-5977-4570-8e61-ca2b1bc0ae36")
     return
 
 
@@ -172,10 +159,20 @@ def _():
     from redis.commands.search.field import (
         TextField,
         VectorField,
+        NumericField,
+        TagField
     )
     from redis.commands.search.index_definition import IndexDefinition, IndexType
     from redis.commands.search.query import Query
-    return IndexDefinition, IndexType, Query, TextField, VectorField
+    return (
+        IndexDefinition,
+        IndexType,
+        NumericField,
+        Query,
+        TagField,
+        TextField,
+        VectorField,
+    )
 
 
 @app.cell
@@ -188,13 +185,18 @@ def _(embeddings):
 def _(
     IndexDefinition,
     IndexType,
+    NumericField,
+    TagField,
     TextField,
     VECTOR_DIMENSION,
     VectorField,
     client,
 ):
     schema = (
-        TextField("$.chunk_content", as_name="chunk_content"),
+        TagField("$.document_filename", as_name="document_filename"),
+        NumericField("$.page_number", as_name="page_number"),
+        TextField("$.description", as_name="chunk_content"),
+        TextField("$.raw_content", as_name="raw_content"),
         VectorField(
             "$.embedding",
             "FLAT",
@@ -227,7 +229,7 @@ def _(indexing_failures, num_docs):
 
 @app.cell
 def _(embedder):
-    encoded_query = embedder.embed_query("What is the available biomass in Sion ?")
+    encoded_query = embedder.embed_query("What is the detailed energetic agents for the future")
     return (encoded_query,)
 
 
@@ -236,7 +238,7 @@ def _(Query):
     query = (
         Query('(*)=>[KNN 3 @vector $query_vector AS vector_score]')
          .sort_by('vector_score')
-         .return_fields('vector_score', 'chunk_content')
+         .return_fields('vector_score', 'chunk_content', 'raw_content')
          .dialect(2)
     )
     return (query,)
