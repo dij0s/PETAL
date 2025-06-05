@@ -8,16 +8,18 @@ from langgraph.store.base import BaseStore
 
 from modelling.structured_output import Memory
 
-async def fetch_memories(config: RunnableConfig, store: BaseStore, query: str) -> list[Memory]:
+async def fetch_memories(config: RunnableConfig, store: BaseStore, query: str, limit: int = 3) -> list[Memory]:
     """
     Fetches the user's memories from the long-term memory store.
 
     This function retrieves all memories associated with the user specified in the
-    provided configuration from the given memory store.
+    provided user_id from the given memory store.
 
     Args:
-        config (RunnableConfig): The configuration for the runnable, containing user information.
+        config: The configuration for the runnable.
         store (BaseStore): The long-term memory store to fetch memories from.
+        query (str): The query string to search for relevant memories.
+        limit (int, optional): The maximum number of memories to fetch. Defaults to 3.
 
     Returns:
         list[Memory]: A list of Memory items.
@@ -30,7 +32,7 @@ async def fetch_memories(config: RunnableConfig, store: BaseStore, query: str) -
         namespace = ("memories", user_id)
         return [
             Memory(**item.value)
-            for item in await store.asearch(namespace, query=query, limit=3)
+            for item in await store.asearch(namespace, query=query, limit=limit)
         ]
     except Exception as e:
         print(f"Exception: {e}")
@@ -46,10 +48,10 @@ async def update_memories(config: RunnableConfig, store: BaseStore, last_human_m
         - Ensures that the latest user context is persisted for future retrieval.
 
     Args:
-        last_human_message: The most recent message from the user.
-        previous_human_message: The message from the user prior to the most recent one.
         config: The configuration for the runnable.
         store: The long-term memory store.
+        last_human_message: The most recent message from the user.
+        previous_human_message: The message from the user prior to the most recent one.
 
     Returns:
         dict: The updated conversation state.

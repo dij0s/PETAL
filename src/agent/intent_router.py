@@ -23,45 +23,58 @@ from functools import reduce
 system_prompt = PromptTemplate.from_template("""
 You are an AI assistant helping to route user requests about energy planning in Switzerland.
 
-Classify the user input into:
+Your task is to extract and update metadata from user queries to maintain conversation context.
 
+## Classification Schema:
 {format_description_llm}
 
-Examples:
+## Key Instructions for aggregated_query:
+- **ALWAYS update aggregated_query** with the current user's request
+- If this is a new topic/question: Create a fresh, comprehensive query
+- If this is a follow-up/clarification: Merge the previous context with the new information
+- If this is a correction: Replace the incorrect parts with the corrected information
+- Keep the aggregated query focused and specific - don't add assumptions
 
+## Examples:
+
+**New Question:**
 User: "What are the energy needs for households in Sion?"
-System: [answers about all energy needs]
-User: "Thanks a lot but when I ask for the energy needs for households, I only mean the electricity needs.."
-→ needs_memoization: True (user is correcting/clarifying)
+→ aggregated_query: "Energy needs for households in Sion"
 
-User: "What are the heating and cooling needs in the industry?"
-→ needs_memoization: False (new question, not a correction)
+**Follow-up Clarification:**
+Previous: "Energy needs for households in Sion"
+User: "Thanks a lot but when I ask for the energy needs for households, I only mean the electricity needs."
+→ aggregated_query: "Electricity needs for households in Sion"
+→ needs_memoization: True
 
+**Scope Correction:**
+Previous: "Energy consumption in Lausanne"
 User: "No, I meant for my apartment building, not the whole city."
-→ needs_memoization: True (explicit correction with "No, I meant")
+→ aggregated_query: "Energy consumption for apartment buildings in Lausanne"
+→ needs_memoization: True
 
-User: "Thanks!"
-→ needs_memoization: False (just thanking, no correction)
+**Topic Expansion:**
+Previous: "Solar energy potential in Geneva"
+User: "What about wind energy too?"
+→ aggregated_query: "Solar and wind energy potential in Geneva"
+→ needs_memoization: False
+
+**Completely New Topic:**
+Previous: "Heating costs in Zurich"
+User: "What can you tell me about Martigny?"
+→ aggregated_query: "General information about Martigny"
+→ needs_memoization: False
 """)
 
 user_prompt = PromptTemplate.from_template("""
-Here is the previous conversation context and that you have already deduced from earlier user inputs and THE LAST USER INPUT.
-Use this information to help clarify the current request:
+**Previous Context:**
+- Last input: "{previous_user_input}"
+- Current state: {current_router}
 
-Previous user input: "{previous_user_input}"
-Conversation context: "{current_router}"
-Additional prompt from AI (if any, e.g. if the AI previously asked the user to clarify specific information, include it here): "{ai_message}"
-
-User input: "{user_input}"
+**Current Input:** "{user_input}"
 """)
 
 MODEL = os.getenv("OLLAMA_MODEL_LLM_ROUTING", "llama3.2:3b")
-# function calling output
-# requires a tool-capable
-# model which in fine allows
-# for shorter system context
-# as detailed schema is not
-# provided
 llm = ChatOllama(model=MODEL, temperature=0).with_structured_output(RouterOutput, method="function_calling")
 parser = PydanticStreamOutputParser(pydantic_object=RouterOutput, diff=True)
 
@@ -89,11 +102,6 @@ async def intent_router(state, *, config: RunnableConfig, store: BaseStore):
     human_messages: list[str] = [msg.content for msg in reversed(state.messages) if isinstance(msg, HumanMessage)] # type: ignore
     last_human_message: str = human_messages[0] if human_messages else ""
     previous_human_message: str = human_messages[1] if len(human_messages) > 1 else ""
-    # retrieve last AI message to
-    # assess the context to which
-    # the user replied
-    ai_messages = [msg.content for msg in reversed(state.messages) if isinstance(msg, AIMessage)]
-    last_ai_message = ai_messages[0] if ai_messages else ""
     # retrieve curent router context
     # and fill it in the prompt for
     # context carry over
@@ -109,9 +117,9 @@ async def intent_router(state, *, config: RunnableConfig, store: BaseStore):
             current_router=current.model_dump(),
             previous_user_input=previous_human_message,
             user_input=last_human_message,
-            ai_message=last_ai_message,
         ))
     ]
+    print(prompt)
     # write custom event
     writer({"type": "info", "content": "Interpreting your request..."})
     # invoke llm on prompt

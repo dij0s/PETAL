@@ -154,7 +154,7 @@ class ToolProvider:
         """
         return self._last_retrieved_categories if len(self._last_retrieved_categories) > 0 else None
 
-    async def asearch(self, query: str, max_n: int, k: int = 4, filter: Optional[Callable[[Document], bool]] = None, drop_constraints: bool = False) -> tuple[list[StructuredTool], list[str]]:
+    async def asearch(self, query: str, max_n: int, k: int = 4, filter: Optional[Callable[[Document], bool]] = None, drop_constraints: bool = False) -> tuple[list[StructuredTool], list[tuple[str, str]]]:
         """
         Search for StructuredTool objects and constraining document chunks matching the query and filter.
 
@@ -179,7 +179,7 @@ class ToolProvider:
 
         return tools, constraints
 
-    async def _noop_return_empty_list(self) -> list[str]:
+    async def _noop_return_empty_list(self) -> list[tuple[str, str]]:
         return []
 
     async def _asearch_tools(self, query: str, max_n: int, k: int = 4, filter: Optional[Callable[[Document], bool]] = None) -> list[StructuredTool]:
@@ -223,7 +223,7 @@ class ToolProvider:
         # future lookup when guiding
         # the user
         top_tools = [
-            self._tool_registry[doc.id]
+            self._tool_registry[doc.id] # type: ignore
             for doc in top_docs
         ]
         self._last_retrieved_categories = list(set([
@@ -233,7 +233,7 @@ class ToolProvider:
 
         return top_tools
 
-    async def _asearch_constraints(self, query: str) -> list[str]:
+    async def _asearch_constraints(self, query: str) -> list[tuple[str, str]]:
         """
         Search for constraining document chunks matching the query.
 
@@ -241,12 +241,12 @@ class ToolProvider:
             query (str): The search query string.
 
         Returns:
-            list[str]: A list of relevant constraining document chunks that match the query.
+            list[tuple[str, str]]: A list of document contents and their corresponding sources that are relevant to the query.
         """
 
         return [
-            doc.page_content
-            for doc, _ in await self._vector_store_constraints.asimilarity_search_with_score(query=query, k=5)
+            (doc.page_content, f"{doc.metadata.get('document_title', '')}, page n° {doc.metadata.get('page_number')}")
+            for doc in await self._vector_store_constraints.asimilarity_search(query=query, k=5)
             if isinstance(doc, Document)
         ]
 

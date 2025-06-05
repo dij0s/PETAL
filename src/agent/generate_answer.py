@@ -25,48 +25,90 @@ full_language: defaultdict[str, str] = defaultdict(lambda: "English", {
 })
 
 system_prompt = PromptTemplate.from_template("""
-You are an AI assistant specializing in energy planning for {location}.
+You are an AI assistant specializing in energy planning for {location}, Switzerland.
 
-IMPORTANT - User's specific preferences from past conversations.
-Note: While preferences might reference a specific location, they should be understood as general user preferences:
-{memories_description}
+## Critical Guidelines
 
-Your task:
-- Answer the user's request only using the provided data. If some data point is "0", then, we can clarify that this means no such data was found for the specified location, not that the data does not exist elsewhere.
-- Your answer should strictly comply with the user's preferences as described above.
-- If you don't know the answer to the user's request, just say it.
-- If there are multiple relevant data points, summarize them in a way that best addresses the user's question.
-- Present the information as if you are an expert advisor, not a software system.
-- Do not mention internal tool names, file names, or implementation details.
-- If appropriate, round down decimal values for readability, but do not change the units. ALWAYS INCLUDE UNITS IN THE ANSWER.
+**IMPORTANT - Official Context**: The legislation and other relevant documents for effective energy planning define the actions and strategies that must be implemented to meet the requirements for the coming years and decades. Be sure to include this information, as these are the official guidelines from the state and country. **ALWAYS cite the source** when referencing legislative documents or official guidelines.
 
-At the end, suggest one or more of the related analyses as a possible next step for the user, phrased in a friendly and helpful way.
-Here are some related data sources that may be relevant for the user in the same categorie(s) "{categories}":
+**User Preferences**: {memories_description}
+Note: While preferences might reference a specific location, they should be understood as general user preferences.
+
+---
+
+## Your Task
+
+**Response Requirements**:
+- Answer using **only** the provided data
+- The provided data is SPECIFICALLY FOR {location}
+- Strictly comply with user preferences described above
+- If you don't know the answer, state it clearly
+- For multiple relevant data points, summarize to best address the user's question
+- Format your response in **clear, well-structured markdown**
+
+**Presentation Style**:
+- Present as an expert energy planning advisor, not a software system
+- Do NOT mention internal tool names, file names, or implementation details
+- Round decimal values for readability while preserving units
+- **ALWAYS INCLUDE UNITS** in your answer
+- Be concise, helpful, and approachable
+
+**Markdown Formatting Guidelines**:
+- Use appropriate headers (##, ###) to structure your response
+- Use bullet points or numbered lists for key findings
+- Include tables when comparing multiple data points
+- Use **bold** for important values and findings
+- Use *italics* for emphasis on policy recommendations
+- **When citing legislative documents or official guidelines only, always include the source** in your response using the format: *(Source: [Document Name])*. There is no need to include the source for data points.
+
+**Conclusion**:
+End with a "## Recommended Next Steps" section suggesting one or more related analyses from the available data sources in the same category/categories "{categories}", phrased in a friendly and helpful way:
 {related_tools_description}
 
-Be concise, helpful, and approachable.
-Please respond in {lang}, ensuring that all content is appropriately translated as needed.
+---
+
+Please respond in {lang}, ensuring all content is appropriately translated and formatted in markdown.
 """)
 
-user_prompt_with_constraints = PromptTemplate.from_template("""
-You have already gathered the relevant data for the location "{location}". This data is provided below, with each entry including a description (explaining what the data represents and its units) and the corresponding value.
+# user_prompt_with_constraints = PromptTemplate.from_template("""
+# You have already gathered the relevant data for the location "{location}". This data is provided below, with each entry including a description (explaining what the data represents and its units) and the corresponding value.
 
-Available data:
+# Available data:
+# {tools_data}
+
+# User request: "{aggregated_query}"
+
+# The legislation and other relevant documents for effective energy planning provided us with additional information on the matter. Make sure to include this information, as these are the guidelines from the state and country. Explain the goals and constraints in detail, without omitting any possible dates mentioned:
+# {constraints}
+# """)
+
+# user_prompt_no_constraints = PromptTemplate.from_template("""
+# You have already gathered the relevant data for the location "{location}". This data is provided below, with each entry including a description (explaining what the data represents and its units) and the corresponding value.
+
+# Available data:
+# {tools_data}
+
+# User request: "{aggregated_query}"
+# """)
+#
+user_prompt = PromptTemplate.from_template("""
+## Data Summary for {location}
+
+The following data has been gathered and is available for your analysis:
+
+### Retrieved Data Points
 {tools_data}
+Note: A data point whose value is "0" indicates that no such data is produced, consumed, or present for the specified location; it does not mean that this data is unavailable elsewhere.
 
-User request: "{aggregated_query}"
-
-The legislation and other relevant documents for effective energy planning provided us with additional information on the matter. Make sure to include this information, as these are the guidelines from the state and country. Explain the goals and constraints in detail, without omitting any possible dates mentioned:
+### Supporting Documentation & Constraints
 {constraints}
-""")
 
-user_prompt_no_constraints = PromptTemplate.from_template("""
-You have already gathered the relevant data for the location "{location}". This data is provided below, with each entry including a description (explaining what the data represents and its units) and the corresponding value.
+### User Query
+**Request**: {user_query}
 
-Available data:
-{tools_data}
+---
 
-User request: "{aggregated_query}"
+Please analyze the above data and provide a comprehensive markdown-formatted response that addresses the user's specific request while incorporating relevant legislative guidelines and policy recommendations.
 """)
 
 async def generate_answer(state, *, config: RunnableConfig, store: BaseStore):
@@ -81,6 +123,8 @@ async def generate_answer(state, *, config: RunnableConfig, store: BaseStore):
     """
     writer = get_stream_writer()
     provider = GeoSessionProvider.get_or_create(state.router.location, 100, 0.3)
+
+    last_human_message = next(msg.content for msg in reversed(state.messages) if isinstance(msg, HumanMessage))
     # retrieve description of
     # aggregated data using tools
     toolbox: ToolProvider = await ToolProvider.acreate(state.router.location)
@@ -113,27 +157,27 @@ async def generate_answer(state, *, config: RunnableConfig, store: BaseStore):
     # build prompt based on factual
     # or actionable user request
     # retrieve user memories
-    memories = await fetch_memories(config, store, state.router.aggregated_query)
+    memories = await fetch_memories(config, store, state.router.aggregated_query, limit=1)
     memories_description = "\n".join([
         f"- When the user asked about: {item.context}, they specifically meant: {item.memory}."
         for item in memories
     ])
-    print(memories_description)
 
     prompt_args = {
         "location": state.router.location,
         "tools_data": tools_data,
-        "aggregated_query": state.router.aggregated_query,
+        "user_query": last_human_message,
         "categories": last_categories,
         "related_tools_description": related_tools_description,
-        "lang": full_language.get(state.lang),
-        "memories_description": memories_description
+        "lang": full_language[state.lang],
+        "memories_description": memories_description,
+        "constraints": state.geocontext.context_constraints
     }
-    if state.router.intent != "factual":
-        prompt_args["constraints"] = state.geocontext.context_constraints
-        user_prompt = user_prompt_with_constraints
-    else:
-        user_prompt = user_prompt_no_constraints
+    # if state.router.intent != "factual":
+    #     user_prompt = user_prompt_with_constraints
+    #     prompt_args["constraints"] = state.geocontext.context_constraints
+    # else:
+    #     user_prompt = user_prompt_no_constraints
 
     prompt = [
         SystemMessage(content=system_prompt.format(**prompt_args)),

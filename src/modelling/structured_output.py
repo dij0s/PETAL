@@ -37,8 +37,8 @@ class GeoContextOutput(BaseModel):
         description="Maps tool called to the retrieved layer and data of any type",
         default_factory=dict
     )
-    context_constraints: list[str] = Field(
-        description="Retrieved constraints from the described legislation and vision",
+    context_constraints: list[tuple[str, str]] = Field(
+        description="A list of constraints, each as a tuple containing the constraint content and its source.",
         default_factory=list
     )
 

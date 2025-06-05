@@ -42,7 +42,7 @@ def _(json):
 
 @app.cell
 def _(pages):
-    [p for p in pages.items()][252]
+    [p for p in pages.items()][245]
     #pages["doc_000_page_0001"]
     return
 
@@ -75,6 +75,227 @@ def _():
 
 @app.cell
 def _():
+    metadata = {
+        "(2019) Vision 2060 et objectifs 2035.pdf": {
+            "label": "Vision 2060 et objectifs 2035, Valais, Terre d'énergies",
+            "type": "coordination_plan"
+        },
+        "705.1-5-1.fr.pdf": {
+            "label": "Loi sur les constructions (LC)",
+            "type": "legislation"
+        },
+        "730.1-3-1.fr.pdf": {
+            "label": "Loi sur l'énergie (LcEne)",
+            "type": "legislation"
+        },
+        "A.1.pdf": {
+            "label": "Zones agricoles",
+            "type": "coordination_sheet"
+        },
+        "A.10 Parcs naturels et patrimoine mondial de l'UNESCO.pdf": {
+            "label": "Parcs naturels et patrimoine mondial de l'UNESCO",
+            "type": "coordination_sheet"
+        },
+        "A.11.pdf": {
+            "label": "Réseaux écologiques et corridors à faune",
+            "type": "coordination_sheet"
+        },
+        "A.12.pdf": {
+            "label": "Troisième correction du Rhône",
+            "type": "coordination_sheet"
+        },
+        "A.13.pdf": {
+            "label": "Aménagement, renaturation et entretien des cours d’eau",
+            "type": "coordination_sheet"
+        },
+        "A.14.pdf": {
+            "label": "Bisses",
+            "type": "coordination_sheet"
+        },
+        "A.15.pdf": {
+            "label": "Rives du lac Léman",
+            "type": "coordination_sheet"
+        },
+        "A.16.pdf": {
+            "label": "Dangers naturels",
+            "type": "coordination_sheet"
+        },
+        "A.2.pdf": {
+            "label": "Surfaces d'assolement",
+            "type": "coordination_sheet"
+        },
+        "A.3.pdf": {
+            "label": "Vignes",
+            "type": "coordination_sheet"
+        },
+        "A.4.pdf": {
+            "label": "Améliorations structurelles",
+            "type": "coordination_sheet"
+        },
+        "A.5.pdf": {
+            "label": "Zones des mayens, de hameaux et de maintien de l’habitat rural",
+            "type": "coordination_sheet"
+        },
+        "A.6.pdf": {
+            "label": "Fonctions et gestion forestières",
+            "type": "coordination_sheet"
+        },
+        "A.7.pdf": {
+            "label": "Extension de la forêt",
+            "type": "coordination_sheet"
+        },
+        "A.8.pdf": {
+            "label": "Protection, gestion et valorisation du paysage",
+            "type": "coordination_sheet"
+        },
+        "A.9.pdf": {
+            "label": "Protection et gestion de la nature",
+            "type": "coordination_sheet"
+        },
+        "B.1.pdf": {
+            "label": "Tourisme intégré",
+            "type": "coordination_sheet"
+        },
+        "B.2.pdf": {
+            "label": "Hébergement touristique",
+            "type": "coordination_sheet"
+        },
+        "B.3.pdf": {
+            "label": "Camping",
+            "type": "coordination_sheet"
+        },
+        "B.4.pdf": {
+            "label": "Domaines skiables",
+            "type": "coordination_sheet"
+        },
+        "B.5.pdf": {
+            "label": "Terrains de golf",
+            "type": "coordination_sheet"
+        },
+        "B.6.pdf": {
+            "label": "Mobilité douce de loisirs (MDL)",
+            "type": "coordination_sheet"
+        },
+        "C.1.pdf": {
+            "label": "Dimensionnement des zones à bâtir dévolues à l’habitat",
+            "type": "coordination_sheet"
+        },
+        "C.10.pdf": {
+            "label": "Aires de stationnement pour les gens du voyage  ",
+            "type": "coordination_sheet"
+        },
+        "C.2.pdf": {
+            "label": "Qualité des zones à bâtir",
+            "type": "coordination_sheet"
+        },
+        "C.3.pdf": {
+            "label": "Sites construits, bâtiments dignes de protection, voies historiques et sites archéologiques",
+            "type": "coordination_sheet"
+        },
+        "C.4.pdf": {
+            "label": "Zones d'activités économiques",
+            "type": "coordination_sheet"
+        },
+        "C.5.pdf": {
+            "label": "Agglomérations",
+            "type": "coordination_sheet"
+        },
+        "C.6.pdf": {
+            "label": "Prévention des accidents majeurs",
+            "type": "coordination_sheet"
+        },
+        "C.7.pdf": {
+            "label": "Installations générant un trafic important (IGT)  ",
+            "type": "coordination_sheet"
+        },
+        "C.8.pdf": {
+            "label": "Installations d'intérêt public",
+            "type": "coordination_sheet"
+        },
+        "C.9.pdf": {
+            "label": "Installations militaires",
+            "type": "coordination_sheet"
+        },
+        "D.1.pdf": {
+            "label": "Transports publics",
+            "type": "coordination_sheet"
+        },
+        "D.2.pdf": {
+            "label": "Interfaces d'échanges modaux",
+            "type": "coordination_sheet"
+        },
+        "D.3.pdf": {
+            "label": "Réseaux ferroviaires",
+            "type": "coordination_sheet"
+        },
+        "D.4.pdf": {
+            "label": "Réseaux routiers",
+            "type": "coordination_sheet"
+        },
+        "D.5.pdf": {
+            "label": "Mobilité douce quotidienne (MDQ)",
+            "type": "coordination_sheet"
+        },
+        "D.6.pdf": {
+            "label": "Infrastructures de transport public par câble",
+            "type": "coordination_sheet"
+        },
+        "D.7.pdf": {
+            "label": "Infrastructures de transport de marchandises",
+            "type": "coordination_sheet"
+        },
+        "D.8.pdf": {
+            "label": "Infrastructures aéronautiques",
+            "type": "coordination_sheet"
+        },
+        "E.1.pdf": {
+            "label": "Gestion de l'eau",
+            "type": "coordination_sheet"
+        },
+        "E.2.pdf": {
+            "label": "Approvisionnement et protection des eaux potables",
+            "type": "coordination_sheet"
+        },
+        "E.3.pdf": {
+            "label": "Approvisionnement en énergie",
+            "type": "coordination_sheet"
+        },
+        "E.4.pdf": {
+            "label": "Production d'énergies hydroelectriques",
+            "type": "coordination_sheet"
+        },
+        "E.5.pdf": {
+            "label": "Installations solaires",
+            "type": "coordination_sheet"
+        },
+        "E.6.pdf": {
+            "label": "Installations éoliennes",
+            "type": "coordination_sheet"
+        },
+        "E.7.pdf": {
+            "label": "Transport et distribution d'énergie",
+            "type": "coordination_sheet"
+        },
+        "E.8.pdf": {
+            "label": "Approvisionnement en matériaux pierreux et terreux",
+            "type": "coordination_sheet"
+        },
+        "E.9.pdf": {
+            "label": "Décharges",
+            "type": "coordination_sheet"
+        }
+    }
+    return (metadata,)
+
+
+@app.cell
+def _(pages):
+    set([d["document_filename"] for d in pages.values()])
+    return
+
+
+@app.cell
+def _():
     from langchain_ollama import OllamaEmbeddings
     return (OllamaEmbeddings,)
 
@@ -93,13 +314,14 @@ def _(redis):
 
 
 @app.cell
-def _(pages, pipeline, uuid):
+def _(metadata, pages, pipeline, uuid):
     for page in pages.values():
         json_doc = {
-            "document_filename": page["document_filename"],
-            "page_number": page["page_index"],
+            "document_title": metadata[page["document_filename"]]["label"],
+            "document_type": metadata[page["document_filename"]]["type"],
+            "page_number": page["page_index"] + 1,
             "description": page["visual_analysis"]["analysis"],
-            "raw_content": page["content"]
+            "raw_content": page["content"],
         }
         redis_key = f"doc:{uuid.uuid4()}"
         pipeline.json().set(redis_key, "$", json_doc)
@@ -116,7 +338,7 @@ def _(client):
 
 @app.cell
 def _(client):
-    client.json().get("doc:02c8bbb1-5977-4570-8e61-ca2b1bc0ae36")
+    client.json().get("doc:009af56c-cf5d-4475-baaf-94b09771ec6a")
     return
 
 
@@ -150,7 +372,7 @@ def _(embeddings, keys, pipeline):
 
 @app.cell
 def _(client):
-    client.json().get("doc:02c8bbb1-5977-4570-8e61-ca2b1bc0ae36")
+    client.json().get("doc:009af56c-cf5d-4475-baaf-94b09771ec6a")
     return
 
 
@@ -193,7 +415,8 @@ def _(
     client,
 ):
     schema = (
-        TagField("$.document_filename", as_name="document_filename"),
+        TextField("$.document_title", as_name="document_title"),
+        TagField("$.document_type", as_name="document_type"),
         NumericField("$.page_number", as_name="page_number"),
         TextField("$.description", as_name="chunk_content"),
         TextField("$.raw_content", as_name="raw_content"),
