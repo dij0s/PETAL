@@ -38,9 +38,11 @@ dev = [
     "accelerate>=1.7.0",
     "ipython>=9.2.0",
     "langchain>=0.3.25",
+    "layoutparser[layoutmodels]>=0.3.4",
     "marimo>=0.13.15",
     "qwen-vl-utils[decord]==0.0.8",
     "redis>=6.2.0",
+    "torch>=2.7.0",
     "torchvision>=0.22.0",
     "transformers>=4.52.3",
 ]

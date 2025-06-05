@@ -35,15 +35,22 @@ def _():
     import base64
     import pymupdf
     import numpy as np
+    from PIL import Image
     from functools import reduce
-    return base64, json, os, pymupdf, reduce
+    return base64, os, pymupdf, reduce
+
+
+@app.cell
+def _():
+    from layoutparser.models import Detectron2LayoutModel
+    return (Detectron2LayoutModel,)
 
 
 @app.cell
 def _():
     DATASET_PATH = "./dataset"
     OUTPUT_JSON_PATH = "./extracted_pages.json"
-    return DATASET_PATH, OUTPUT_JSON_PATH
+    return (DATASET_PATH,)
 
 
 @app.cell
@@ -78,6 +85,21 @@ def _(pixmap_to_base64, pymupdf, reduce):
 
 
 @app.cell
+def _(Detectron2LayoutModel):
+    model = Detectron2LayoutModel('lp://PubLayNet/faster_rcnn_R_50_FPN_3x/config')
+    def segment_with_layoutparser(page_img_pil):
+        layout = model.detect(page_img_pil)
+        segments = []
+        for block in layout:
+            if block.type in ['Figure', 'Table']:  # or whatever you want
+                x1, y1, x2, y2 = map(int, block.coordinates)
+                crop = page_img_pil.crop((x1, y1, x2, y2))
+                segments.append(crop)
+        return segments
+    return
+
+
+@app.cell
 def _(DATASET_PATH, extract_content, os, reduce):
     documents = reduce(
         lambda res, filename: [*res, {
@@ -96,11 +118,13 @@ def _(documents):
     return
 
 
-@app.cell
-def _(OUTPUT_JSON_PATH, documents, json):
-    with open(OUTPUT_JSON_PATH, "w", encoding="utf-8") as f:
+app._unparsable_cell(
+    r"""
+    #with open(OUTPUT_JSON_PATH, \"w\", encoding=\"utf-8\") as f:
         json.dump(documents, f, ensure_ascii=False)
-    return
+    """,
+    name="_"
+)
 
 
 if __name__ == "__main__":
