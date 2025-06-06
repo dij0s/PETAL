@@ -39,8 +39,6 @@ async def geocontext_retriever(state):
     """
     writer = get_stream_writer()
 
-    last_human_message = next(msg.content for msg in state.messages if isinstance(msg, HumanMessage))
-
     geocontext: Optional[GeoContextOutput] = state.geocontext
     if geocontext is None:
         geocontext = GeoContextOutput()

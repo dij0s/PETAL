@@ -73,13 +73,13 @@ class ToolProvider:
         self._reranking_model = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
 
     async def _build_vector_store(self, tool_registry: dict[str, dict[str, StructuredTool]]) -> None:
-        # instantiate and populate
-        # vector store for runtime
-        # tools
         EMBEDDING_MODEL = os.getenv("OLLAMA_MODEL_EMBEDDING", "nomic-embed-text:v1.5")
         INDEX_NAME = os.getenv("REDIS_INDEX_CONSTRAINTS", "idx:doc_vss")
         REDIS_URL = os.getenv("REDIS_URL_CONSTRAINTS", "redis://localhost:6379")
 
+        # instantiate and populate
+        # vector store for runtime
+        # tools semantic search
         embedder = OllamaEmbeddings(model=EMBEDDING_MODEL)
         self._vector_store_tools = InMemoryVectorStore(embedding=embedder)
         # instantiate redis vector
@@ -175,11 +175,19 @@ class ToolProvider:
         # then only gather
         # maybe handle query
         # embedding differently ?
-        tools, constraints = await asyncio.gather(tools_task, constraints_task)
-
-        return tools, constraints
+        return await asyncio.gather(tools_task, constraints_task)
 
     async def _noop_return_empty_list(self) -> list[tuple[str, str]]:
+        """
+        Helper function used when bypassing execution in an asynchronous batch execution.
+
+        Args:
+            None
+
+        Returns:
+            list[tuple[str, str]]: An empty list.
+        """
+
         return []
 
     async def _asearch_tools(self, query: str, max_n: int, k: int = 4, filter: Optional[Callable[[Document], bool]] = None) -> list[StructuredTool]:
@@ -213,8 +221,10 @@ class ToolProvider:
         pairs = [(query, doc.page_content) for doc in docs]
         scores = self._reranking_model.predict(pairs, activation_fn=Sigmoid())
         scores = scores * (1 / sum(scores))
-        # retrieve best documents
-        threshold = 1 / len(scores)
+        # retrieve best documents and
+        # only select a maximum of
+        # max_n from the thresholded
+        threshold = (1 / len(scores)) * 0.8
         above_threshold_indices = [index for index, score in enumerate(scores) if score > threshold]
         top_indices = sorted(above_threshold_indices, key=lambda index: scores[index], reverse=True)[:min(len(above_threshold_indices), max_n)]
         top_docs = [docs[i] for i in top_indices]

@@ -40,6 +40,7 @@ The legislation and other relevant documents for effective energy planning defin
 **ALWAYS include source citation for any official information**
 
 **User Preferences**: {memories_description}
+**DO NOT take these into account if they are not relevant to the user's request.**
 Note: While preferences might reference a specific location, they should be understood as general user preferences.
 
 ---
