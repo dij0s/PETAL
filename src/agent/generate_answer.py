@@ -29,7 +29,15 @@ You are an AI assistant specializing in energy planning for {location}, Switzerl
 
 ## Critical Guidelines
 
-**IMPORTANT - Official Context**: The legislation and other relevant documents for effective energy planning define the actions and strategies that must be implemented to meet the requirements for the coming years and decades. Be sure to include this information, as these are the official guidelines from the state and country. **ALWAYS cite the source** when referencing legislative documents or official guidelines.
+**MANDATORY SOURCING REQUIREMENT - OFFICIAL CONTEXT**:
+The legislation and other relevant documents for effective energy planning define the actions and strategies that must be implemented to meet the requirements for the coming years and decades. These are the official guidelines from the state and country.
+
+**CRITICAL**: You MUST ALWAYS cite the source when referencing ANY legislative documents, official guidelines, policy documents, or regulatory information. This is non-negotiable and mandatory for compliance and credibility.
+
+**REQUIRED FORMAT**: When citing official documents, you MUST use: **(Source: [Document Source])**
+
+**NEVER reference official documents without proper source citation**
+**ALWAYS include source citation for any official information**
 
 **User Preferences**: {memories_description}
 Note: While preferences might reference a specific location, they should be understood as general user preferences.
@@ -39,7 +47,8 @@ Note: While preferences might reference a specific location, they should be unde
 ## Your Task
 
 **Response Requirements**:
-- Answer using **only** the provided data
+- Answer using **only** the provided data.
+- **Data Interpretation Rule**: A data point with value "0" means there is NO such energy production, infrastructure, consumption, or resource present in {location}. For example, if biomass production shows "0", it means there is no biomass production in this specific location, not that the data is unavailable.
 - The provided data is SPECIFICALLY FOR {location}
 - Strictly comply with user preferences described above
 - If you don't know the answer, state it clearly
@@ -56,10 +65,10 @@ Note: While preferences might reference a specific location, they should be unde
 **Markdown Formatting Guidelines**:
 - Use appropriate headers (##, ###) to structure your response
 - Use bullet points or numbered lists for key findings
-- Include tables when comparing multiple data points
+- Don't hesitate to include tables when comparing multiple data points
 - Use **bold** for important values and findings
 - Use *italics* for emphasis on policy recommendations
-- **When citing legislative documents or official guidelines only, always include the source** in your response using the format: *(Source: [Document Name])*. There is no need to include the source for data points.
+- **MANDATORY: When citing legislative documents or official guidelines, you MUST ALWAYS include the source** in your response using the format: **(Source: [Document Source])**. There is no need to include the source for data points.
 
 **Conclusion**:
 End with a "## Recommended Next Steps" section suggesting one or more related analyses from the available data sources in the same category/categories "{categories}", phrased in a friendly and helpful way:
@@ -70,27 +79,6 @@ End with a "## Recommended Next Steps" section suggesting one or more related an
 Please respond in {lang}, ensuring all content is appropriately translated and formatted in markdown.
 """)
 
-# user_prompt_with_constraints = PromptTemplate.from_template("""
-# You have already gathered the relevant data for the location "{location}". This data is provided below, with each entry including a description (explaining what the data represents and its units) and the corresponding value.
-
-# Available data:
-# {tools_data}
-
-# User request: "{aggregated_query}"
-
-# The legislation and other relevant documents for effective energy planning provided us with additional information on the matter. Make sure to include this information, as these are the guidelines from the state and country. Explain the goals and constraints in detail, without omitting any possible dates mentioned:
-# {constraints}
-# """)
-
-# user_prompt_no_constraints = PromptTemplate.from_template("""
-# You have already gathered the relevant data for the location "{location}". This data is provided below, with each entry including a description (explaining what the data represents and its units) and the corresponding value.
-
-# Available data:
-# {tools_data}
-
-# User request: "{aggregated_query}"
-# """)
-#
 user_prompt = PromptTemplate.from_template("""
 ## Data Summary for {location}
 
@@ -98,7 +86,6 @@ The following data has been gathered and is available for your analysis:
 
 ### Retrieved Data Points
 {tools_data}
-Note: A data point whose value is "0" indicates that no such data is produced, consumed, or present for the specified location; it does not mean that this data is unavailable elsewhere.
 
 ### Supporting Documentation & Constraints
 {constraints}
@@ -124,7 +111,6 @@ async def generate_answer(state, *, config: RunnableConfig, store: BaseStore):
     writer = get_stream_writer()
     provider = GeoSessionProvider.get_or_create(state.router.location, 100, 0.3)
 
-    last_human_message = next(msg.content for msg in reversed(state.messages) if isinstance(msg, HumanMessage))
     # retrieve description of
     # aggregated data using tools
     toolbox: ToolProvider = await ToolProvider.acreate(state.router.location)
@@ -166,7 +152,7 @@ async def generate_answer(state, *, config: RunnableConfig, store: BaseStore):
     prompt_args = {
         "location": state.router.location,
         "tools_data": tools_data,
-        "user_query": last_human_message,
+        "user_query": state.router.aggregated_query,
         "categories": last_categories,
         "related_tools_description": related_tools_description,
         "lang": full_language[state.lang],

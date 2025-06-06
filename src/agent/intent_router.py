@@ -119,7 +119,6 @@ async def intent_router(state, *, config: RunnableConfig, store: BaseStore):
             user_input=last_human_message,
         ))
     ]
-    print(prompt)
     # write custom event
     writer({"type": "info", "content": "Interpreting your request..."})
     # invoke llm on prompt
