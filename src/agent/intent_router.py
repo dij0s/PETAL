@@ -175,6 +175,7 @@ async def intent_router(state, *, config: RunnableConfig, store: BaseStore):
         updated_state["needs_memoization"] = False
 
     updated_router = RouterOutput(**updated_state)
+    print(updated_router)
     # reset geocontext on location change
     if last_location != updated_router.location:
         return {

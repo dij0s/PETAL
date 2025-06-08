@@ -6,15 +6,23 @@ from langchain_ollama import ChatOllama
 from langgraph.config import get_stream_writer
 
 from modelling.utils import reduce_missing_attributes
+from collections import defaultdict
 
 MODEL = os.getenv("OLLAMA_MODEL_LLM", "llama3.2:3b")
 llm = ChatOllama(model=MODEL, temperature=0.95)
+
+full_language: defaultdict[str, str] = defaultdict(lambda: "English", {
+    "fr": "French",
+    "de": "German",
+})
 
 system_prompt = PromptTemplate.from_template("""
 You are an AI assistant helping to clarify user requests about energy planning in Switzerland.
 Formulate a question asking for the specific missing details.
 If there is no extra needed information, then, they must have mistakenly input something.
 Keep the answer short and address the user in a friendly, non-robotic way.
+
+**IMPORTANT**: Your entire response MUST be written exclusively in {lang}.
 """)
 
 user_prompt = PromptTemplate.from_template("""
@@ -43,7 +51,9 @@ async def clarify_query(state):
 
     missing_attributes = reduce_missing_attributes(state.router)
     prompt = messages = [
-        SystemMessage(content=system_prompt.format()),
+        SystemMessage(content=system_prompt.format(
+            lang=full_language[state.lang].upper()
+        )),
         HumanMessage(content=user_prompt.format(
             needed_information=missing_attributes,
             user_input=last_human_message

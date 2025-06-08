@@ -1,9 +1,10 @@
 import os
+import asyncio
 import uuid
+import numpy as np
 
 from typing import Callable, Optional
 from functools import reduce
-import numpy as np
 
 from langchain_core.tools.structured import StructuredTool
 from langchain_core.documents import Document
@@ -15,7 +16,6 @@ from langchain_redis import RedisVectorStore
 from redisvl.schema import IndexSchema
 
 from sentence_transformers import CrossEncoder
-from torch.nn import Sigmoid
 
 from tool.geodata import *
 
@@ -177,6 +177,35 @@ class ToolProvider:
         # embedding differently ?
         return await asyncio.gather(tools_task, constraints_task)
 
+    async def _rerank_documents(self, query: str, docs: list[Document], max_n: int, threshold: float) -> list[Document]:
+        """
+        Rerank a list of documents based on their relevance to the query using the cross-encoder model.
+
+        Args:
+            query (str): The search query string.
+            docs (list[Document]): The list of documents to rerank.
+            max_n (int): The maximum number of top documents to return.
+            threshold (float): The minimum score threshold for a document to be considered relevant.
+
+        Returns:
+            list[Document]: A list of the top reranked documents that meet the threshold, or an empty list if no documents meet the criteria.
+        """
+        if not docs:
+            return []
+        # apply crossencoder reranking
+        # and apply softmax for better
+        # emphasis on document relevance
+        pairs = [(query, doc.page_content) for doc in docs]
+        logits = self._reranking_model.predict(pairs)
+        exp_logits = np.exp(logits - np.max(logits))
+        scores = exp_logits / np.sum(exp_logits)
+        # only select a maximum of
+        # max_n from the thresholded
+        above_threshold_indices = [i for i, score in enumerate(scores) if score > threshold]
+        top_indices = sorted(above_threshold_indices, key=lambda i: scores[i], reverse=True)[:max_n]
+
+        return [docs[index] for index in top_indices]
+
     async def _noop_return_empty_list(self) -> list[tuple[str, str]]:
         """
         Helper function used when bypassing execution in an asynchronous batch execution.
@@ -210,24 +239,11 @@ class ToolProvider:
         if k <= 0:
             k = 4
         max_n = max(1, max_n if max_n <= k else k)
-        # retrieve batch of documents
+        # retrieve documents
         # using cosine similarity
         docs = await self._vector_store_tools.asimilarity_search(query=query, k=k, filter=filter)
-        # apply crossencoder reranking
-        # and use sigmoid activation
-        # function for probability (single class)
-        # finally apply softmax for
-        # easier thresholding
-        pairs = [(query, doc.page_content) for doc in docs]
-        scores = self._reranking_model.predict(pairs, activation_fn=Sigmoid())
-        scores = scores * (1 / sum(scores))
-        # retrieve best documents and
-        # only select a maximum of
-        # max_n from the thresholded
-        threshold = (1 / len(scores)) * 0.8
-        above_threshold_indices = [index for index, score in enumerate(scores) if score > threshold]
-        top_indices = sorted(above_threshold_indices, key=lambda index: scores[index], reverse=True)[:min(len(above_threshold_indices), max_n)]
-        top_docs = [docs[i] for i in top_indices]
+        # rerank documents
+        top_docs = await self._rerank_documents(query=query, docs=docs, max_n=max_n, threshold=0.2)
         # get top tools and store
         # their categories for
         # future lookup when guiding
@@ -253,12 +269,49 @@ class ToolProvider:
         Returns:
             list[tuple[str, str]]: A list of document contents and their corresponding sources that are relevant to the query.
         """
+        # retrieve documents
+        # using cosine similarity
+        # manually retrieve redis client
+        # and query documents by retrieved
+        # identifiers asynchronously
+        client = self._vector_store_constraints.config.redis()
+        if not client:
+            return []
 
-        return [
-            (doc.page_content, f"{doc.metadata.get('document_title', '')}, page n° {doc.metadata.get('page_number')}")
+        pipe = client.pipeline()
+        pipe.json().mget([
+            doc.metadata.get("id", "")
             for doc in await self._vector_store_constraints.asimilarity_search(query=query, k=5)
-            if isinstance(doc, Document)
+        ], "$['document_title', 'page_number', 'chunks']")
+        # flatten documents into
+        # both the chunks and source
+        docs = reduce(
+            lambda res, ds: [
+                *res, *[
+                    Document(
+                        metadata={ "source":  d.get("source")},
+                        page_content=d.get("page_content") # type: ignore
+                    )
+                    for d in ds
+                ]
+            ],
+            map(lambda result: [
+                {
+                    "source": f"{result[0]}, page n° {result[1]}",
+                    "page_content": chunk
+                }
+                for chunk in result[2]
+            ], (await asyncio.get_event_loop().run_in_executor(None, pipe.execute))[0]),
+            []
+        )
+        # rerank chunks from
+        # retrieved documents
+        top_docs = await self._rerank_documents(query=query, docs=docs, max_n=6, threshold=0.2)
+        return [
+            (doc.page_content, doc.metadata.get("source", ""))
+            for doc in top_docs
         ]
+
 
 def _tools_needs(municipality_name: str) -> dict[str, StructuredTool]:
     """

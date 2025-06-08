@@ -22,7 +22,7 @@ def _():
 def _():
     from langchain.text_splitter import RecursiveCharacterTextSplitter, MarkdownHeaderTextSplitter
     from langchain_core.documents.base import Document
-    return
+    return (MarkdownHeaderTextSplitter,)
 
 
 @app.cell
@@ -42,16 +42,16 @@ def _(json):
 
 @app.cell
 def _(pages):
-    [p for p in pages.items()][245]
+    [p for p in pages.items()][350]
     #pages["doc_000_page_0001"]
     return
 
 
 @app.cell
-def _():
+def _(MarkdownHeaderTextSplitter):
     #text_splitter = RecursiveCharacterTextSplitter(chunk_size=350, chunk_overlap=50)
-    #md_splitter = MarkdownHeaderTextSplitter(headers_to_split_on=[("#", "Header 1"), ("##", "Header 2"), ("###", "Header 3"), ("**", "Heavy")])
-    return
+    md_splitter = MarkdownHeaderTextSplitter(headers_to_split_on=[("###", "Header 3")], strip_headers=False)
+    return (md_splitter,)
 
 
 @app.cell
@@ -60,6 +60,12 @@ def _():
     #    md_split_text = md_splitter.split_text(page_content)
     #    split_text = text_splitter.split_documents(md_split_text)
     #    return split_text
+    return
+
+
+@app.cell
+def _(md_splitter, pages):
+    print(md_splitter.split_text([p for p in pages.values()][245]["visual_analysis"]["analysis"]))
     return
 
 
@@ -314,13 +320,14 @@ def _(redis):
 
 
 @app.cell
-def _(metadata, pages, pipeline, uuid):
+def _(md_splitter, metadata, pages, pipeline, uuid):
     for page in pages.values():
         json_doc = {
             "document_title": metadata[page["document_filename"]]["label"],
             "document_type": metadata[page["document_filename"]]["type"],
             "page_number": page["page_index"] + 1,
             "description": page["visual_analysis"]["analysis"],
+            "chunks": [doc.page_content for doc in md_splitter.split_text(page["visual_analysis"]["analysis"])],
             "raw_content": page["content"],
         }
         redis_key = f"doc:{uuid.uuid4()}"
@@ -338,7 +345,7 @@ def _(client):
 
 @app.cell
 def _(client):
-    client.json().get("doc:009af56c-cf5d-4475-baaf-94b09771ec6a")
+    client.json().get("doc:9be78250-0169-48dd-a7a5-64a52926be8d")
     return
 
 
@@ -371,18 +378,12 @@ def _(embeddings, keys, pipeline):
 
 
 @app.cell
-def _(client):
-    client.json().get("doc:009af56c-cf5d-4475-baaf-94b09771ec6a")
-    return
-
-
-@app.cell
 def _():
     from redis.commands.search.field import (
         TextField,
         VectorField,
         NumericField,
-        TagField
+        TagField,
     )
     from redis.commands.search.index_definition import IndexDefinition, IndexType
     from redis.commands.search.query import Query
@@ -419,7 +420,6 @@ def _(
         TagField("$.document_type", as_name="document_type"),
         NumericField("$.page_number", as_name="page_number"),
         TextField("$.description", as_name="chunk_content"),
-        TextField("$.raw_content", as_name="raw_content"),
         VectorField(
             "$.embedding",
             "FLAT",
@@ -461,7 +461,7 @@ def _(Query):
     query = (
         Query('(*)=>[KNN 3 @vector $query_vector AS vector_score]')
          .sort_by('vector_score')
-         .return_fields('vector_score', 'chunk_content', 'raw_content')
+         .return_fields('vector_score', 'chunk_content', 'chunks')
          .dialect(2)
     )
     return (query,)
@@ -475,12 +475,13 @@ def _():
 
 @app.cell
 def _(client, encoded_query, np, query):
-    client.ft('idx:doc_vss').search(
+    temp = client.ft('idx:doc_vss').search(
         query,
         {
           'query_vector': np.array(encoded_query, dtype=np.float32).tobytes()
         }
-    ).docs
+    ).docs[0] 
+    type(temp)
     return
 
 
