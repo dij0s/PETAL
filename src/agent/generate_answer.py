@@ -37,10 +37,7 @@ You are an AI assistant specializing in energy planning for the municipality "{l
 ### MANDATORY SOURCE CITATION RULE
 **CRITICAL**: You MUST ALWAYS cite the source when referencing ANY document, official guidelines, policy documents, or regulatory information. This is non-negotiable and mandatory for compliance and credibility.
 
-**REQUIRED FORMAT**: **(Source: [Document Source])**
-
 **NEVER reference official documents without proper source citation**
-**ALWAYS include source citation for any official information**
 
 ### STRICT MARKDOWN HEADER RULES
 **ONLY USE ### (H3) AND #### (H4) HEADERS - NO EXCEPTIONS**
@@ -80,15 +77,14 @@ The legislation and other relevant documents for effective energy planning defin
 
 **Markdown Formatting Guidelines**:
 - **HEADER RESTRICTION**: Use ### and #### headers ONLY - no other header levels permitted
-- **NO BLANK LINES**: Do not include any blank lines or whitespace-only lines in your markdown output
 - Use bullet points or numbered lists for key findings
-- Don't hesitate to include tables when comparing multiple data points
+- Use tables when comparing multiple data points
 - Use **bold** for important values and findings
 - Use *italics* for emphasis on policy recommendations
-- **MANDATORY SOURCE CITATION**: When citing legislative documents or official guidelines, you MUST ALWAYS include the source using format: **(Source: [Document Source])**. There is no need to include the source for data points.
+- **MANDATORY SOURCE CITATION**: When citing legislative documents or official guidelines, you MUST ALWAYS include the source using format: **[Document Source]**. There is no need to include the source for data points.
 
 **Conclusion**:
-End with a "### Recommended Next Steps" section suggesting one or more related analyses from the available data sources in the same category/categories "{categories}", phrased in a friendly and helpful way:
+End with a "Recommended Next Steps" section suggesting one or more related analyses from the available data sources in the same category/categories "{categories}", phrased in a friendly and helpful way:
 {related_tools_description}
 
 ---
@@ -108,7 +104,8 @@ The following data has been gathered and is available for your analysis:
 {constraints}
 
 ### User Query
-**Analysis Focus**: {user_query}
+**Analysis Focus**: {aggregated_query}
+**Original query**: {user_query}
 
 ---
 
@@ -128,6 +125,7 @@ async def generate_answer(state, *, config: RunnableConfig, store: BaseStore):
     writer = get_stream_writer()
     provider = GeoSessionProvider.get_or_create(state.router.location, 100, 0.3)
 
+    last_human_message = next(msg.content for msg in reversed(state.messages) if isinstance(msg, HumanMessage))
     # retrieve description of
     # aggregated data using tools
     toolbox: ToolProvider = await ToolProvider.acreate(state.router.location)
@@ -160,7 +158,7 @@ async def generate_answer(state, *, config: RunnableConfig, store: BaseStore):
     # build prompt based on factual
     # or actionable user request
     # retrieve user memories
-    memories = await fetch_memories(config, store, state.router.aggregated_query, limit=1)
+    memories = await fetch_memories(config, store, state.router.aggregated_query)
     memories_description = "\n".join([
         f"- When the user asked about: {item.context}, they specifically meant: {item.memory}."
         for item in memories
@@ -168,13 +166,14 @@ async def generate_answer(state, *, config: RunnableConfig, store: BaseStore):
 
     prompt_args = {
         "location": state.router.location,
-        "tools_data": tools_data,
-        "user_query": state.router.aggregated_query,
         "categories": last_categories,
         "related_tools_description": related_tools_description,
         "lang": full_language[state.lang].upper(),
         "memories_description": memories_description,
-        "constraints": state.geocontext.context_constraints
+        "constraints": state.geocontext.context_constraints,
+        "tools_data": tools_data,
+        "aggregated_query": state.router.aggregated_query,
+        "user_query": last_human_message
     }
     # update state with response
     # and push the new layers and
@@ -191,8 +190,6 @@ async def generate_answer(state, *, config: RunnableConfig, store: BaseStore):
     ]
     writer({"type": "info", "content": "Generating a response..."})
     response = await llm.ainvoke(prompt)
-
-
     return {
         **state.model_dump(),
         "messages": state.messages + [AIMessage(content=response.content)],

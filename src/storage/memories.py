@@ -1,14 +1,19 @@
 import asyncio
 import uuid
 import time
+import numpy as np
 
 from langchain_core.runnables.config import RunnableConfig
 from langchain_core.messages import HumanMessage
 from langgraph.store.base import BaseStore
 
+from sentence_transformers import CrossEncoder
+
 from modelling.structured_output import Memory
 
-async def fetch_memories(config: RunnableConfig, store: BaseStore, query: str, limit: int = 3) -> list[Memory]:
+_reranking_model = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
+
+async def fetch_memories(config: RunnableConfig, store: BaseStore, query: str) -> list[Memory]:
     """
     Fetches the user's memories from the long-term memory store.
 
@@ -19,7 +24,6 @@ async def fetch_memories(config: RunnableConfig, store: BaseStore, query: str, l
         config: The configuration for the runnable.
         store (BaseStore): The long-term memory store to fetch memories from.
         query (str): The query string to search for relevant memories.
-        limit (int, optional): The maximum number of memories to fetch. Defaults to 3.
 
     Returns:
         list[Memory]: A list of Memory items.
@@ -30,10 +34,28 @@ async def fetch_memories(config: RunnableConfig, store: BaseStore, query: str, l
             raise Exception("Could not retrieve user_id from runtime configuration.")
 
         namespace = ("memories", user_id)
-        return [
+        # retrieve memories and apply
+        # rerank for better relevance
+        # assessment
+        memories = [
             Memory(**item.value)
-            for item in await store.asearch(namespace, query=query, limit=limit)
+            for item in await store.asearch(namespace, query=query, limit=5)
         ]
+        pairs = [(query, item.context) for item in memories]
+        logits = _reranking_model.predict(pairs)
+        # apply softmax normalization
+        # and threshold before selecting
+        # the most relevant ones
+        exp_logits = np.exp(logits - np.max(logits))
+        scores = exp_logits / np.sum(exp_logits)
+        top_indices = [
+            index
+            for index, score in enumerate(scores)
+            if score > 0.2
+        ]
+        top = [memories[index] for index in top_indices]
+
+        return [memories[index] for index in top_indices]
     except Exception as e:
         print(f"Exception: {e}")
         return []

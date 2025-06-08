@@ -44,6 +44,6 @@ class GeoContextOutput(BaseModel):
 
 class Memory(BaseModel):
     """Memory schema definition."""
-
-    memory: str = Field()
-    context: str = Field()
+    memory: str
+    context: str
+    timestamp: float

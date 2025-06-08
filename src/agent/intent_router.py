@@ -11,7 +11,7 @@ from langgraph.config import get_stream_writer
 from modelling.PydanticStreamOutputParser import PydanticStreamOutputParser
 from modelling.structured_output import GeoContextOutput, RouterOutput, Memory
 from modelling.utils import reduce_missing_attributes
-from storage.memories import fetch_memories, update_memories
+from storage.memories import update_memories
 
 from typing import Optional, Any
 from pydantic import BaseModel, Field, ValidationError
