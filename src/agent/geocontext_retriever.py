@@ -73,7 +73,6 @@ async def geocontext_retriever(state):
             writer({"type": "info", "content": "Retrieving tools..."})
             toolbox: ToolProvider = await ToolProvider.acreate(router_state.location)
             tools, constraints = await toolbox.asearch(query=router_state.aggregated_query, top_n_tools=3, k_tools=5)
-            print(tools, constraints)
             writer({"type": "log", "content": "I FOUND THEM!"})
             # filter out tools whose
             # data we already have

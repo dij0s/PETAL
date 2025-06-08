@@ -134,7 +134,7 @@ async def generate_answer(state, *, config: RunnableConfig, store: BaseStore):
     tools_data, layers = reduce(
         lambda res, d: (
             res[0] + f"['description': {toolbox.get(d[0]).description}, 'value': {d[1][1]}]" + "\n", # type: ignore
-            res[1] + [d[1][0]] if d[1][0] != "" else []
+            res[1] + [d[1][0]] if d[1][0] != "" else res[1]
         ),
         state.geocontext.context_tools.items(),
         ("", [])
@@ -176,12 +176,6 @@ async def generate_answer(state, *, config: RunnableConfig, store: BaseStore):
         "memories_description": memories_description,
         "constraints": state.geocontext.context_constraints
     }
-    # if state.router.intent != "factual":
-    #     user_prompt = user_prompt_with_constraints
-    #     prompt_args["constraints"] = state.geocontext.context_constraints
-    # else:
-    #     user_prompt = user_prompt_no_constraints
-
     # update state with response
     # and push the new layers and
     # municipality's SFSO number
