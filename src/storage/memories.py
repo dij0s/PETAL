@@ -51,7 +51,8 @@ async def fetch_memories(config: RunnableConfig, store: BaseStore, query: str) -
         exp_logits = np.exp(logits - np.max(logits))
         scores = exp_logits / np.sum(exp_logits)
         # threshold the relevant items
-        threshold = 0.2
+        # using the mean score
+        threshold = 1 / len(memories)
         top_indices = [
             index
             for index, score in enumerate(scores)
@@ -104,7 +105,7 @@ async def update_memories(config: RunnableConfig, store: BaseStore, last_human_m
                     "memory": last_human_message,
                     "context": previous_human_message,
                     "timestamp": time.time()
-                }
+                },
             )
         except Exception as e:
             print(f"Exception: {e}")
