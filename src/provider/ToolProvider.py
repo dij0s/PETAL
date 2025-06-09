@@ -271,7 +271,7 @@ class ToolProvider:
         pipe = client.pipeline()
         pipe.json().mget([
             doc.metadata.get("id", "")
-            for doc in await self._vector_store_constraints.asimilarity_search(query=query, k=10)
+            for doc in await self._vector_store_constraints.asimilarity_search(query=query, k=25)
         ], "$['document_title', 'page_number', 'chunks']")
         # flatten documents into
         # both the chunks and source
@@ -366,7 +366,7 @@ def _tools_infrastructure(municipality_name: str) -> dict[str, StructuredTool]:
             WindTurbinesInfrastructureTool,
             BiogasInfrastructureTool,
             IncinerationInfrastructureTool,
-            EffectiveInfrastructureTool,
+            EffectiveRenewableEnergiesTool,
             ThermalNetworksInfrastructureTool,
         ]
     }

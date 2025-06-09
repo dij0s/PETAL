@@ -42,6 +42,8 @@ async def fetch_memories(config: RunnableConfig, store: BaseStore, query: str) -
             for item in await store.asearch(namespace, query=query, limit=5)
         ]
         pairs = [(query, item.context) for item in memories]
+        # no need to batch as at most
+        # 5 memories are retrieved
         logits = _reranking_model.predict(pairs)
         # apply softmax normalization
         # and threshold before selecting

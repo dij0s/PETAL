@@ -369,8 +369,14 @@ async def _fetch_big_hydro_potential(municipality_name: str) -> tuple[str, str]:
                     # (Rhône and other smaller rivers)
                     heating_potential_GWh = sum(heating_potential) / len(heating_potential) if len(heating_potential) > 0 else 0.0
                     cooling_potential_GWh = sum(cooling_potential) / len(cooling_potential) if len(cooling_potential) > 0 else 0.0
-
-                    return f"{heating_potential_GWh:.2f}", f"{cooling_potential_GWh:.2f}"
+                    # the absolute value of the heating
+                    # potential is returned as it is represents
+                    # the amount of energy we may be able to
+                    # extract from the water body whereas the
+                    # positive cooling potential represents
+                    # the amount of energy we may reinject
+                    # into the water body for cooling purposes
+                    return f"{abs(heating_potential_GWh):.2f}", f"{cooling_potential_GWh:.2f}"
                 else:
                     print(f"Could not retrieve big hydroelectricity data: {response.status}")
     except Exception as e:
@@ -1287,7 +1293,7 @@ class GeoDataTool(StructuredTool):
                 coroutine=wrapper,
                 name=name,
                 description=description,
-                args_schema=None,
+                args_schema=None, # type: ignore
                 **kwargs
             )
 
@@ -1315,7 +1321,7 @@ class RoofingSolarPotentialEstimatorTool(GeoDataTool):
             func=partial(_fetch_solar_potential_roofing, confidence_level=0.8),
             name="estimate_solar_potential_roofing",
             layer_id="ch.bfe.solarenergie-eignung-daecher",
-            description="Estimated **roofing solar energy potential**. Returns the estimated solar energy that can be used for electricity (photovoltaic) in GWh/year and the energy that can be used for heating (solar thermal) in GWh/year, in a tuple.",
+            description="Estimated **roofing solar energy potential**. Returns the estimated solar energy that can be used for electricity (photovoltaic) in GWh/year and the energy that can be used for heating (solar thermal) in GWh/year from installing solar panels on roofs, in a tuple.",
         )
 
 class FacadesSolarPotentialEstimatorTool(GeoDataTool):
@@ -1328,7 +1334,7 @@ class FacadesSolarPotentialEstimatorTool(GeoDataTool):
             func=partial(_fetch_solar_potential_facades, confidence_level=0.8),
             name="estimate_solar_potential_facades",
             layer_id="ch.bfe.solarenergie-eignung-fassaden",
-            description="Estimated **facades solar energy potential**. Returns the estimated solar energy that can be used for electricity (photovoltaic) in GWh/year and the energy that can be used for heating (solar thermal) in GWh/year, in a tuple.",
+            description="Estimated **facades solar energy potential**. Returns the estimated solar energy that can be used for electricity (photovoltaic) in GWh/year and the energy that can be used for heating (solar thermal) in GWh/year from installing solar panels on facades, in a tuple.",
         )
 
 class SmallHydroPotentialTool(GeoDataTool):
@@ -1353,7 +1359,8 @@ class LargeHydroPotentialTool(GeoDataTool):
             municipality_name=municipality_name,
             func=_fetch_big_hydro_potential,
             name="large_hydro_potential",
-            layer_id="ch.bfe.waermepotential-gewaesser",
+            # layer_id="ch.bfe.waermepotential-gewaesser", not supported as of now, WMS
+            layer_id="",
             description="**Thermal energy potential of large hydro sources** (such as lakes and rivers). Returns the heating (heat extraction) in GWh/year and cooling (heat discharge) potential in GWh/year, in a tuple. Lakes and rivers provide a great yet largely untapped source of thermal energy. This renewable source could be used for heating and cooling, especially since many cities are located close to lakes and rivers and the technology is well established. The potential of the largest lakes and rivers for heat extraction and heat discharge was estimated using simple assumptions, with water body-specific characteristics only partially considered. These potentials are to be understood as a reference point and should not be used as a definitive basis for planning.",
         )
 
@@ -1435,7 +1442,7 @@ class ThermalNetworksInfrastructureTool(GeoDataTool):
             description="Total **energy that can be delivered via the thermal networks infrastructure**. Returns the total energy that can be delivered via thermal networks in GWh/year. Thermal networks – including district heating-, local heating- or district cooling networks – are systems that supply heat to customers through pipelines that carry water or steam. The energy supplied by thermal networks does not necessarily come from renewable sources, but these systems are often characterised by their low CO2 emissions, for example when based on heat recovered from waste incineration.",
         )
 
-class EffectiveInfrastructureTool(GeoDataTool):
+class EffectiveRenewableEnergiesTool(GeoDataTool):
     def __init__(
         self,
         municipality_name: str,
@@ -1443,9 +1450,10 @@ class EffectiveInfrastructureTool(GeoDataTool):
         super().__init__(
             municipality_name=municipality_name,
             func=_fetch_effective_infrastructure,
-            name="effective_electricity_production_plants",
-            layer_id="ch.bfe.elektrizitaetsproduktionsanlagen",
-            description="Effective **electricity production plants from photovoltaic (PV), biomass, and geothermal energy**. Returns the energy (electricity) production from photovoltaic solar panels in GWh/year, from biomass energy in GWh/year and from geothermal energy in GWh/year, all in a tuple. These are all production plants powered by renewable energies. Only electricity production plants that are in operation are included.",
+            name="effective_renewable_energies_production_plants",
+            # layer_id="ch.bfe.elektrizitaetsproduktionsanlagen", not supported as of now, WMS
+            layer_id="",
+            description="Effective **energy (electricity) production from renewable energy sources**. Electricity production plants from photovoltaic (PV), biomass, and geothermal energy. Returns the energy (electricity) production from photovoltaic solar panels in GWh/year, from biomass energy in GWh/year and from geothermal energy in GWh/year, all in a tuple. Only electricity production plants that are in operation are included.",
         )
 
 class WastewaterTreatmentPotentialTool(GeoDataTool):
