@@ -13,6 +13,9 @@ async def main():
     if REDIS_URL_MEMORIES is None:
         raise ValueError("REDIS_URL_MEMORIES environment variable must be set")
 
+    THREAD_ID = "1000"
+    USER_ID = "999"
+
     def process_chunk(mode, chunk):
         if mode == "token":
             print(chunk, end="", flush=True)
@@ -27,7 +30,7 @@ async def main():
                 if user_input.lower() in ["quit", "exit", "q"]:
                     break
 
-                await graph.stream_graph_updates(user_input, process_chunk)
+                await graph.stream_graph_updates(THREAD_ID, USER_ID, user_input, process_chunk)
 
             except Exception as e:
                 print(f"Error: {e}")

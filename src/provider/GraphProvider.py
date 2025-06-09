@@ -160,12 +160,14 @@ class GraphProvider:
         except Exception as e:
             print(f"Exception: {e}")
 
-    async def stream_graph_updates(self, user_input: str, f: Callable[[str, Any], None]):
+    async def stream_graph_updates(self, thread_id: str, user_id: str, user_input: str, f: Callable[[str, Any], None]):
         """
         Asynchronously streams graph updates based on user input and applies a callback function.
         Implemented for CLI use.
 
         Args:
+            thread_id (str): The thread identifier for the conversation.
+            user_id (str): The unique user identifier.
             user_input (str): The user's input message to process in the graph.
             f (Callable[[str, Any], None]): A callback function that processes each output chunk's mode and content from the graph.
 
@@ -173,8 +175,8 @@ class GraphProvider:
             None: This method does not yield but calls the callback function for each output.
         """
         async for mode, chunk in self.stream_graph_generator(
-            thread_id="0",
-            user_id="000",
+            thread_id=thread_id,
+            user_id=user_id,
             user_input=user_input
         ):
             f(mode, chunk) # type: ignore

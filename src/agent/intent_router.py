@@ -40,6 +40,7 @@ Your task is to extract and update metadata from user queries to maintain conver
 **New Question:**
 User: "What are the energy needs for households in Sion?"
 → aggregated_query: "Energy needs for households in Sion"
+→ needs_memoization: False
 
 **Follow-up Clarification:**
 Previous: "Energy needs for households in Sion"
@@ -47,15 +48,9 @@ User: "Thanks a lot but when I ask for the energy needs for households, I only m
 → aggregated_query: "Electricity needs for households in Sion"
 → needs_memoization: True
 
-**Scope Correction:**
-Previous: "Energy consumption in Lausanne"
-User: "No, I meant for my apartment building, not the whole city."
-→ aggregated_query: "Energy consumption for apartment buildings in Lausanne"
-→ needs_memoization: True
-
 **Topic Expansion:**
 Previous: "Solar energy potential in Geneva"
-User: "What about wind energy too?"
+User: "Thanks. What about wind energy too?"
 → aggregated_query: "Solar and wind energy potential in Geneva"
 → needs_memoization: False
 
@@ -169,6 +164,7 @@ async def intent_router(state, *, config: RunnableConfig, store: BaseStore):
     # as this is only used in the
     # business logic itself
     if updated_state["needs_memoization"]:
+        print("THIS NEEDS MEMOIZATION APPARENTLY")
         await update_memories(config, store, last_human_message, previous_human_message)
         writer({"type": "info", "content": "I'll know that the next time!"})
 

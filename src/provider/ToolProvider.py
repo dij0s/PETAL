@@ -154,20 +154,20 @@ class ToolProvider:
         """
         return self._last_retrieved_categories if len(self._last_retrieved_categories) > 0 else None
 
-    async def asearch(self, query: str, top_n_tools: int, k_tools: int = 4, filter: Optional[Callable[[Document], bool]] = None) -> tuple[list[StructuredTool], list[tuple[str, str]]]:
+    async def asearch(self, query: str, max_n_tools: int, k_tools: int = 4, filter: Optional[Callable[[Document], bool]] = None) -> tuple[list[StructuredTool], list[tuple[str, str]]]:
         """
         Search for StructuredTool objects and constraining document chunks matching the query and filter.
 
         Args:
             query (str): The search query string.
-            top_n (int): The number of tools to select after crossencoder reranking.
-            k (int): The number of tools and constraining chunks to retrieve from the vector store for futher reranking.
+            max_n_tools (int): The maximum number of tools to select after crossencoder reranking.
+            k_tools (int): The number of tools and constraining chunks to retrieve from the vector store for futher reranking.
             filter (Callable[[Document], bool]): A callable that takes a Document and returns True if it matches the filter criteria. By default, assigned to None.
 
         Returns:
             tuple[list[StructuredTool], list[str]]: A tuple containing a list of relevant StructuredTool objects that match the query and filter, along with the the constraining document chunks. By default, no filtering is applied.
         """
-        tools_task = self._asearch_tools(query, top_n_tools, k_tools, filter)
+        tools_task = self._asearch_tools(query, max_n_tools, k_tools, filter)
         constraints_task = self._asearch_constraints(query)
         # run both results
         # asynchronously and
@@ -176,14 +176,14 @@ class ToolProvider:
         # embedding differently ?
         return await asyncio.gather(tools_task, constraints_task)
 
-    async def _rerank_documents(self, query: str, docs: list[Document], top_n: int, batch_size: int = 5) -> list[Document]:
+    async def _rerank_documents(self, query: str, docs: list[Document], max_n: int, batch_size: int = 5) -> list[Document]:
         """
         Rerank a list of documents based on their relevance to the query using the cross-encoder model.
 
         Args:
             query (str): The search query string.
             docs (list[Document]): The list of documents to rerank.
-            top_n (int): The maximum number of top documents to return.
+            max_n (int): The maximum number of top documents to return.
             batch_size (int): The batch size for processing documents during reranking. Defaults to 5.
 
         Returns:
@@ -195,28 +195,32 @@ class ToolProvider:
         pairs = [(query, doc.page_content) for doc in docs]
         # predict by batches for
         # faster inference
-        logits = reduce(
-            lambda res, batch: [
-                *res,
-                *self._reranking_model.predict(batch)
-            ],
-            map(lambda index: pairs[index:(index + batch_size)], range(0, len(pairs), batch_size)),
-            []
-        )
-        # numpy already bounds to len(logits)
-        # if top_n > len(logits)
-        top_indices = np.argsort(logits)[::-1][:top_n]
+        logits = self._reranking_model.predict(pairs, batch_size=batch_size)
+        # apply softmax normalization and
+        # select documents from threshold
+        # set in a way to extract "outliers"
+        exp_logits = np.exp(logits - np.max(logits))
+        scores = exp_logits / np.sum(exp_logits)
 
-        return [docs[index] for index in top_indices]
+        threshold = np.mean(scores) + np.std(scores)
+        selected_indices = np.where(scores > threshold)[0]
+        # only select max_n best scores
+        # from the thresholded ones
+        # numpy already bounds to len(scores)
+        # if top_n > len(scores)
+        selected_scores = scores[selected_indices]
+        top_indices = np.argsort(selected_scores)[::-1][:max_n]
 
-    async def _asearch_tools(self, query: str, top_n: int, k: int = 5, filter: Optional[Callable[[Document], bool]] = None) -> list[StructuredTool]:
+        return [docs[selected_indices[index]] for index in top_indices]
+
+    async def _asearch_tools(self, query: str, max_n: int, k: int = 5, filter: Optional[Callable[[Document], bool]] = None) -> list[StructuredTool]:
         """
         Search for StructuredTool objects matching the query and filter.
         First retrieves documents based on cosine similarity indicator and the applies crossencoder reranking.
 
         Args:
             query (str): The search query string.
-            top_n (int): The number of tools to select after crossencoder reranking.
+            max_n (int): The number of tools to select after crossencoder reranking.
             k (int): The number of tools to retrieve from the vector store for futher reranking. Default to 5.
             filter (Callable[[Document], bool]): A callable that takes a Document and returns True if it matches the filter criteria. By default, assigned to None.
 
@@ -228,12 +232,12 @@ class ToolProvider:
         # crossencoder reranking
         if k <= 0:
             k = 5
-        top_n = max(1, top_n if top_n <= k else k)
+        max_n = max(1, max_n if max_n <= k else k)
         # retrieve documents
         # using cosine similarity
         docs = await self._vector_store_tools.asimilarity_search(query=query, k=k, filter=filter)
         # rerank documents
-        top_docs = await self._rerank_documents(query=query, docs=docs, top_n=top_n)
+        top_docs = await self._rerank_documents(query=query, docs=docs, max_n=max_n)
         # get top tools and store
         # their categories for
         # future lookup when guiding
@@ -296,7 +300,7 @@ class ToolProvider:
         )
         # rerank chunks from
         # retrieved documents
-        top_docs = await self._rerank_documents(query=query, docs=docs, top_n=5)
+        top_docs = await self._rerank_documents(query=query, docs=docs, max_n=10)
         return [
             (doc.page_content, doc.metadata.get("source", ""))
             for doc in top_docs
