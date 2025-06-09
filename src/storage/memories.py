@@ -50,12 +50,13 @@ async def fetch_memories(config: RunnableConfig, store: BaseStore, query: str) -
         # the most relevant ones
         exp_logits = np.exp(logits - np.max(logits))
         scores = exp_logits / np.sum(exp_logits)
+        # threshold the relevant items
+        threshold = 0.2
         top_indices = [
             index
             for index, score in enumerate(scores)
-            if score > 0.2
+            if score > threshold
         ]
-        top = [memories[index] for index in top_indices]
 
         return [memories[index] for index in top_indices]
     except Exception as e:

@@ -164,7 +164,6 @@ async def intent_router(state, *, config: RunnableConfig, store: BaseStore):
     # as this is only used in the
     # business logic itself
     if updated_state["needs_memoization"]:
-        print("THIS NEEDS MEMOIZATION APPARENTLY")
         await update_memories(config, store, last_human_message, previous_human_message)
         writer({"type": "info", "content": "I'll know that the next time!"})
 

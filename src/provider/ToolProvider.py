@@ -201,17 +201,22 @@ class ToolProvider:
         # set in a way to extract "outliers"
         exp_logits = np.exp(logits - np.max(logits))
         scores = exp_logits / np.sum(exp_logits)
-
         threshold = np.mean(scores) + np.std(scores)
         selected_indices = np.where(scores > threshold)[0]
-        # only select max_n best scores
-        # from the thresholded ones
-        # numpy already bounds to len(scores)
-        # if top_n > len(scores)
-        selected_scores = scores[selected_indices]
-        top_indices = np.argsort(selected_scores)[::-1][:max_n]
-
-        return [docs[selected_indices[index]] for index in top_indices]
+        # detect uniform distribution
+        # using coefficient of variation
+        cv = np.std(scores) / np.mean(scores)
+        uniformity_threshold = 0.15
+        if cv < uniformity_threshold:
+            # take top max_n directly
+            top_indices = np.argsort(scores)[::-1][:max_n]
+            return [docs[index] for index in top_indices]
+        else:
+            # take top max_n from the
+            # thresholded results
+            selected_scores = scores[selected_indices]
+            top_indices = np.argsort(selected_scores)[::-1][:max_n]
+            return [docs[selected_indices[index]] for index in top_indices]
 
     async def _asearch_tools(self, query: str, max_n: int, k: int = 5, filter: Optional[Callable[[Document], bool]] = None) -> list[StructuredTool]:
         """
