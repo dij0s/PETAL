@@ -1058,16 +1058,17 @@ async def _fetch_heating_cooling_needs_industry(municipality_name: str) -> str:
 
     return "0"
 
-async def _fetch_heating_cooling_needs_households(municipality_name: str) -> str:
-    """Asynchronously fetches the heating/cooling needs for households in a given municipality.
+async def _fetch_heating_cooling_needs(municipality_name: str) -> tuple[str, str]:
+    """Asynchronously fetches the heating/cooling for households and services in a given municipality.
 
     Args:
         municipality_name (str): The name of the municipality to estimate the effective infrastructure for.
 
     Returns:
-        str: The heating/cooling energy needs for households in GWh/year.
+        tuple[str, str]: The heating/cooling energy needsfor households and services in GWh/year.
     """
-    async def _fetch_heating_cooling_needs(session, tile) -> float:
+
+    async def _fetch_needs(session, tile) -> tuple[float, float]:
         minx, miny, maxx, maxy = tile.bounds
         geometry_str = f"{minx},{miny},{maxx},{maxy}"
 
@@ -1089,7 +1090,8 @@ async def _fetch_heating_cooling_needs_households(municipality_name: str) -> str
             async with session.get(identify_url, params=params, headers=headers) as response:
                 if response.status == 200:
                     data = await response.json()
-                    total_needs = 0 # MWh/year
+                    total_needs_households = 0 # MWh/year
+                    total_needs_services = 0 # MWh/year
 
                     # sum up the needs for all features
                     for feature in data.get("results", []):
@@ -1100,21 +1102,23 @@ async def _fetch_heating_cooling_needs_households(municipality_name: str) -> str
                             factor = clipped.area / geometry.area
 
                             props = feature.get("properties", {})
-                            # only consider households needs
-                            # and not commercial buildings
-                            needs = float(props.get("needhome", 0)) * factor # MWh/year
 
-                            total_needs += needs
+                            needs_households = float(props.get("needhome", 0)) * factor # MWh/year
+                            needs_services = float(props.get("needservice", 0)) * factor # MWh/year
 
-                    total_needs_GWh = total_needs / 1e3
+                            total_needs_households += needs_households
+                            total_needs_services += needs_services
 
-                    return total_needs_GWh
+                    total_needs_households_GWh = total_needs_households / 1e3
+                    total_needs_services_GWh = total_needs_services / 1e3
+
+                    return total_needs_households_GWh, total_needs_services_GWh
                 else:
                     print(f"Failed request for tile, status: {response.status}")
         except Exception as e:
             print(f"Error for tile at {geometry_str}: {e}")
 
-        return 0
+        return 0, 0
 
     # await needed GeoSession
     # for further computing
@@ -1125,13 +1129,17 @@ async def _fetch_heating_cooling_needs_households(municipality_name: str) -> str
     async with aiohttp.ClientSession() as session:
         # launch all tile heating and
         # cooling needs fetches concurrently
-        tasks = [_fetch_heating_cooling_needs(session, tile) for tile in provider.sampled_tiles]
+        tasks = [_fetch_needs(session, tile) for tile in provider.sampled_tiles]
         sampled_needs = await asyncio.gather(*tasks)
 
     # aggregate all partial results
-    total_needs = sum(sampled_needs) # GWh/year
+    total_needs_households, total_needs_services = reduce(
+        lambda res, needs: (res[0] + needs[0], res[1] + needs[1]),
+        sampled_needs,
+        (0, 0)
+    ) # GWh/year
 
-    return f"{total_needs:.2f}"
+    return f"{total_needs_households:.2f}", f"{total_needs_services:.2f}"
 
 async def _fetch_building_emissions_energy_source(municipality_name: str) -> tuple[dict[str, int], dict[str, int]]:
     """Asynchronously fetches the emissions and energy sources of buildings in a given municipality.
@@ -1495,17 +1503,17 @@ class HeatingCoolingNeedsIndustryTool(GeoDataTool):
             description="**Heating/cooling energy needs for the industry**. Returns the heating/cooling energy needs for the industry in GWh/year. In strategic planning, heat demand is used to identify large connected areas that may be appropriate for a thermal network.",
         )
 
-class HeatingCoolingNeedsHouseholdsTool(GeoDataTool):
+class HeatingCoolingNeedsHouseholdsServicesTool(GeoDataTool):
     def __init__(
         self,
         municipality_name: str,
     ):
         super().__init__(
             municipality_name=municipality_name,
-            func=_fetch_heating_cooling_needs_households,
-            name="heating_cooling_needs_households",
+            func=_fetch_heating_cooling_needs,
+            name="heating_cooling_needs_households_services",
             layer_id="ch.bfe.fernwaerme-nachfrage_wohn_dienstleistungsgebaeude",
-            description="**Heating/cooling energy needs for household**. Returns the heating/cooling energy needs for households in GWh/year. It does not include electricity for everyday use. The demand for heat and cooling is a key element in the strategic planning of thermal networks for households. Building a thermal network is only viable if sufficient sales turnover can be generated from heat and/or cooling. The heating/cooling energy needs for households can be summed to the electricity energy needs for households to determine the global energy needs for households.",
+            description="**Heating/cooling energy needs for households and administrative buildings (services)**. Returns the heating/cooling energy needs for households in GWh/year and the heating/cooling needs for administrative buildings (services) in GWh/year, in a tuple. It does not include electricity for everyday use. The demand for heat and cooling is a key element in the strategic planning of thermal networks for households and administrative buildings. Building a thermal network is only viable if sufficient sales turnover can be generated from heat and/or cooling. The heating/cooling energy needs for households can be summed to the electricity energy needs for households to determine the global energy needs for households.",
         )
 
 class BuildingsEmissionEnergySourcesTool(GeoDataTool):

@@ -51,7 +51,7 @@ async def fetch_memories(config: RunnableConfig, store: BaseStore, query: str) -
         exp_logits = np.exp(logits - np.max(logits))
         scores = exp_logits / np.sum(exp_logits)
         # threshold the relevant items
-        # using the mean score
+        # using the mean score (1 being the sum p.d.)
         threshold = 1 / len(memories)
         top_indices = [
             index

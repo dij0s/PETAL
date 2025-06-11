@@ -327,7 +327,7 @@ def _tools_needs(municipality_name: str) -> dict[str, StructuredTool]:
         str(uuid.uuid4()): tool.factory(municipality_name=municipality_name)
         for tool in [
             HeatingCoolingNeedsIndustryTool,
-            HeatingCoolingNeedsHouseholdsTool,
+            HeatingCoolingNeedsHouseholdsServicesTool,
             EnergyNeedsTool,
             BuildingsConstructionPeriodsTool,
             BuildingsEmissionEnergySourcesTool
