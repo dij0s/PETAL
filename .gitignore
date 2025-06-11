@@ -22,3 +22,6 @@ __marimo__
 
 # environment file
 .env
+
+# benchmarks
+benchmarks

@@ -117,7 +117,7 @@ class GraphProvider:
         if self._store:
             await self._store.__aexit__(exc_type, exc, tb)
 
-    async def stream_graph_generator(self, thread_id: str, user_id: str, user_input: str, lang: str = "en") -> AsyncGenerator[tuple[str, Any], None]:
+    async def stream_graph_generator(self, thread_id: str, user_id: str, user_input: str, lang: str = "en", with_state: bool = False) -> AsyncGenerator[tuple[str, Any], None]:
         """
         Asynchronously generates a stream of graph outputs based on user input.
 
@@ -125,11 +125,13 @@ class GraphProvider:
             thread_id (str): The thread identifier for the conversation.
             user_id (str): The unique user identifier.
             user_input (str): The user's input message to process in the graph.
-            lang (str, optional): The language code for processing. Defaults to "en".
+            lang (str): The language code for processing. Defaults to "en".
+            with_state (bool): If True, also passes the current state to the callback function. Defaults to False.
 
         Yields:
             AsyncGenerator[tuple[str, Any], None]: A tuple containing the mode (e.g., "token", "custom") and the corresponding output chunk.
         """
+        stream_mode = ["messages", "custom"] if not with_state else ["messages", "custom", "values"]
         try:
             if isinstance(self._graph, CompiledStateGraph):
                 configuration: dict = {
@@ -142,7 +144,7 @@ class GraphProvider:
                 async for mode, chunk in self._graph.astream(
                     {"messages": [HumanMessage(user_input)], "lang": lang},
                     config=configuration, # type: ignore
-                    stream_mode=["messages", "custom"]
+                    stream_mode=stream_mode # type: ignore
                 ):
                     if mode == "messages":
                         token, metadata = chunk
@@ -155,12 +157,14 @@ class GraphProvider:
                     elif mode == "custom":
                         if isinstance(chunk, dict) and chunk.get("type") != "log":
                             yield chunk.get("type"), json.dumps(chunk) # type: ignore
+                    else:
+                        yield mode, chunk
             else:
                 raise Exception("GraphProvider must be instantiated before using it.")
         except Exception as e:
             print(f"Exception: {e}")
 
-    async def stream_graph_updates(self, thread_id: str, user_id: str, user_input: str, f: Callable[[str, Any], None]):
+    async def stream_graph_updates(self, thread_id: str, user_id: str, user_input: str, f: Callable[[str, Any], None], with_state: bool = False):
         """
         Asynchronously streams graph updates based on user input and applies a callback function.
         Implemented for CLI use.
@@ -170,6 +174,7 @@ class GraphProvider:
             user_id (str): The unique user identifier.
             user_input (str): The user's input message to process in the graph.
             f (Callable[[str, Any], None]): A callback function that processes each output chunk's mode and content from the graph.
+            with_state (bool): If True, also passes the current state to the callback function. Defaults to False.
 
         Yields:
             None: This method does not yield but calls the callback function for each output.
@@ -177,6 +182,7 @@ class GraphProvider:
         async for mode, chunk in self.stream_graph_generator(
             thread_id=thread_id,
             user_id=user_id,
-            user_input=user_input
+            user_input=user_input,
+            with_state=with_state
         ):
             f(mode, chunk) # type: ignore
