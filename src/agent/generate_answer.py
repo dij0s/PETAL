@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 from langchain_core.prompts import PromptTemplate
 from langchain_core.messages import SystemMessage, AIMessage, HumanMessage
@@ -25,6 +26,7 @@ full_language: defaultdict[str, str] = defaultdict(lambda: "English", {
 
 system_prompt = PromptTemplate.from_template("""
 You are an AI assistant specializing in energy planning for the municipality "{location}".
+We are currently in {month_year}.
 
 ## CRITICAL RULE #1: SOURCE CITATIONS
 **MANDATORY**: When referencing ANY official document, guideline, or policy, you MUST use this exact format:
@@ -129,52 +131,46 @@ End with a "Recommended Next Steps" section suggesting one or more related analy
 """)
 
 scaling_instructions = PromptTemplate.from_template("""
-### MUNICIPALITY-LEVEL SCALING INSTRUCTIONS
+MANDATORY SCALING ENFORCEMENT FOR CANTONAL GUIDELINES
 
-**CRITICAL SCALING RULE**: When referencing cantonal ({state}) guidelines, apply scaling ONLY to specific municipal targets, NOT to contextual information or infrastructure assessments.
+ABSOLUTE RULE:
+When referencing cantonal ({state}) numerical targets or requirements, you MUST perform the calculation
+and present the municipality-specific value. Never present raw cantonal numbers without scaling.
 
-**Scaling Factors for {location}**:
-- Population factor: {population_factor} (municipality population / state population)
-- Area factor: {area_factor} (municipality area / state area)
+SCALING CALCULATION REQUIREMENTS
 
-**WHAT TO SCALE** (use appropriate factor):
-- Municipal energy consumption/production targets for 2030/2050
-- Municipal renewable energy capacity requirements (use population factor)
-- Municipal emission reduction targets (use population factor)
-- Municipal land use requirements for energy infrastructure (use area factor)
-- Municipal building efficiency standards when expressed as totals (use population factor)
+Municipality Scaling Factors for {location}:
+Population factor: {population_factor}
+Area factor: {area_factor}
 
-**WHAT NOT TO SCALE** (keep as cantonal context):
-- Overall cantonal infrastructure capacity assessments
-- Cantonal policy timelines and deadlines
-- Cantonal percentage targets (e.g., "8% contribution to 2050 strategy")
-- Grid infrastructure evaluations (these are regional/cantonal by nature)
-- Cantonal investment amounts or budgets
-- Cantonal policy frameworks and regulations
+MANDATORY CALCULATION FORMULA:
+For population-based targets:
+- Municipal Target = Cantonal Value × {population_factor}
 
-**DATA SOURCE DISTINCTION**:
-- **Municipal data from schema tools**: Present as-is, NO scaling annotations needed
-- **Cantonal guidelines**: Scale specific targets only, preserve context for infrastructure/policy framework
-- **Conflicting data**: When municipal data contradicts scaled cantonal targets, prioritize municipal data and note: "Current municipal data shows [X], while cantonal targets suggest [Y]"
+For area-based targets:
+- Municipal Target = Cantonal Value × {area_factor}
 
-**SCALING PRESENTATION RULES**:
-- **Municipal data**: Present WITHOUT scaling annotations (it's already municipality-specific)
-- **Scaled cantonal targets**: Show as "Based on cantonal guidelines, {location} should target: [scaled value] [unit]"
-- **Cantonal context**: Present as "At the cantonal level, {state} aims for..." (no scaling applied)
+STRICT SCALING CATEGORIES
 
-**EXAMPLE - CORRECT APPROACH**:
-Wrong: "{state} aims for 210 GWh increase (scaled to {location}: 16.8 GWh)"
-Correct: "At the cantonal level, {state} aims for 210 GWh increase in heat distribution. For {location} specifically, this translates to a target of approximately 16.8 GWh based on population scaling."
+MUST SCALE (Always calculate and present municipal value):
+- Energy consumption/production targets (2030/2050 goals)
+    Example: "Cantonal target: 1,000 GWh → {location} target: 80 GWh"
+- Renewable energy capacity requirements
+- Emission reduction targets (absolute values, not percentages)
+- Infrastructure capacity needs
+- Investment targets when expressed as totals
+- Building efficiency requirements (when given as absolute numbers)
 
-**INFRASTRUCTURE CONTEXT RULE**:
-Never scale infrastructure capacity assessments. Instead, use them as context:
-Wrong: "{state} transmission network insufficient for {location}'s 357 GWh"
-Correct: "Given {location}'s heat demand of 357 GWh, alignment with cantonal grid expansion plans will be important"
+NEVER SCALE (Present as percentage or policy context):
+- Percentage targets (e.g., "8% renewable energy share")
+- Policy timelines and deadlines (e.g., "by 2030")
+- Regulatory frameworks (e.g., building standards)
+- Efficiency ratios (e.g., "20% improvement")
 
-**GUIDELINE APPLICATION RULE**:
-- **Cantonal targets** → Scale to municipal level using appropriate factor
-- **Cantonal context/infrastructure** → Keep as regional reference without scaling
-- **Cantonal percentages** → Apply percentage to municipal absolute values, don't scale the percentage itself
+PRESENTATION RULES
+
+For Scaled Values - Use This Exact Format:
+- "Cantonal target: X → {location} target: X × factor"
 """)
 
 user_prompt = PromptTemplate.from_template("""
@@ -255,6 +251,7 @@ async def generate_answer(state, *, config: RunnableConfig, store: BaseStore):
     ])
 
     prompt_args = {
+        "month_year": f"{datetime.now().strftime('%B %Y')}",
         "location": state.router.location,
         "categories": last_categories,
         "related_tools_description": related_tools_description,
