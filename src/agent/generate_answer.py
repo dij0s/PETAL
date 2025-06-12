@@ -68,18 +68,6 @@ Example: "According to the energy planning guidelines **Transport et distributio
 **OFFICIAL CONTEXT**:
 The legislation and other relevant documents for effective energy planning define the actions and strategies that must be implemented to meet the requirements for the coming years and decades. These are the official guidelines from the state and country, and they apply to ALL municipalities within the state.
 
-**DATA INTERPRETATION AND SCALING RULES**:
-- **Municipal schema data**: This data is already municipality-specific and requires NO scaling or annotations
-- **Cantonal guidelines**: Only scale specific numerical targets, not contextual information
-- **Infrastructure assessments**: Present cantonal infrastructure as regional context, not scaled municipal limitations
-- **Policy frameworks**: Present cantonal policies as applicable framework, not scaled requirements
-- **Percentage targets**: Apply cantonal percentages to municipal absolute values, don't scale the percentages themselves
-
-**PRESENTATION HIERARCHY**:
-1. **Municipal data first**: Present actual municipal data without scaling annotations
-2. **Cantonal targets second**: Present relevant scaled targets as "Based on cantonal guidelines..."
-3. **Cantonal context third**: Present broader cantonal context as regional reference
-
 **MEMORY-INFORMED RESPONSE APPROACH**:
 - First check if user memories contain corrections or preferences relevant to this query
 - Apply those learned preferences to your interpretation and response
@@ -128,49 +116,6 @@ End with a "Recommended Next Steps" section suggesting one or more related analy
 ---
 
 **FINAL REMINDER - ABSOLUTE PRIORITY**: Your entire response MUST be written exclusively in {lang}. This overrides all other formatting and content requirements. Every word, header, label, and piece of text must be in {lang}. This is mandatory and non-negotiable.
-""")
-
-scaling_instructions = PromptTemplate.from_template("""
-MANDATORY SCALING ENFORCEMENT FOR CANTONAL GUIDELINES
-
-ABSOLUTE RULE:
-When referencing cantonal ({state}) numerical targets or requirements, you MUST perform the calculation
-and present the municipality-specific value. Never present raw cantonal numbers without scaling.
-
-SCALING CALCULATION REQUIREMENTS
-
-Municipality Scaling Factors for {location}:
-Population factor: {population_factor}
-Area factor: {area_factor}
-
-MANDATORY CALCULATION FORMULA:
-For population-based targets:
-- Municipal Target = Cantonal Value × {population_factor}
-
-For area-based targets:
-- Municipal Target = Cantonal Value × {area_factor}
-
-STRICT SCALING CATEGORIES
-
-MUST SCALE (Always calculate and present municipal value):
-- Energy consumption/production targets (2030/2050 goals)
-    Example: "Cantonal target: 1,000 GWh → {location} target: 80 GWh"
-- Renewable energy capacity requirements
-- Emission reduction targets (absolute values, not percentages)
-- Infrastructure capacity needs
-- Investment targets when expressed as totals
-- Building efficiency requirements (when given as absolute numbers)
-
-NEVER SCALE (Present as percentage or policy context):
-- Percentage targets (e.g., "8% renewable energy share")
-- Policy timelines and deadlines (e.g., "by 2030")
-- Regulatory frameworks (e.g., building standards)
-- Efficiency ratios (e.g., "20% improvement")
-
-PRESENTATION RULES
-
-For Scaled Values - Use This Exact Format:
-- "Cantonal target: X → {location} target: X × factor"
 """)
 
 user_prompt = PromptTemplate.from_template("""
@@ -261,9 +206,6 @@ async def generate_answer(state, *, config: RunnableConfig, store: BaseStore):
         "tools_data": tools_data,
         "aggregated_query": state.router.aggregated_query,
         "user_query": last_human_message,
-        "state": "Valais",
-        "population_factor": 0.08,
-        "area_factor": 0.1
     }
     # update state with response
     # and push the new layers and
@@ -276,7 +218,6 @@ async def generate_answer(state, *, config: RunnableConfig, store: BaseStore):
 
     prompt = [
         SystemMessage(content=system_prompt.format(**prompt_args)),
-        SystemMessage(content=scaling_instructions.format(**prompt_args)),
         HumanMessage(content=user_prompt.format(**prompt_args))
     ]
     writer({"type": "info", "content": "Generating a response..."})
