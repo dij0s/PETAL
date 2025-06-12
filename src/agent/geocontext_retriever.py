@@ -26,32 +26,21 @@ llm = ChatOllama(model=MODEL, temperature=0).with_structured_output(ConstraintsO
 parser = PydanticStreamOutputParser(pydantic_object=ConstraintsOutput, diff=True)
 
 processing_prompt = PromptTemplate.from_template("""
-You are an expert energy planning consultant transforming cantonal (state-level) energy guidelines and key figures into practical municipal-level guidance.
+Scale energy numbers in these documents by multiplying by {scaling_factor}.
 
-MUNICIPALITY CONTEXT:
-- Municipality: {location}
-- Population scaling factor: {scaling_factor}
-- Task: Convert cantonal guidelines into actionable municipal energy planning guidance
-
-TRANSFORMATION RULES:
-
-1. **ENERGY TARGETS & QUANTITIES**:
-   - Scale absolute energy values (GWh, MWh, MW) by multiplying by {scaling_factor}
-   - Example: "210 GWh cantonal target" → "10.5 GWh municipal contribution"
-
-2. **INFRASTRUCTURE & REGIONAL CONTEXT**:
-   - Keep technical specifications (380 kV, 220 kV ratings) unchanged
-   - Explain how regional infrastructure affects {location}
-
-3. **PERCENTAGES, DATES & RATIOS**:
-   - Keep all percentages unchanged (23% reduction, 8% contribution, etc.)
-   - Preserve all target years and timeframes
-   - Maintain efficiency ratios and performance standards
-
-ORIGINAL CANTONAL GUIDELINES:
+Documents:
 {constraints}
 
-OUTPUT REQUIREMENTS:
+Rules:
+- Find numbers followed by GWh, MWh, kWh, MW, kW
+- Multiply those numbers by {scaling_factor}
+- Keep everything else exactly the same
+- Return each document separately
+
+Examples:
+- "1,400 GWh" becomes "70.0 GWh"
+- "2,790 GWh/a" becomes "139.5 GWh/a"
+
 {format_description_llm}
 """)
 
@@ -168,15 +157,30 @@ async def _process_constraints(constraints: Awaitable[list[tuple[str, str]]], pr
     prompt = [SystemMessage(content=processing_prompt.format(
         location=provider.municipality_name, # type: ignore
         scaling_factor=SCALING_FACTOR,
-        constraints="\n".join(constraints_chunks),
+        constraints=constraints_chunks,
         format_description_llm=parser.get_description()
     ))]
+
+    # prompt = [HumanMessage(content=PromptTemplate.from_template("""
+    #     These are some guidelines returned from my RAG system:
+    #     {constraints}
+
+    #     They apply to all municipalities within a state. I now want the guidelines appropriately scaled for a single municipality whose "scaling factor" based on population size is {scaling_factor}
+
+    #     I the resulting output like this:
+    #     {format_description_llm}
+    #     """).format(
+    #     scaling_factor=SCALING_FACTOR,
+    #     constraints=constraints_chunks,
+    #     format_description_llm=parser.get_description()
+    # ))]
+
     updated_constraints = reduce(
         lambda res, cs: [*res, (cs[0], cs[1])],
         zip(
-            (await llm.ainvoke(prompt)).documents,
+            (await llm.ainvoke(prompt)).documents, # type:ignore
             map(lambda c: c[1], awaited_constraints)
-        ), # type: ignore
+        ),
         []
     )
 
