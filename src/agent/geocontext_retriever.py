@@ -53,23 +53,18 @@ async def geocontext_retriever(state):
         # speaking, it is set if we are inside
         # the current node
         if router_state.location is not None and router_state.aggregated_query is not None:
-            # write custom event
+            # start the instantiation of
+            # the different GeoSession
+            # for said location to reduce
+            # latency when they are used
+            # in the tools themselves
             writer({"type": "log", "content": "Let's start the machine."})
-            provider = GeoSessionProvider.get_or_create(router_state.location, 100, 0.3)
+            GeoSessionProvider.get_or_create(router_state.location, 100, 0.3)
             GeoSessionProvider.get_or_create(router_state.location, 100, 1.0)
             GeoSessionProvider.get_or_create(router_state.location, 500, 1.0)
             GeoSessionProvider.get_or_create(router_state.location, 1000, 1.0)
             writer({"type": "log", "content": "Ok, that's done."})
-
-            # await and fill context
-            # with SFSO number of
-            # municipality
-            # await provider.wait_until_sfso_ready()
-            # context.municipality_sfso_number = provider.municipality_sfso_number
-
-            # create or get the singleton
-            # tools provider instance
-            # and retrieve relevant tools
+            # retrieve relevant tools
             writer({"type": "info", "content": "Retrieving tools..."})
             toolbox: ToolProvider = await ToolProvider.acreate(router_state.location)
             tools, constraints = await toolbox.asearch(query=router_state.aggregated_query, max_n_tools=5, k_tools=10)

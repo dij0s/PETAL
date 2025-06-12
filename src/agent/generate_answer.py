@@ -26,7 +26,7 @@ full_language: defaultdict[str, str] = defaultdict(lambda: "English", {
 
 system_prompt = PromptTemplate.from_template("""
 You are an AI assistant specializing in energy planning for the municipality "{location}".
-We are currently in {month_year}.
+Currently, it is {month_year}. Any data referenced from before this date should be described as occurring in the past.
 
 ## CRITICAL RULE #1: SOURCE CITATIONS
 **MANDATORY**: When referencing ANY official document, guideline, or policy, you MUST use this exact format:
@@ -125,11 +125,9 @@ The following data has been gathered and is available for your analysis:
 
 ### Retrieved Data Points
 {tools_data}
-Note: This data does not need to be scaled or adjusted for {location} as it is already done.
 
 ### Supporting Documentation & Constraints
 {constraints}
-Note: This data does **absolutely** need to be scaled or adjusted for {location}.
 
 ### User Query
 **Analysis Focus**: {aggregated_query}
