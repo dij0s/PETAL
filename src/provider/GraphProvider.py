@@ -1,9 +1,9 @@
 import os
 import json
 
-from langgraph.graph import StateGraph, START, END, add_messages
+from langgraph.graph import StateGraph, START, END
 from langgraph.graph.state import CompiledStateGraph
-from langchain_core.messages import AIMessageChunk, AnyMessage, HumanMessage
+from langchain_core.messages import AIMessageChunk, HumanMessage
 from langchain_ollama import OllamaEmbeddings
 
 from langgraph.checkpoint.memory import InMemorySaver
@@ -16,14 +16,7 @@ from agent.intent_router import intent_router
 from agent.clarify_query import clarify_query
 from agent.geocontext_retriever import geocontext_retriever
 from agent.generate_answer import generate_answer
-from modelling.structured_output import Memory, RouterOutput, GeoContextOutput
-
-# overall state of the graph
-class State(BaseModel):
-    messages: Annotated[list[AnyMessage], add_messages]
-    router: Optional[RouterOutput] = None
-    geocontext: Optional[GeoContextOutput] = None
-    lang: str = "en"
+from modelling.structured_output import State
 
 class GraphProvider:
     """

@@ -14,8 +14,7 @@ from langchain_ollama import ChatOllama
 from langgraph.func import task
 from langgraph.config import get_stream_writer
 
-from modelling.PydanticStreamOutputParser import PydanticStreamOutputParser
-from modelling.structured_output import RouterOutput, GeoContextOutput, ConstraintsOutput
+from modelling.structured_output import RouterOutput, GeoContextOutput
 from modelling.utils import reduce_missing_attributes
 
 from provider.GeoSessionProvider import GeoSessionProvider
@@ -23,8 +22,6 @@ from provider.ToolProvider import ToolProvider
 
 MODEL = os.getenv("OLLAMA_MODEL_LLM_PROCESSING", "llama3.2:3b")
 llm = ChatOllama(model=MODEL, temperature=0, extract_reasoning=True)
-
-parser = PydanticStreamOutputParser(pydantic_object=ConstraintsOutput, diff=True)
 
 processing_prompt = PromptTemplate.from_template("""
 Scale energy numbers in these documents by multiplying by {scaling_factor}.
@@ -111,9 +108,12 @@ async def geocontext_retriever(state):
             # invoke necessary tools
             # and process constraints
             # concurrently
+            async def temp():
+                return constraints
             tool_data, processed_constraints = await asyncio.gather(
                 _helper(),
-                _process_constraints(constraints, provider)
+                temp()
+                # _process_constraints(constraints, provider)
             )
             # update context with
             # retrieved constraints

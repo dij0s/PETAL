@@ -1,6 +1,9 @@
 """This file exports Pydantic models for data used throughout the conversation context."""
 
-from typing import Optional, Any
+from langchain_core.messages import AIMessageChunk, AnyMessage, HumanMessage
+from langgraph.graph import StateGraph, START, END, add_messages
+
+from typing import Optional, Any, Annotated
 from pydantic import BaseModel, Field
 
 class RouterOutput(BaseModel):
@@ -60,5 +63,8 @@ class BenchmarkScore(BaseModel):
     specific_issues: list[str] = Field(description="List of any specific problems found across all criteria.")
     improvements: str = Field(description="Suggestions for improvement across all criteria.")
 
-class ConstraintsOutput(BaseModel):
-    documents: list[str] = Field(description="A list of strings with each element being a document that is processed.")
+class State(BaseModel):
+    messages: Annotated[list[AnyMessage], add_messages]
+    router: Optional[RouterOutput] = None
+    geocontext: Optional[GeoContextOutput] = None
+    lang: str = "en"
