@@ -219,6 +219,7 @@ async def generate_answer(state, *, config: RunnableConfig, store: BaseStore):
         HumanMessage(content=user_prompt.format(**prompt_args))
     ]
     writer({"type": "info", "content": "Generating a response..."})
+    writer({"type": ""})
     response = await llm.ainvoke(prompt)
     return {
         **state.model_dump(),

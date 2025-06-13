@@ -21,10 +21,7 @@ class RouterOutput(BaseModel):
         default=None
     )
     needs_clarification: bool = Field(
-        description=(
-            """Set to True if you need more information to understand what the user wants (missing location, unclear intent, or vague request).
-            Set to False if the request is clear and you understand what the user is asking for."""
-        ),
+        description="""Set to True if you need more information to understand what the user wants (missing location, unclear intent, or vague request). Set to False if the request is clear and you understand what the user is asking for.""",
         default=True
     )
     needs_memoization: bool = Field(
@@ -68,3 +65,9 @@ class State(BaseModel):
     router: Optional[RouterOutput] = None
     geocontext: Optional[GeoContextOutput] = None
     lang: str = "en"
+
+class PromptRequest(BaseModel):
+    user_id: str
+    thread_id: str
+    prompt: str
+    lang: Optional[str] = None

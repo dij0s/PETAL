@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from typing import Optional
 
 from provider.GraphProvider import GraphProvider
-
+from modelling.structured_output import PromptRequest, State
 
 app = FastAPI()
 
@@ -25,11 +25,29 @@ app.add_middleware(
 # use asyncio queue, instead ?
 session_store: dict[str, dict[str, str]] = {}
 
-class PromptRequest(BaseModel):
-    user_id: str
-    thread_id: str
-    prompt: str
-    lang: Optional[str] = None
+def _sanitize(state: Optional[State]) -> State:
+    """
+    Sanitizes the argument given State object.
+
+    Args:
+        state (Optional[State]): State object to sanitize.
+
+    Returns:
+        State: Sanitized version of the state.
+    """
+    if state is None:
+        return State(messages=[])
+    # clear messages history
+    state.messages = []
+    if state.router:
+        # claer sensitive data
+        # from the router
+        state.router.aggregated_query = None
+        # reset for rehydratation
+        state.router.needs_clarification = True
+        state.router.needs_memoization = False
+
+    return state
 
 @app.on_event("startup")
 async def startup_event():
@@ -61,10 +79,23 @@ async def stream_tokens(request: Request, user_id: str):
     lang = session_store.get(user_id, {}).get("lang", "en")
 
     async def event_generator():
-        async for mode, chunk in app.state.graph_provider.stream_graph_generator(thread_id, user_id, prompt, lang):
+        last_state: Optional[State] = None
+
+        async for mode, chunk in app.state.graph_provider.stream_graph_generator(thread_id, user_id, prompt, lang, with_state=True):
             if await request.is_disconnected():
                 break
-            yield {"event": mode, "data": chunk}
+
+            if mode == "values":
+                # accumulate states as
+                # they are received
+                last_state = State(**chunk)
+            else:
+                yield {"event": mode, "data": chunk}
+        # sanitize last state
+        # and send it back to
+        # the user for conversation
+        # persistency
+        yield {"event": "checkpoint", "data": _sanitize(last_state)}
         yield {"event": "end", "data": "[DONE]"}
 
     return EventSourceResponse(event_generator())
