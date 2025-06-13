@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sse_starlette.sse import EventSourceResponse
 
 import os
+import json
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -95,7 +96,7 @@ async def stream_tokens(request: Request, user_id: str):
         # and send it back to
         # the user for conversation
         # persistency
-        yield {"event": "checkpoint", "data": _sanitize(last_state)}
+        yield {"event": "checkpoint", "data": json.dumps(_sanitize(last_state).model_dump())}
         yield {"event": "end", "data": "[DONE]"}
 
     return EventSourceResponse(event_generator())
