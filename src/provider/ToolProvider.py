@@ -158,8 +158,7 @@ class ToolProvider:
         self,
         query: str,
         max_n_tools: int,
-        k_tools: int,
-        process_constraints: Callable[[Awaitable[list[tuple[str, str]]]], Awaitable[list[tuple[str, str]]]]):
+        k_tools: int):
         """
         Search for StructuredTool objects and constraining document chunks matching the query and filter.
 
@@ -167,13 +166,12 @@ class ToolProvider:
             query (str): The search query string.
             max_n_tools (int): The maximum number of tools to select after crossencoder reranking.
             k_tools (int): The number of tools and constraining chunks to retrieve from the vector store for futher reranking.
-            process_constraints (Callable[[Awaitable[list[tuple[str, str]]]], Awaitable[list[tuple[str, str]]]]): A callable that processes the awaitable list of constraint tuples (content, source) and returns the location-aware scaled constraints.
 
         Returns:
             tuple[list[StructuredTool], list[str]]: A tuple containing a list of relevant StructuredTool objects that match the query and filter, along with the the constraining document chunks. By default, no filtering is applied.
         """
         tools_task = self._asearch_tools(query, max_n_tools, k_tools)
-        constraints_task = process_constraints(self._asearch_constraints(query))
+        constraints_task = self._asearch_constraints(query)
         # run both results
         # asynchronously and
         # then only gather

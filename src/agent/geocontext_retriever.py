@@ -91,27 +91,36 @@ async def geocontext_retriever(state):
             GeoSessionProvider.get_or_create(router_state.location, 1000, 1.0)
             writer({"type": "log", "content": "Ok, that's done."})
             # retrieve relevant tools
-            writer({"type": "info", "content": "Retrieving tools..."})
+            # and process constraints
+            # for location-aware data
+            writer({"type": "info", "content": "Retrieving tools and effective guidelines..."})
             toolbox: ToolProvider = await ToolProvider.acreate(router_state.location)
-            tools, constraints = await toolbox.asearch(query=router_state.aggregated_query, max_n_tools=5, k_tools=10, process_constraints=partial(_process_constraints, provider=provider))
+            tools, constraints = await toolbox.asearch(query=router_state.aggregated_query, max_n_tools=5, k_tools=10)
             writer({"type": "log", "content": "I FOUND THEM!"})
             # filter out tools whose
             # data we already have
             tools = [tool for tool in tools if tool.name not in geocontext.context_tools.keys()]
-            # invoke chosen tools
-            # and update context state
-            if len(tools) > 0:
-                writer({"type": "info", "content": "Fetching data from retrieved tools..."})
-                tool_data = await _ainvoke_tools(tools)
-                geocontext.context_tools = {**geocontext.context_tools, **tool_data}
-            else:
-                # needed data is already retrieved
-                writer({"type": "info", "content": "We already have them!"})
+            async def _helper():
+                if len(tools) > 0:
+                    writer({"type": "info", "content": "Fetching data from retrieved tools..."})
+                    return await _ainvoke_tools(tools)
+                else:
+                    # needed data is already retrieved
+                    writer({"type": "info", "content": "We already have them!"})
+                    return {}
+            # invoke necessary tools
+            # and process constraints
+            # concurrently
+            tool_data, processed_constraints = await asyncio.gather(
+                _helper(),
+                _process_constraints(constraints, provider)
+            )
             # update context with
             # retrieved constraints
             # overwrite only as query
             # dependent
-            geocontext.context_constraints = constraints
+            geocontext.context_tools = {**geocontext.context_tools, **tool_data}
+            geocontext.context_constraints = processed_constraints
             return {
                 **state.model_dump(),
                 "messages": state.messages + [AIMessage(content="Successfully retrieved data.")],
@@ -131,78 +140,68 @@ async def geocontext_retriever(state):
         print(f"Exception: {e}")
         return state
 
-async def _process_constraints(constraints: Awaitable[list[tuple[str, str]]], provider: GeoSessionProvider) -> list[tuple[str, str]]:
+async def _process_constraints(constraints: list[tuple[str, str]], provider: GeoSessionProvider) -> list[tuple[str, str]]:
     """
     Processes a list of constraints asynchronously.
 
-    This function processes the state-wide constraints and returns the location-aware constraints.
+    The state-wide constraints are processed for location-aware context.
 
     Args:
-        constraints (Awaitable[list[tuple[str, str]]]): An awaitable that yields a list of constraint tuples.
+        constraints (list[tuple[str, str]]): A list of constraints tuple.
         provider (GeoSessionProvider): The provider for the given municipality.
 
     Returns:
         list[tuple[str, str]]: The list of location-aware constraints chunks and their source.
     """
-    # TODO
-    # retrieve from provider itself
+    if len(constraints) == 0:
+        return []
+
     SCALING_FACTOR = 0.05
     # retrieve documents
-    awaited_constraints = await constraints
     constraints_chunks, constraints_sources = reduce(
         lambda res, c: ([*res[0], c[0]], [*res[1], c[1]]),
-        awaited_constraints,
+        constraints,
         ([], [])
     )
 
-    # prompt = [HumanMessage(content=PromptTemplate.from_template("""
-    #     You are a text processor. Your job is to scale energy numbers in the following documents.
+    prompt = [HumanMessage(content=PromptTemplate.from_template("""
+        You are a text processor. Your job is to scale energy numbers in the following documents.
 
-    #     Instructions:
-    #     - For each document, find numbers immediately followed by GWh, MWh, MW, kWh, kW, or GW (case-insensitive).
-    #     - Multiply ONLY those numbers by {scaling_factor} and replace them in the text, rounded to 1 decimal place.
-    #     - DO NOT scale percentages, dates, or any other numbers.
-    #     - DO NOT add any explanations, notes, or comments.
-    #     - DO NOT change any other part of the text.
-    #     - Return the processed documents, separated by <doc>.
+        Instructions:
+        - For each document, find energy-related numbers.
+        - Multiply ONLY those numbers by {scaling_factor} and replace them in the text, rounded to 1 decimal place.
+        - DO NOT scale percentages, dates, or any other numbers.
+        - DO NOT add any explanations, notes, or comments.
+        - DO NOT change any other part of the text.
+        - Return the processed documents, separated by <doc>.
 
-    #     Input documents:
-    #     {constraints}
+        Input documents:
+        {constraints}
 
-    #     Output:
-    #     Return the same documents, in the same order, separated by <doc>. Only the relevant energy numbers should be changed.
-    #     """).format(
-    #     scaling_factor=SCALING_FACTOR,
-    #     constraints=".\n<doc>\n".join(constraints_chunks),
-    # ))]
-    # # prompt the llm for the scaled
-    # # constraints specific for the
-    # # location
-    # response = await llm.ainvoke(prompt)
-    # # extract the documents
-    # # from the response and
-    # # return original ones
-    # # on fallback
-    # try:
-    #     document_pattern = re.compile(r"<doc>(.*?)</doc>", re.DOTALL)
-    #     processed_constraints = [doc.strip() for doc in document_pattern.findall(response.content)] # type: ignore
-    #     temp = reduce(
-    #         lambda res, cs: [*res, (cs[0], cs[1])],
-    #         zip(processed_constraints, constraints_sources),
-    #         []
-    #     )
-    #     print(temp)
-    #     print([cs for cs in zip(constraints_chunks, constraints_sources)])
-    #     return temp
-    # except:
-    #     return [cs for cs in zip(constraints_chunks, constraints_sources)]
-    #
-    temp = "\b(\d+(?:[',.]\d*)*(?:\.\d+)?)\s?[A-Za-z]?Wh?\b"
-    print(awaited_constraints)
-    docs = [[('### Key Insights\n- **Energy Mix Transition**: The energy mix is shifting away from fossil fuels towards renewable sources. In 2010, fossil fuels covered 65% of energy needs, but by 2020, this is projected to decrease to 59%.\n- **Hydroelectricity Dominance**: Hydroelectric power remains the primary source of energy, contributing significantly to the overall production, with a target increase in production of 1,400 GWh by 2020.\n- **Renewable Energy Growth**: There is a focus on increasing the use of renewable energy sources such as solar, wind, wood, biomass, and heat recovery. The goal is to increase the production of indigenous renewable energy by 1,400 GWh by 2020.\n- **Energy Efficiency**: Efforts are being made to reduce overall energy consumption by 5% compared to 2010, despite expected population and economic growth.\n- **Local Energy Production**: There is a strategic emphasis on keeping local energy production in the hands of local authorities and enterprises, particularly for electricity generation.', 'Approvisionnement en énergie, page n° 2'), ('### Key Insights\n- The document emphasizes the importance of transitioning to a 100% renewable energy supply by 2060 in the Valais region.\n- The Valais is highlighted as a significant producer of renewable energy resources such as water, solar, wind, wood, etc., which can contribute substantially to the national energy supply.\n- There is a strong focus on the need for a sustainable, efficient, and renewable energy policy that aligns with the country’s broader energy strategy.\n- The document underscores the ambition to achieve full energy independence through local renewable resources, with the potential for the Valais to cover its entire energy needs by 2060.\n- The transition to renewable energy is seen as a collective effort involving various stakeholders including communities, producers, distributors, and other industry actors.', "Vision 2060 et objectifs 2035, Valais, Terre d'énergies, page n° 3"), ('### Key Insights\n- The canton and communes are mandated to follow exemplary standards in all their activities related to energy efficiency.\n- Higher energy efficiency requirements are set for buildings owned by or partially funded by the canton or communes, with non-compliant buildings ineligible for subsidies.\n- The Council of State establishes stricter energy standards for infrastructure, the cantonal fleet, and electrical equipment.\n- A comprehensive energy excellence plan is developed covering all cantonal activities and recommending energy improvements to companies where the canton is a stakeholder.\n- The canton ensures exemplary energy management of its real estate portfolio, including collecting, publishing, and utilizing consumption data.\n- New public lighting must be designed, implemented, operated, and maintained to be energy-efficient and environmentally friendly, with power and duration reduced to necessary levels for safety and specific usage.\n- The goal for cantonal buildings and installations is to achieve heat supply without fossil fuels by 2035, use electricity efficiently, and utilize on-site renewable energy potentials.', "Loi sur l'énergie (LcEne), page n° 13"), ("### Key Insights\n- The primary focus is on reducing energy consumption for heat production by 23% between 2015 and 2035, aiming to reach 2,790 GWh/a.\n- Key strategies include:\n- Increasing the use of renewable energy sources and heat rejection.\n- Improving building insulation and efficiency.\n- Enhancing the management of secondary residences' energy needs.\n- Installing heat recovery systems.\n- Transition patterns indicate a shift towards renewable energy and improved energy efficiency in buildings.", "Vision 2060 et objectifs 2035, Valais, Terre d'énergies, page n° 30")],
-        [('### Key Insights\n- **Capacity Expansion Needed**: The current transmission network in Valais is insufficient to handle new production capacities, necessitating increased capacity and adaptation.\n- **Replacement of Lignes 220 kV**: Several lines at 220 kV, nearing their capacity limits, will need to be replaced with 380 kV lines, such as the "Chamoson-Chippis" line, which is not included in the PSE.\n- **Network Restructuring**: The 125 kV network will be progressively phased out, downgraded, or partially replaced by higher-voltage lines (380, 220, or 65 kV).\n- **Heat Distribution Networks**: There is a significant development of heat distribution networks in Valais, aiming for a 210 GWh increase in heat distributed by 2020, contributing 8% to the canton’s target of 6,111 GWh under the 2050 energy strategy.', "Transport et distribution d'énergie, page n° 2"), ("### Key Insights\n- The document outlines various activities related to coordinating civil functions of the Sion airport, including financial support, spatial management, and noise pollution resolution.\n- Measures are put in place to maintain and develop civil functions, particularly focusing on financial aspects and spatial management.\n- There is a focus on maintaining a limited level of noise pollution while supporting military presence at the airport.\n- Coordination with the OFAC (Office Fédéral de l'Aviation Civile) is emphasized for managing air navigation obstacles and ensuring rational and efficient use of mountain airspace.\n- Specific measures include repositioning landing areas, defining approach sectors, restricting flights based on seasons and times, and exploring alternative solutions like creating restricted zones for free movement.\n- Communes participate in planning processes through the PSIA coordination protocol and ensure spatial planning of affected areas, including noise abatement zones and height restrictions near approach zones.\n- Synergies with existing infrastructure are highlighted, such as agricultural, industrial, and sports activities, as well as potential renaturations.", 'Infrastructures aéronautiques, page n° 4'), ('### Key Insights\n- **Maintained Installations**: The concept of stationnement 2016 maintains key military installations such as the Police Military Post in Sierre, the Armory in Sion, and the Simplon, Visp, and Sion logistics centers.\n- **Closure of Major Installations**: The closure of Brig Barracks, the Armory and infrastructure centers in St-Maurice-Lavey, and the Airfield in Sion is planned.\n- **Secondary Installations**: The concept retains 25 cantonments, 3 logistics centers, 6 firing/exercise sites, and 3 crossing points but plans the closure of 7 cantonments, 3 logistics/engagement centers, and 12 firing/exercise sites.\n- **Coordination Principles**: The document outlines five principles for coordination, emphasizing the need for information sharing, prioritizing civilian interests, favoring local hosting of military activities, allowing for repurposing of decommissioned military facilities, and ensuring environmental compliance during facility changes.', 'Installations militaires, page n° 2')],
-        [('The provided image is a static visual with no charts, plots, tables, or quantitative data to analyze for insights, trends, or strategic implications. It features a scenic view of a mountainous landscape with a lake and a winding road, overlaid with a red gradient in the lower left corner. The image also includes contact information for the "Département des finances et de l\'énergie" and "Service de l\'énergie et des forces hydrauliques" located in Sion, Switzerland.', "Vision 2060 et objectifs 2035, Valais, Terre d'énergies, page n° 64")]]
-    return awaited_constraints
+        Output:
+        Return the same documents, in the same order, separated by <doc>. Only the relevant energy numbers should be changed.
+        """).format(
+        scaling_factor=SCALING_FACTOR,
+        constraints="\n".join(f"<doc>{chunk}</doc>" for chunk in constraints_chunks),
+    ))]
+    # prompt the llm for the scaled
+    # constraints specific for the
+    # location
+    response = await llm.ainvoke(prompt)
+    # extract the documents
+    # from the response and
+    # return original ones
+    # on fallback
+    try:
+        document_pattern = re.compile(r"<doc>(.*?)</doc>", re.DOTALL)
+        processed_constraints = [doc.strip() for doc in document_pattern.findall(response.content)] # type: ignore
+        return reduce(
+            lambda res, cs: [*res, (cs[0], cs[1])],
+            zip(processed_constraints, constraints_sources),
+            []
+        )
+    except:
+        return constraints
 
 async def _ainvoke_tools(tools: list[StructuredTool]) -> dict[str, Any]:
     """Helper function that invokes a batch of tools asynchronously and returns the result."""
