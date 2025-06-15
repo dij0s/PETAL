@@ -71,3 +71,4 @@ class PromptRequest(BaseModel):
     thread_id: str
     prompt: str
     lang: Optional[str] = None
+    checkpoint_data: Optional[State] = None

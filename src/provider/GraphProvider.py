@@ -110,7 +110,7 @@ class GraphProvider:
         if self._store:
             await self._store.__aexit__(exc_type, exc, tb)
 
-    async def stream_graph_generator(self, thread_id: str, user_id: str, user_input: str, lang: str = "en", with_state: bool = False) -> AsyncGenerator[tuple[str, Any], None]:
+    async def stream_graph_generator(self, thread_id: str, user_id: str, user_input: str, lang: str = "en", with_state: bool = False, initial_state: Optional[State] = None) -> AsyncGenerator[tuple[str, Any], None]:
         """
         Asynchronously generates a stream of graph outputs based on user input.
 
@@ -120,6 +120,7 @@ class GraphProvider:
             user_input (str): The user's input message to process in the graph.
             lang (str): The language code for processing. Defaults to "en".
             with_state (bool): If True, also passes the current state to the callback function. Defaults to False.
+            initial_state (Optional[State]): Initial state for rehydrating checkpointed conversations.
 
         Yields:
             AsyncGenerator[tuple[str, Any], None]: A tuple containing the mode (e.g., "token", "custom") and the corresponding output chunk.
@@ -134,8 +135,19 @@ class GraphProvider:
                     }
                 }
 
+                # prepare the input state
+                # depending on the initial
+                # state for rehydratation
+                input_state = {}
+                if initial_state:
+                    input_state = initial_state.model_copy()
+                    input_state.messages = [HumanMessage(user_input)]
+                    input_state.lang = lang
+                else:
+                    input_state = {"messages": [HumanMessage(user_input)], "lang": lang}
+
                 async for mode, chunk in self._graph.astream(
-                    {"messages": [HumanMessage(user_input)], "lang": lang},
+                    input_state,
                     config=configuration, # type: ignore
                     stream_mode=stream_mode # type: ignore
                 ):

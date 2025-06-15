@@ -67,13 +67,35 @@ async def shutdown_event():
 async def send_prompt(payload: PromptRequest):
     # default lang to english
     lang = "en" if payload.lang is None else payload.lang
-    session_store[payload.user_id] = {"prompt": payload.prompt, "lang": lang, "thread_id": payload.thread_id}
+    session_data = {
+        "prompt": payload.prompt,
+        "lang": lang,
+        "thread_id": payload.thread_id
+    }
+    # rehydrate graph state
+    # with checkpointed state
+    if payload.checkpoint_data:
+        session_data["checkpoint_data"] = payload.checkpoint_data # type: ignore
+    session_store[payload.user_id] = session_data
+
     return {"status": "queued", "user_id": payload.user_id}
+
+@app.get("/api/conversation/status")
+async def get_conversation_status(request: Request, user_id: str, thread_id: str):
+    # check if conversation
+    # exists in session store
+    user_session = session_store.get(user_id)
+    if user_session and user_session.get("thread_id") == thread_id:
+        return {"active": True, "thread_id": thread_id}
+
+    return {"active": False, "thread_id": thread_id}
 
 @app.get("/api/stream")
 async def stream_tokens(request: Request, user_id: str):
-    prompt = session_store.get(user_id, {}).get("prompt")
-    thread_id = session_store.get(user_id, {}).get("thread_id")
+    session_data = session_store.get(user_id, {})
+    prompt = session_data.get("prompt")
+    thread_id = session_data.get("thread_id")
+    checkpoint_data = session_data.get("checkpoint_data")
     if (not prompt) or (not thread_id):
         return {"error": "No prompt found for user."}
 
@@ -82,7 +104,20 @@ async def stream_tokens(request: Request, user_id: str):
     async def event_generator():
         last_state: Optional[State] = None
 
-        async for mode, chunk in app.state.graph_provider.stream_graph_generator(thread_id, user_id, prompt, lang, with_state=True):
+        # create initial state
+        # for rehydration if
+        # it exists
+        initial_state = None
+        if checkpoint_data:
+            try:
+                print(f"Here is the {checkpoint_data}")
+                initial_state = checkpoint_data
+                print(f"Rehydrating conversation {thread_id} with checkpoint data")
+            except Exception as e:
+                print(f"Failed to create initial state from checkpoint: {e}")
+                initial_state = None
+
+        async for mode, chunk in app.state.graph_provider.stream_graph_generator(thread_id, user_id, prompt, lang, with_state=True, initial_state=initial_state):
             if await request.is_disconnected():
                 break
 
