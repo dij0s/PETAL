@@ -13,7 +13,7 @@ FROM python:3.11-slim
 
 RUN apt-get update && apt-get install -y curl
 
-# install uv 
+# install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 # copy app code and venv from builder
@@ -24,4 +24,4 @@ COPY --from=builder /app /app
 EXPOSE 8000
 
 # start the app
-CMD ["uv", "run", "fastapi", "run", "src/server.py", "--port", "8000", "--host", "0.0.0.0"]
+CMD ["uv", "run", "--no-sync", "fastapi", "run", "src/server.py", "--port", "8000", "--host", "0.0.0.0"]
