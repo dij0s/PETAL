@@ -10,9 +10,16 @@ while ! ollama list | grep -q 'NAME'; do
 done
 # pull models stated in
 # environment variables
-echo "Pulling reasoning model: ${REASONING_MODEL}"
-ollama pull "${REASONING_MODEL}"
-echo "Pulling embedding model: ${EMBEDDING_MODEL}"
-ollama pull "${EMBEDDING_MODEL}"
+models_to_download=()
+for var in $(env | grep '^OLLAMA_MODEL_' | cut -d= -f2 | sort | uniq); do
+  if [ -n "$var" ]; then
+    models_to_download+=("$var")
+  fi
+done
+for model in "${models_to_download[@]}"; do
+  echo "Pulling model: ${model}"
+  ollama pull "${model}"
+done
+
 # await end of process
 wait $SERVE_PID

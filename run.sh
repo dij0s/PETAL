@@ -9,7 +9,6 @@ if [[ "$ENVIRONMENT" != "dev" && "$ENVIRONMENT" != "prod" ]]; then
 fi
 
 shift 1 2>/dev/null || true
-echo "Starting in $ENVIRONMENT mode..."
 
 set -a
 if [[ ! -f ".env.$ENVIRONMENT" ]]; then
