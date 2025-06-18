@@ -23,4 +23,4 @@ set +a
 # for interpolation in
 # compose definition
 export ENVIRONMENT
-docker compose up "$@"
+"$@"
