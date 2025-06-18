@@ -5,6 +5,12 @@ services:
       - path: ./.env.development
     ports:
       - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+  backend:
+    image: dij0s/petal-backend:latest
+    env_file:
+      - path: ./.env.development
+    ports:
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
   ollama:
     image: ollama/ollama
     restart: unless-stopped

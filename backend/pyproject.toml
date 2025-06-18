@@ -27,7 +27,7 @@ venvPath = "."
 venv = ".venv"
 
 [tool.pytest.ini_options]
-pythonpath = ["./backend"]
+pythonpath = ["."]
 
 [tool.uv.sources]
 transformers = { git = "https://github.com/huggingface/transformers" }
