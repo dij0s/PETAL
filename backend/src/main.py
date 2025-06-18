@@ -1,8 +1,6 @@
 import os
 from dotenv import load_dotenv
-# by default, use development
-# environment variables
-load_dotenv(dotenv_path="../.env.development")
+load_dotenv()
 
 import asyncio
 

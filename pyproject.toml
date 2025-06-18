@@ -13,7 +13,6 @@ dependencies = [
     "langgraph>=0.4.5",
     "langgraph-checkpoint-redis>=0.0.6",
     "pydantic>=2.11.4",
-    "pymupdf>=1.26.0",
     "pytest>=8.3.5",
     "python-dotenv>=1.1.0",
     "redisvl>=0.3.9",
@@ -28,13 +27,14 @@ venvPath = "."
 venv = ".venv"
 
 [tool.pytest.ini_options]
-pythonpath = ["."]
+pythonpath = ["./backend"]
 
 [tool.uv.sources]
 transformers = { git = "https://github.com/huggingface/transformers" }
 
 [dependency-groups]
 dev = [
+    "pymupdf>=1.26.0",
     "accelerate>=1.7.0",
     "ipython>=9.2.0",
     "langchain>=0.3.25",
