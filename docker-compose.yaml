@@ -2,15 +2,18 @@ services:
   frontend:
     image: dij0s/petal-ui:latest
     env_file:
-      - path: ./.env.development
+      - path: ./.env.production
     ports:
       - "${FRONTEND_PORT}:${FRONTEND_PORT}"
   backend:
     image: dij0s/petal-backend:latest
     env_file:
-      - path: ./.env.development
+      - path: ./.env.production
     ports:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
+    depends_on:
+      redis:
+        condition: service_started
   ollama:
     image: ollama/ollama
     restart: unless-stopped

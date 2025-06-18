@@ -7,7 +7,9 @@ const DIST_DIR = join(import.meta.dir, "../dist");
 
 // use env variables with fallback defaults
 const BACKEND_API_URL = process.env.BACKEND_API_URL || "http://localhost:8000";
-const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
+const PORT = process.env.FRONTEND_PORT
+  ? Number(process.env.FRONTEND_PORT)
+  : 3000;
 
 serve({
   idleTimeout: 120,
