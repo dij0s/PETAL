@@ -1,27 +1,19 @@
-# build stage
-FROM python:3.11-slim AS builder
-
-# install uv
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 
 # copy application code and dependency files
 WORKDIR /app
 COPY . /app
 
-# production stage
-FROM python:3.11-slim
+# install dependencies
+RUN uv sync --no-dev --no-sources
 
-RUN apt-get update && apt-get install -y curl
-
-# install uv
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
-
-# copy app code and venv from builder
-WORKDIR /app
-COPY --from=builder /app /app
+ENV PATH="/app/.venv/bin:$PATH"
 
 # expose the port the server runs on
 EXPOSE 8000
 
+# reset the entrypoint, don't invoke `uv`
+ENTRYPOINT []
+
 # start the app
-CMD ["uv", "run", "--no-sync", "fastapi", "run", "src/server.py", "--port", "8000", "--host", "0.0.0.0"]
+CMD ["fastapi", "run", "src/server.py", "--port", "8000", "--host", "0.0.0.0"]

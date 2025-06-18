@@ -2,8 +2,8 @@ name: Build Frontend Docker Image
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
+    paths:
+      - "frontend/**"
 jobs:
   build:
     runs-on: ubuntu-latest

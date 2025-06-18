@@ -2,8 +2,8 @@ name: Build Backend Docker Image
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
+    paths:
+      - "backend/**"
 jobs:
   build:
     runs-on: ubuntu-latest
