@@ -1,0 +1,16 @@
+.map-wrapper {
+    grid-column: 5;
+    position: relative;
+    height: calc(100% - 120px);
+    margin-top: 60px;
+    margin-bottom: 60px;
+}
+
+.map-wrapper > .ol-viewport {
+    box-sizing: border-box;
+    border-top: 1px solid var(--border-color);
+    border-left: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    border-top-left-radius: 16px;
+    border-bottom-left-radius: 16px;
+}

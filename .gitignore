@@ -1,0 +1,52 @@
+# Environment variables
+.env.development
+.env.production
+
+# redis and ollama data
+ollama-data
+redis-data
+
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Pytest output
+.pytest_cache
+
+# Compiled datasets
+*.npz
+extracted_pages.json
+documents_with_visual_analysis.json
+
+# Marimo context
+__marimo__
+
+# benchmarks
+benchmarks
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj

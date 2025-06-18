@@ -1,0 +1,27 @@
+.map-controls-wrapper {
+    position: absolute;
+    top: 0.5em;
+    right: 0.5em;
+    z-index: 1;
+    width: 40%;
+}
+
+.map-controls-toggle {
+    display: flex;
+    justify-content: right;
+    color: var(--background-color-action-85-opacity);
+}
+
+.map-layer-controls {
+    display: flex;
+    flex-direction: column;
+}
+
+.map-single-control {
+    display: flex;
+    justify-content: space-between;
+}
+
+.map-layer-name {
+    color: var(--text-color-85-opacity);
+}

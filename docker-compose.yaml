@@ -1,0 +1,31 @@
+services:
+  frontend:
+    image: dij0s/petal-ui:latest
+    env_file:
+      - path: ./.env.development
+    ports:
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+  ollama:
+    image: ollama/ollama
+    restart: unless-stopped
+    env_file:
+      - path: ./.env.production
+    ports:
+      - "${OLLAMA_PORT}:${OLLAMA_PORT}"
+    volumes:
+      - ./ollama-data:/root/.ollama
+      - ./ollama-entrypoint.sh:/ollama-entrypoint.sh
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    entrypoint: ["/bin/bash", "/ollama-entrypoint.sh"]
+  redis:
+    image: redis:alpine
+    ports:
+      - 6379:6379
+    volumes:
+      - ./redis-data:/data

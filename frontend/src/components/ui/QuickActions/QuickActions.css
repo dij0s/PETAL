@@ -1,0 +1,32 @@
+.quick-actions-wrapper {
+    display: flex;
+    justify-content: space-between;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 100px;
+    color: var(--background-color-action-85-opacity);
+}
+
+.quick-actions-theme:hover {
+    cursor: pointer;
+}
+
+.quick-actions-languages {
+    display: flex;
+    justify-content: space-between;
+    width: 60px;
+    font-size: 0.875rem;
+}
+
+.quick-actions-language:hover {
+    cursor: pointer;
+}
+
+.quick-actions-language {
+    transition: color 0.2s;
+}
+
+.quick-actions-language[data-active="true"] {
+    color: var(--background-color-action-30-opacity);
+}
