@@ -1,6 +1,6 @@
 # Environment variables
-.env.development
-.env.production
+.env.dev
+.env.prod
 
 # redis and ollama data
 ollama-data

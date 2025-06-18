@@ -2,13 +2,13 @@ services:
   frontend:
     image: dij0s/petal-ui:latest
     env_file:
-      - path: ./.env.production
+      - .env.${ENVIRONMENT}
     ports:
       - "${FRONTEND_PORT}:${FRONTEND_PORT}"
   backend:
     image: dij0s/petal-backend:latest
     env_file:
-      - path: ./.env.production
+      - .env.${ENVIRONMENT}
     ports:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
     depends_on:
@@ -18,9 +18,9 @@ services:
     image: ollama/ollama
     restart: unless-stopped
     env_file:
-      - path: ./.env.production
+      - .env.${ENVIRONMENT}
     ports:
-      - "${OLLAMA_PORT}:${OLLAMA_PORT}"
+      - "${OLLAMA_PORT:-11434}:${OLLAMA_PORT:-11434}"
     volumes:
       - ./ollama-data:/root/.ollama
       - ./ollama-entrypoint.sh:/ollama-entrypoint.sh
