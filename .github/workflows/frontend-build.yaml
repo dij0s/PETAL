@@ -1,4 +1,4 @@
-name: Build Docker Image
+name: Build Frontend Docker Image
 on:
   push:
     branches: [main]
