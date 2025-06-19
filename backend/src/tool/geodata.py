@@ -678,8 +678,8 @@ async def _fetch_incineration_infrastructure(municipality_name: str) -> tuple[fl
 
     return 0, 0
 
-async def _fetch_effective_infrastructure(municipality_name: str, energy_agent: Literal["Photovoltaic", "Biomass", "Geothermal energy"], production_yield: float) -> tuple[str, str, str]:
-    """Asynchronously fetches the effective photovoltaic (PV), biomass and geothermal energy from various infrastructure.
+async def _fetch_effective_infrastructure(municipality_name: str, energy_agent: Literal["Photovoltaic", "Biomass", "Geothermal energy"], production_yield: float) -> str:
+    """Asynchronously fetches the effective infrastructure for the specified energy agent (Photovoltaic, Biomass, or Geothermal energy) from various infrastructure sources.
 
     Args:
         municipality_name (str): The name of the municipality to estimate the effective infrastructure for.$
@@ -687,10 +687,10 @@ async def _fetch_effective_infrastructure(municipality_name: str, energy_agent: 
         production_yield (float): The production yield factor to apply for the energy agent.
 
     Returns:
-        tuple[str, str, str]: A tuple containing the effective photovoltaic, biomass and geothermal power in GWh/year.
+        str: The effective electricity production from the argument-given energy agent, in GWh/year.
     """
 
-    async def _fetch_infrastructure(session, tile) -> defaultdict:
+    async def _fetch_infrastructure(session, tile) -> float:
         minx, miny, maxx, maxy = tile.bounds
         geometry_str = f"{minx},{miny},{maxx},{maxy}"
 
@@ -713,7 +713,7 @@ async def _fetch_effective_infrastructure(municipality_name: str, energy_agent: 
                 if response.status == 200:
                     data = await response.json()
 
-                    productions = defaultdict(float) # kWh/year
+                    production = 0 # kWh/year
                     hours_per_year = 24 * 365
 
                     # sum up the potential for all features
@@ -729,15 +729,15 @@ async def _fetch_effective_infrastructure(municipality_name: str, energy_agent: 
 
                             total_energy = effective_power * hours_per_year # kWh/year
 
-                            productions[sub_category] += total_energy
+                            production += total_energy
 
-                    return productions
+                    return production
                 else:
                     print(f"Failed request for tile, status: {response.status}")
         except Exception as e:
             print(f"Error for tile at {geometry_str}: {e}")
 
-        return defaultdict(float)
+        return 0
 
     # await needed GeoSession
     # for further computing
@@ -752,25 +752,10 @@ async def _fetch_effective_infrastructure(municipality_name: str, energy_agent: 
         sampled_energies = await asyncio.gather(*tasks)
 
     # aggregate all partial energies
-    aggregated_energies = reduce(
-        lambda res, d:
-        {
-            **res,
-            **{
-                k: res.get(k, 0) + v
-                for k, v in d.items()
-            }
-        },
-        sampled_energies,
-        {}
-    )
+    aggregated_energy = sum(sampled_energies)
+    aggregated_energy_GWh = aggregated_energy / 1e6
 
-    # convert into GWh/year
-    photovoltaic_energy_GWh = aggregated_energies.get("Photovoltaic", 0.0) / 1e6
-    biomass_energy_GWh = aggregated_energies.get("Biomass", 0.0) / 1e6
-    geothermal_energy_GWh = aggregated_energies.get("Geothermal energy", 0.0) / 1e6
-
-    return (f"{photovoltaic_energy_GWh:.2f}", f"{biomass_energy_GWh:.2f}", f"{geothermal_energy_GWh:.2f}")
+    return f"{aggregated_energy_GWh:.2f}"
 
 async def _fetch_thermal_networks_infrastructure(municipality_name: str) -> str:
     """Asynchronously fetches the thermal networks infrastructure for a given municipality.
@@ -1451,7 +1436,7 @@ class OperationalSolarInfrastructureTool(GeoDataTool):
             func=partial(_fetch_effective_infrastructure, energy_agent="Photovoltaic", production_yield=0.35),
             name="operational_solar_infrastructure",
             layer_id="",
-            description="Infrastructure electrical source distributed: Solar photovoltaic generation from operational installations. Returns actual electricity production from operational solar panels in GWh/year.",
+            description="Infrastructure electrical source distributed: Solar photovoltaic (PV) generation from operational installations. Returns actual electricity production from operational solar panels in GWh/year.",
         )
 
 class OperationalBiomassInfrastructureTool(GeoDataTool):
@@ -1471,7 +1456,7 @@ class OperationalGeothermalInfrastructureTool(GeoDataTool):
             func=partial(_fetch_effective_infrastructure, energy_agent="Geothermal energy", production_yield=1.0),
             name="operational_geothermal_infrastructure",
             layer_id="",
-            description="Infrastructure electrical source centralized: Deep geothermal electricity generation from operational plants. Returns actual electricity production from deep operational geothermal facilities in GWh/year.",
+            description="Infrastructure electrical source centralized: Geothermal electricity generation from operational plants. Returns actual electricity production from operational geothermal facilities in GWh/year.",
         )
 
 class WastewaterTreatmentPotentialTool(GeoDataTool):
