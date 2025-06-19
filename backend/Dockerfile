@@ -14,7 +14,7 @@ FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 WORKDIR /app
 
 # copy virtual environment
-COPY --from=dependencies /app/.venv /app/.venv
+COPY --from=builder /app/.venv /app/.venv
 
 # copy application
 COPY . /app
