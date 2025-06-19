@@ -77,13 +77,15 @@ async def geocontext_retriever(state):
             # and process constraints
             # for location-aware data
             writer({"type": "info", "content": "Retrieving tools and effective guidelines..."})
+            shall_bypass_constraints: bool = router_state.intent=="factual"
             toolbox: ToolProvider = await ToolProvider.acreate(router_state.location)
-            tools, constraints = await toolbox.asearch(query=router_state.aggregated_query, max_n_tools=5, k_tools=10)
+            tools, constraints = await toolbox.asearch(query=router_state.aggregated_query, max_n_tools=5, k_tools=10, bypass_constraints=shall_bypass_constraints)
+            print(f"Router state is {router_state.intent} and constraints are {constraints}")
             writer({"type": "log", "content": "I FOUND THEM!"})
             # filter out tools whose
             # data we already have
             tools = [tool for tool in tools if tool.name not in geocontext.context_tools.keys()]
-            async def _helper():
+            async def _wrapper():
                 if len(tools) > 0:
                     writer({"type": "info", "content": "Fetching data from retrieved tools..."})
                     return await _ainvoke_tools(tools)
@@ -93,13 +95,12 @@ async def geocontext_retriever(state):
                     return {}
             # invoke necessary tools
             # and process constraints
-            # concurrently
+            # concurrently if needed
             async def temp():
                 return constraints
             tool_data, processed_constraints = await asyncio.gather(
-                _helper(),
-                # _process_constraints(constraints, provider)
-                temp()
+                _wrapper(),
+                _process_constraints(constraints, provider, shall_bypass_constraints)
             )
             # update context with
             # retrieved constraints
@@ -126,7 +127,7 @@ async def geocontext_retriever(state):
         print(f"Exception: {e}")
         return state
 
-async def _process_constraints(constraints: list[tuple[str, str]], provider: GeoSessionProvider) -> list[tuple[str, str]]:
+async def _process_constraints(constraints: list[tuple[str, str]], provider: GeoSessionProvider, bypass_constraints: bool = False) -> list[tuple[str, str]]:
     """
     Processes a list of constraints asynchronously.
 
@@ -135,11 +136,12 @@ async def _process_constraints(constraints: list[tuple[str, str]], provider: Geo
     Args:
         constraints (list[tuple[str, str]]): A list of constraints tuple.
         provider (GeoSessionProvider): The provider for the given municipality.
+        bypass_constraints (bool): If True, bypasses the constraints processing. Defaults to False.
 
     Returns:
         list[tuple[str, str]]: The list of location-aware constraints chunks and their source.
     """
-    if len(constraints) == 0:
+    if (len(constraints) == 0) or bypass_constraints:
         return []
 
     # hardcoded population number

@@ -158,7 +158,8 @@ class ToolProvider:
         self,
         query: str,
         max_n_tools: int,
-        k_tools: int):
+        k_tools: int,
+        bypass_constraints: bool = False):
         """
         Search for StructuredTool objects and constraining document chunks matching the query and filter.
 
@@ -166,12 +167,15 @@ class ToolProvider:
             query (str): The search query string.
             max_n_tools (int): The maximum number of tools to select after crossencoder reranking.
             k_tools (int): The number of tools and constraining chunks to retrieve from the vector store for futher reranking.
+            bypass_constraints (bool): If True, bypasses the constraints search and only returns tools. Defaults to False.
 
         Returns:
             tuple[list[StructuredTool], list[str]]: A tuple containing a list of relevant StructuredTool objects that match the query and filter, along with the the constraining document chunks. By default, no filtering is applied.
         """
+        async def no_op() -> list[tuple[str, str]]:
+            return []
         tools_task = self._asearch_tools(query, max_n_tools, k_tools)
-        constraints_task = self._asearch_constraints(query)
+        constraints_task = self._asearch_constraints(query) if not bypass_constraints else no_op()
         # run both results
         # asynchronously and
         # then only gather
@@ -179,7 +183,7 @@ class ToolProvider:
         # embedding differently ?
         return await asyncio.gather(tools_task, constraints_task)
 
-    async def _rerank_documents(self, query: str, docs: list[Document], max_n: int, batch_size: int = 5) -> list[Document]:
+    async def _rerank_documents(self, query: str, docs: list[Document], max_n: int, batch_size: int = 5, uniformity_threshold: float = 0.5) -> list[Document]:
         """
         Rerank a list of documents based on their relevance to the query using the cross-encoder model.
 
@@ -188,6 +192,7 @@ class ToolProvider:
             docs (list[Document]): The list of documents to rerank.
             max_n (int): The maximum number of top documents to return.
             batch_size (int): The batch size for processing documents during reranking. Defaults to 5.
+            uniformity_threshold (float): The threshold for uniformity of scores. Defaults to 0.5.
 
         Returns:
             list[Document]: A list of the top reranked documents that meet the threshold, or an empty list if no documents meet the criteria.
@@ -213,8 +218,6 @@ class ToolProvider:
         q1 = np.percentile(scores, 25)
         q3 = np.percentile(scores, 75)
         qcd = (q3 - q1) / (q3 + q1) if (q3 + q1) > 0 else 0
-        print(f"This is the QCD: {qcd} and threshold: {threshold}, scores: {scores}")
-        uniformity_threshold = 0.5
         if qcd < uniformity_threshold:
             # take top max_n directly
             top_indices = np.argsort(scores)[::-1][:max_n]
@@ -249,10 +252,8 @@ class ToolProvider:
         # retrieve documents
         # using cosine similarity
         docs = await self._vector_store_tools.asimilarity_search(query=query, k=k, filter=filter)
-        print(f"Original documents: {docs}")
         # rerank documents
         top_docs = await self._rerank_documents(query=query, docs=docs, max_n=max_n)
-        print(f"Reranked documents: {top_docs}")
         # get top tools and store
         # their categories for
         # future lookup when guiding
@@ -315,7 +316,7 @@ class ToolProvider:
         )
         # rerank chunks from
         # retrieved documents
-        top_docs = await self._rerank_documents(query=query, docs=docs, max_n=10)
+        top_docs = await self._rerank_documents(query=query, docs=docs, max_n=10, uniformity_threshold=0.35)
         return [
             (doc.page_content, doc.metadata.get("source", ""))
             for doc in top_docs

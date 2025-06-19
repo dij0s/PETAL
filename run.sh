@@ -4,7 +4,7 @@
 ENVIRONMENT=${1:-dev}
 if [[ "$ENVIRONMENT" != "dev" && "$ENVIRONMENT" != "prod" ]]; then
     echo "ERROR: Environment must be either 'dev' or 'prod'"
-    echo "Usage: ./start.sh [dev|prod] [docker-compose args]"
+    echo "Usage: ./run.sh [dev|prod] [docker-compose args]"
     exit 1
 fi
 
