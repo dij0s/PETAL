@@ -207,10 +207,15 @@ class ToolProvider:
         threshold = np.mean(scores) + np.std(scores)
         selected_indices = np.where(scores > threshold)[0]
         # detect uniform distribution
-        # using coefficient of variation
-        cv = np.std(scores) / np.mean(scores)
-        uniformity_threshold = 0.15
-        if cv < uniformity_threshold:
+        # using quartile coefficient
+        # of dispersion for greater
+        # robustness to outliers
+        q1 = np.percentile(scores, 25)
+        q3 = np.percentile(scores, 75)
+        qcd = (q3 - q1) / (q3 + q1) if (q3 + q1) > 0 else 0
+        print(f"This is the QCD: {qcd} and threhsold: {threshold}, scores: {scores}")
+        uniformity_threshold = 0.5
+        if qcd < uniformity_threshold:
             # take top max_n directly
             top_indices = np.argsort(scores)[::-1][:max_n]
             return [docs[index] for index in top_indices]
@@ -244,8 +249,10 @@ class ToolProvider:
         # retrieve documents
         # using cosine similarity
         docs = await self._vector_store_tools.asimilarity_search(query=query, k=k, filter=filter)
+        print(f"Original documents: {docs}")
         # rerank documents
         top_docs = await self._rerank_documents(query=query, docs=docs, max_n=max_n)
+        print(f"Reranked documents: {top_docs}")
         # get top tools and store
         # their categories for
         # future lookup when guiding

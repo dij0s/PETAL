@@ -1329,7 +1329,7 @@ class RoofingSolarPotentialEstimatorTool(GeoDataTool):
             func=partial(_fetch_solar_potential_roofing, confidence_level=0.8),
             name="estimate_solar_potential_roofing",
             layer_id="ch.bfe.solarenergie-eignung-daecher",
-            description="Estimated **roofing solar energy potential**. Returns the estimated solar energy that can be used for electricity (photovoltaic) in GWh/year and the energy that can be used for heating (solar thermal) in GWh/year from installing solar panels on roofs, in a tuple.",
+            description="Potential electrical/thermal source distributed: Solar energy generation from rooftop installations. Returns (photovoltaic_electricity, solar_thermal_heating) where photovoltaic_electricity is electricity generation potential in GWh/year and solar_thermal_heating is heating potential in GWh/year.",
         )
 
 class FacadesSolarPotentialEstimatorTool(GeoDataTool):
@@ -1342,7 +1342,7 @@ class FacadesSolarPotentialEstimatorTool(GeoDataTool):
             func=partial(_fetch_solar_potential_facades, confidence_level=0.8),
             name="estimate_solar_potential_facades",
             layer_id="ch.bfe.solarenergie-eignung-fassaden",
-            description="Estimated **facades solar energy potential**. Returns the estimated solar energy that can be used for electricity (photovoltaic) in GWh/year and the energy that can be used for heating (solar thermal) in GWh/year from installing solar panels on facades, in a tuple.",
+            description="Potential electrical/thermal source distributed: Solar energy generation from facade installations. Returns (photovoltaic_electricity, solar_thermal_heating) where photovoltaic_electricity is electricity generation potential in GWh/year and solar_thermal_heating is heating potential in GWh/year.",
         )
 
 class SmallHydroPotentialTool(GeoDataTool):
@@ -1355,7 +1355,7 @@ class SmallHydroPotentialTool(GeoDataTool):
             func=partial(_fetch_small_hydro_potential, efficiency=0.5),
             name="small_hydro_potential",
             layer_id="ch.bfe.kleinwasserkraftpotentiale",
-            description="**Hydroelectric potential of small hydro/water sources** (for e.g. rivers). Returns the hydroelectric potential energy from small hydroelectricity in GWh/year. As only part of the theoretical potential can actually be used for electricity generation when technical, ecological, economic and legal aspects are taken into account, it is important to interpret the statements on theoretical potential correctly. An efficiency of 50% is assumes to estimate the electricity yield.",
+            description="Potential electrical source distributed: Hydroelectric generation from small water sources. Returns theoretical electricity generation potential in GWh/year. Assumes 50% efficiency factor to account for technical, ecological, economic and legal constraints.",
         )
 
 class LargeHydroPotentialTool(GeoDataTool):
@@ -1369,7 +1369,7 @@ class LargeHydroPotentialTool(GeoDataTool):
             name="large_hydro_potential",
             # layer_id="ch.bfe.waermepotential-gewaesser", not supported as of now, WMS
             layer_id="",
-            description="**Thermal energy potential of large hydro sources** (such as lakes and rivers). Returns the heating (heat extraction) in GWh/year and cooling (heat discharge) potential in GWh/year, in a tuple. Lakes and rivers provide a great yet largely untapped source of thermal energy. This renewable source could be used for heating and cooling, especially since many cities are located close to lakes and rivers and the technology is well established. The potential of the largest lakes and rivers for heat extraction and heat discharge was estimated using simple assumptions, with water body-specific characteristics only partially considered. These potentials are to be understood as a reference point and should not be used as a definitive basis for planning.",
+            description="Potential thermal source centralized: Thermal energy extraction from large water bodies. Returns (heating_potential, cooling_potential) where heating_potential is heat extraction capacity in GWh/year and cooling_potential is heat discharge capacity in GWh/year. Includes lakes and rivers.",
         )
 
 class BiomassAvailabilityTool(GeoDataTool):
@@ -1382,7 +1382,7 @@ class BiomassAvailabilityTool(GeoDataTool):
             func=_fetch_available_biomass,
             name="available_biomass",
             layer_id="",
-            description="Available woody and non-woody **biomass energy**. Returns the available woody in GWh and non-woody biomass in GWh, in a tuple. The available biomass only describes the potential of biomass to be used for energy, not the actual amount of biomass that is used for energy production. Biomass is a renewable resource for energy which can be transformed into several forms of energy: heat, electricity, biogas or liquid fuels. Non-woody types of biomass were investigated using methodically comparable approaches: manure, agricultural crop by-products, the organic part of household garbage, green waste, the organic residues from industrial waste and sewage sludge. The woody and non-woody biomass can easily be summed to compute the total available biomass.",
+            description="Potential chemical source distributed: Biomass energy availability from organic waste sources. Returns (woody_biomass, non_woody_biomass) where woody_biomass is available wood-based energy in GWh/year and non_woody_biomass is available organic waste energy in GWh/year.",
         )
 
 class HydropowerInfrastructureTool(GeoDataTool):
@@ -1395,7 +1395,7 @@ class HydropowerInfrastructureTool(GeoDataTool):
             func=_fetch_hydropower_infrastructure,
             name="hydropower_infrastructure",
             layer_id="ch.bfe.statistik-wasserkraftanlagen",
-            description="Production of **hydroelectric energy using hydropower infrastructure**. Returns the total hydroelectric energy production in GWh/year. This data only includes hydrowpower plants with an output of at least 300 kW.",
+            description="Infrastructure electrical source centralized: Hydroelectric generation from operational plants. Returns actual electricity generation in GWh/year. Includes only plants with minimum 300 kW output capacity.",
         )
 
 class WindTurbinesInfrastructureTool(GeoDataTool):
@@ -1408,7 +1408,7 @@ class WindTurbinesInfrastructureTool(GeoDataTool):
             func=_fetch_wind_turbines_infrastructure,
             name="wind_turbines_infrastructure",
             layer_id="ch.bfe.windenergieanlagen",
-            description="Produced **electricity energy using wind turbines**. Returns the total electricity energy production in GWh/year. Wind energy plants utilise the kinetic energy of airflow to rotate turbine blades. The mechanical energy that is produced in this way is then converted by a generator into electricity. All data are based on information provided by the power plant operators and are intended to function as information material for the general public.The reported production value corresponds to the most recent year available, as production is updated annually.",
+            description="Infrastructure electrical source centralized: Wind energy generation from operational turbines. Returns actual electricity generation in GWh/year. Based on most recent annual production data from plant operators.",
         )
 
 class BiogasInfrastructureTool(GeoDataTool):
@@ -1421,7 +1421,7 @@ class BiogasInfrastructureTool(GeoDataTool):
             func=_fetch_biogas_infrastructure,
             name="biogas_infrastructure",
             layer_id="ch.bfe.biogasanlagen",
-            description="Produced **energy (electricity and heat) using biogas**. Returns total energy (electricity and heat) production from biogas in GWh/year. The biogas produced in our country comes exclusively from waste and residues from households, the food industry or agriculture. This energy is therefore sustainable, renewable and CO2 neutral. Biogas can be used directly in a cogeneration plant to produce electricity and heat. It can also be purified into biomethane before being injected into the natural gas network. Biomethane can in turn be used to produce electricity, heat or fuel.",
+            description="Infrastructure electrical/thermal source centralized: Biogas energy generation from operational plants. Returns total combined electricity and heat generation in GWh/year. Includes plants processing household, industrial and agricultural organic waste.",
         )
 
 class IncinerationInfrastructureTool(GeoDataTool):
@@ -1434,7 +1434,7 @@ class IncinerationInfrastructureTool(GeoDataTool):
             func=_fetch_incineration_infrastructure,
             name="incineration_infrastructure",
             layer_id="ch.bfe.kehrichtverbrennungsanlagen",
-            description="Total **energy production, electricity and heat, from incineration infrastucture**. Returns the total energy production that is electricity in GWh/year and heating in GWh/year, in a tuple. The heat generated during combustion of combustible waste components is used to produce electricity, operate district heating networks or as process heat in industrial plants.",
+            description="Infrastructure electrical/thermal source centralized: Waste incineration energy generation from operational plants. Returns (electricity_generation, heat_generation) where electricity_generation is electrical output in GWh/year and heat_generation is thermal output in GWh/year.",
         )
 
 class ThermalNetworksInfrastructureTool(GeoDataTool):
@@ -1447,7 +1447,7 @@ class ThermalNetworksInfrastructureTool(GeoDataTool):
             func=_fetch_thermal_networks_infrastructure,
             name="thermal_networks_infrastructure",
             layer_id="",
-            description="Total **energy that can be delivered via the thermal networks infrastructure**. Returns the total energy that can be delivered via thermal networks in GWh/year. Thermal networks – including district heating-, local heating- or district cooling networks – are systems that supply heat to customers through pipelines that carry water or steam. The energy supplied by thermal networks does not necessarily come from renewable sources, but these systems are often characterised by their low CO2 emissions, for example when based on heat recovered from waste incineration.",
+            description="Infrastructure thermal network centralized: Thermal energy distribution through operational networks. Returns total deliverable energy through thermal networks in GWh/year. Includes district heating, local heating and district cooling systems.",
         )
 
 class EffectiveRenewableEnergiesTool(GeoDataTool):
@@ -1461,7 +1461,7 @@ class EffectiveRenewableEnergiesTool(GeoDataTool):
             name="effective_renewable_energies_production_plants",
             # layer_id="ch.bfe.elektrizitaetsproduktionsanlagen", not supported as of now, WMS
             layer_id="",
-            description="Effective **energy (electricity) production from renewable energy sources**. Electricity production plants from photovoltaic (PV), biomass, and geothermal energy. Returns the energy (electricity) production from photovoltaic solar panels in GWh/year, from biomass energy in GWh/year and from geothermal energy in GWh/year, all in a tuple. Only electricity production plants that are in operation are included.",
+            description="Infrastructure electrical source mixed: Renewable electricity generation from operational plants. Returns (photovoltaic_generation, biomass_generation, geothermal_generation) where each component represents actual electricity production in GWh/year from operational facilities.",
         )
 
 class WastewaterTreatmentPotentialTool(GeoDataTool):
@@ -1474,7 +1474,7 @@ class WastewaterTreatmentPotentialTool(GeoDataTool):
             func=_fetch_wastewater_treatment_potential,
             name="wastewater_treatment_potential",
             layer_id="ch.bfe.fernwaerme-angebot",
-            description="Potential **energy (heat) that can be recovered from wastewater treatment plants**. Returns the potential energy (heat) from the wastewater treatment plants in GWh/year. Wastewater treatment plants (WWTPs) treat and purify wastewater. Wastewater is water that has been polluted through activities such as cooking, doing laundry or showering and then transported through a sewer system. A heat pump can recover this heat in order for it to be used as a heat source in a district heating network. ",
+            description="Potential thermal source centralized: Thermal energy recovery from wastewater treatment facilities. Returns recoverable heat energy in GWh/year. Heat extractable via heat pumps for district heating networks.",
         )
 
 class BuildingsConstructionPeriodsTool(GeoDataTool):
@@ -1487,7 +1487,7 @@ class BuildingsConstructionPeriodsTool(GeoDataTool):
             func=_fetch_building_construction_periods,
             name="building_construction_periods",
             layer_id="ch.bfs.gebaeude_wohnungs_register",
-            description="**Building construction periods**. Returns the building construction periods, where each result is a tuple of (construction period, number of buildings). The number of buildings can be summed or grouped according to their construction periods.",
+            description="Buildings infrastructure analysis: Construction period distribution of building stock. Returns list of (construction_period, building_count) tuples showing temporal distribution of existing buildings.",
         )
 
 class HeatingCoolingNeedsIndustryTool(GeoDataTool):
@@ -1500,7 +1500,7 @@ class HeatingCoolingNeedsIndustryTool(GeoDataTool):
             func=_fetch_heating_cooling_needs_industry,
             name="heating_cooling_needs_industry",
             layer_id="ch.bfe.fernwaerme-nachfrage_industrie",
-            description="**Heating/cooling energy needs for the industry**. Returns the heating/cooling energy needs for the industry in GWh/year. In strategic planning, heat demand is used to identify large connected areas that may be appropriate for a thermal network.",
+            description="Consumption thermal sink buildings: Heating and cooling energy demand for industrial facilities. Returns thermal energy requirements in GWh/year. Used for identifying areas suitable for thermal network development.",
         )
 
 class HeatingCoolingNeedsHouseholdsServicesTool(GeoDataTool):
@@ -1513,7 +1513,7 @@ class HeatingCoolingNeedsHouseholdsServicesTool(GeoDataTool):
             func=_fetch_heating_cooling_needs,
             name="heating_cooling_needs_households_services",
             layer_id="ch.bfe.fernwaerme-nachfrage_wohn_dienstleistungsgebaeude",
-            description="**Heating/cooling energy needs for households and administrative buildings (services)**. Returns the heating/cooling energy needs for households in GWh/year and the heating/cooling needs for administrative buildings (services) in GWh/year, in a tuple. It does not include electricity for everyday use. The demand for heat and cooling is a key element in the strategic planning of thermal networks for households and administrative buildings. Building a thermal network is only viable if sufficient sales turnover can be generated from heat and/or cooling. The heating/cooling energy needs for households can be summed to the electricity energy needs for households to determine the global energy needs for households.",
+            description="Consumption thermal sink buildings: Heating and cooling energy demand for residential and service buildings. Returns (household_demand, service_building_demand) where household_demand is residential thermal needs in GWh/year and service_building_demand is administrative building thermal needs in GWh/year.",
         )
 
 class BuildingsEmissionEnergySourcesTool(GeoDataTool):
@@ -1526,7 +1526,7 @@ class BuildingsEmissionEnergySourcesTool(GeoDataTool):
             func=_fetch_building_emissions_energy_source,
             name="buildings_emission_energy_source",
             layer_id="ch.bafu.klima-co2_ausstoss_gebaeude",
-            description="**Emissions and energy sources** of buildings. Returns the emissions and energy sources of buildings from which the first dictionnary maps from CO2 emissions range (in kg/m²) to the number of buildings in this range and the second dictionnary mapping each energy source to the number of buildings using this energy source.",
+            description="Buildings energy analysis: Energy source utilization and emission characteristics. Returns (emission_distribution, energy_source_distribution) where emission_distribution maps CO2 emission ranges in kg/m² to building counts and energy_source_distribution maps energy sources to building counts.",
         )
 
 class EnergyNeedsTool(GeoDataTool):
@@ -1539,5 +1539,5 @@ class EnergyNeedsTool(GeoDataTool):
             func=partial(_fetch_energy_needs, heuristic=lambda n_households: 3500.0 * n_households),
             name="energy_needs",
             layer_id="",
-            description="**Estimated energy (electricity for everyday use only, heating and cooling isn't included) needs** for households. Returns the estimated energy (electricity for everyday use only, heating and cooling isn't included) needs for households in GWh/year. This estimate only includes everyday household electricity consumption and does not account for energy used for heating or cooling (which can be retrieved separately). The heating/cooling energy needs for households can be summed to the electricity energy needs for households to determine the global energy needs for households.",
+            description="Consumption electrical sink buildings: Electricity energy demand for household operations. Returns estimated electrical energy requirements in GWh/year. Excludes heating and cooling energy, covers only everyday electricity usage.",
         )

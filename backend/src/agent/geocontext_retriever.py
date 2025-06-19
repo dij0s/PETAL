@@ -147,7 +147,6 @@ async def _process_constraints(constraints: list[tuple[str, str]], provider: Geo
     canton_population = 365844
     await provider.wait_until_residents_count_ready()
     SCALING_FACTOR = min(provider.residents_count / canton_population, 1)
-    print(provider.residents_count, SCALING_FACTOR)
     # retrieve documents
     constraints_chunks, constraints_sources = reduce(
         lambda res, c: ([*res[0], c[0]], [*res[1], c[1]]),
