@@ -213,7 +213,7 @@ class ToolProvider:
         q1 = np.percentile(scores, 25)
         q3 = np.percentile(scores, 75)
         qcd = (q3 - q1) / (q3 + q1) if (q3 + q1) > 0 else 0
-        print(f"This is the QCD: {qcd} and threhsold: {threshold}, scores: {scores}")
+        print(f"This is the QCD: {qcd} and threshold: {threshold}, scores: {scores}")
         uniformity_threshold = 0.5
         if qcd < uniformity_threshold:
             # take top max_n directly

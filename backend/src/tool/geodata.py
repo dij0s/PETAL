@@ -12,7 +12,7 @@ from scipy.stats import t
 from langchain_core.tools import StructuredTool
 from langgraph.config import get_stream_writer
 
-from typing import Callable, Any
+from typing import Callable, Any, Literal
 from functools import partial, reduce
 from collections import defaultdict
 
@@ -678,23 +678,17 @@ async def _fetch_incineration_infrastructure(municipality_name: str) -> tuple[fl
 
     return 0, 0
 
-async def _fetch_effective_infrastructure(municipality_name: str) -> tuple[str, str, str]:
+async def _fetch_effective_infrastructure(municipality_name: str, energy_agent: Literal["Photovoltaic", "Biomass", "Geothermal energy"], production_yield: float) -> tuple[str, str, str]:
     """Asynchronously fetches the effective photovoltaic (PV), biomass and geothermal energy from various infrastructure.
 
     Args:
-        municipality_name (str): The name of the municipality to estimate the effective infrastructure for.
+        municipality_name (str): The name of the municipality to estimate the effective infrastructure for.$
+        energy_agent (str): The type of energy agent to estimate (e.g., "Photovoltaic", "Biomass", "Geothermal energy").
+        production_yield (float): The production yield factor to apply for the energy agent.
 
     Returns:
         tuple[str, str, str]: A tuple containing the effective photovoltaic, biomass and geothermal power in GWh/year.
     """
-    # estimated effective power
-    # per energy type to compute
-    # yearly yield
-    _effective_power_factor = {
-        "Photovoltaic": 0.35,
-        "Biomass" : 1.0,
-        "Geothermal energy": 1.0
-    }
 
     async def _fetch_infrastructure(session, tile) -> defaultdict:
         minx, miny, maxx, maxy = tile.bounds
@@ -729,9 +723,9 @@ async def _fetch_effective_infrastructure(municipality_name: str) -> tuple[str, 
                         # only consider those
                         # effective categories
                         sub_category = props.get("sub_category_en", "")
-                        if sub_category in _effective_power_factor:
+                        if sub_category == energy_agent:
                             total_power = float(props.get("total_power", "0")[:-2]) # kW
-                            effective_power = total_power * _effective_power_factor[sub_category] # kW
+                            effective_power = total_power * production_yield # kW
 
                             total_energy = effective_power * hours_per_year # kWh/year
 
@@ -1450,18 +1444,34 @@ class ThermalNetworksInfrastructureTool(GeoDataTool):
             description="Infrastructure thermal network centralized: Thermal energy distribution through operational networks. Returns total deliverable energy through thermal networks in GWh/year. Includes district heating, local heating and district cooling systems.",
         )
 
-class EffectiveRenewableEnergiesTool(GeoDataTool):
-    def __init__(
-        self,
-        municipality_name: str,
-    ):
+class OperationalSolarInfrastructureTool(GeoDataTool):
+    def __init__(self, municipality_name: str):
         super().__init__(
             municipality_name=municipality_name,
-            func=_fetch_effective_infrastructure,
-            name="effective_renewable_energies_production_plants",
-            # layer_id="ch.bfe.elektrizitaetsproduktionsanlagen", not supported as of now, WMS
+            func=partial(_fetch_effective_infrastructure, energy_agent="Photovoltaic", production_yield=0.35),
+            name="operational_solar_infrastructure",
             layer_id="",
-            description="Infrastructure electrical source mixed: Renewable electricity generation from operational plants. Returns (photovoltaic_generation, biomass_generation, geothermal_generation) where each component represents actual electricity production in GWh/year from operational facilities.",
+            description="Infrastructure electrical source distributed: Solar photovoltaic generation from operational installations. Returns actual electricity production from operational solar panels in GWh/year.",
+        )
+
+class OperationalBiomassInfrastructureTool(GeoDataTool):
+    def __init__(self, municipality_name: str):
+        super().__init__(
+            municipality_name=municipality_name,
+            func=partial(_fetch_effective_infrastructure, energy_agent="Biomass", production_yield=1.0),
+            name="operational_biomass_infrastructure",
+            layer_id="",
+            description="Infrastructure electrical source centralized: Biomass electricity generation from operational plants. Returns actual electricity production from operational biomass facilities in GWh/year.",
+        )
+
+class OperationalGeothermalInfrastructureTool(GeoDataTool):
+    def __init__(self, municipality_name: str):
+        super().__init__(
+            municipality_name=municipality_name,
+            func=partial(_fetch_effective_infrastructure, energy_agent="Geothermal energy", production_yield=1.0),
+            name="operational_geothermal_infrastructure",
+            layer_id="",
+            description="Infrastructure electrical source centralized: Deep geothermal electricity generation from operational plants. Returns actual electricity production from deep operational geothermal facilities in GWh/year.",
         )
 
 class WastewaterTreatmentPotentialTool(GeoDataTool):
