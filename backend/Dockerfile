@@ -1,23 +1,11 @@
-# build stage
-FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS builder
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 
-# copy dependency files
+# copy application code and dependency files
 WORKDIR /app
-COPY ./pyproject.toml ./uv.lock ./.python-version /app/
+COPY . /app
 
 # install dependencies
 RUN uv sync --no-dev --no-sources
-
-# production stage
-FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
-
-WORKDIR /app
-
-# copy virtual environment
-COPY --from=builder /app/.venv /app/.venv
-
-# copy application
-COPY . /app
 
 ENV PATH="/app/.venv/bin:$PATH"
 
@@ -28,4 +16,4 @@ EXPOSE 8000
 ENTRYPOINT []
 
 # start the app
-CMD ["uv", "run", "fastapi", "run", "src/server.py", "--port", "8000", "--host", "0.0.0.0"]
+CMD ["fastapi", "run", "src/server.py", "--port", "8000", "--host", "0.0.0.0"]
