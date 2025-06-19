@@ -14,7 +14,7 @@ COPY . .
 RUN bun run build
 
 # production stage
-FROM oven/bun:1.2.10 AS runner
+FROM oven/bun:1.2.10
 
 WORKDIR /app
 

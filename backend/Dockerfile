@@ -1,11 +1,23 @@
-FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+# build stage
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS builder
 
-# copy application code and dependency files
+# copy dependency files
 WORKDIR /app
-COPY . /app
+COPY ./pyproject.toml ./uv.lock ./.python-version /app/
 
 # install dependencies
 RUN uv sync --no-dev --no-sources
+
+# production stage
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+
+WORKDIR /app
+
+# copy virtual environment
+COPY --from=dependencies /app/.venv /app/.venv
+
+# copy application
+COPY . /app
 
 ENV PATH="/app/.venv/bin:$PATH"
 
