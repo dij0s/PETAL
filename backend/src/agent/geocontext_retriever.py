@@ -77,10 +77,9 @@ async def geocontext_retriever(state):
             # and process constraints
             # for location-aware data
             writer({"type": "info", "content": "Retrieving tools and effective guidelines..."})
-            shall_bypass_constraints: bool = router_state.intent=="factual"
+            shall_bypass_constraints: bool = router_state.intent == "factual"
             toolbox: ToolProvider = await ToolProvider.acreate(router_state.location)
-            tools, constraints = await toolbox.asearch(query=router_state.aggregated_query, max_n_tools=5, k_tools=10, bypass_constraints=shall_bypass_constraints)
-            print(f"Router state is {router_state.intent} and constraints are {constraints}")
+            tools, constraints = await toolbox.asearch(query=router_state.aggregated_query, max_n_tools=8, k_tools=10, bypass_constraints=shall_bypass_constraints)
             writer({"type": "log", "content": "I FOUND THEM!"})
             # filter out tools whose
             # data we already have
@@ -100,7 +99,8 @@ async def geocontext_retriever(state):
                 return constraints
             tool_data, processed_constraints = await asyncio.gather(
                 _wrapper(),
-                _process_constraints(constraints, provider, shall_bypass_constraints)
+                # _process_constraints(constraints, provider, shall_bypass_constraints)
+                temp()
             )
             # update context with
             # retrieved constraints
