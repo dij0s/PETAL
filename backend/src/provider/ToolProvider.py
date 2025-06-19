@@ -254,7 +254,7 @@ class ToolProvider:
         # using cosine similarity
         docs = await self._vector_store_tools.asimilarity_search(query=query, k=k, filter=filter)
         # rerank documents
-        top_docs = await self._rerank_documents(query=query, docs=docs, max_n=max_n, uniformity_threshold=0.4)
+        top_docs = await self._rerank_documents(query=query, docs=docs, max_n=max_n)
         # get top tools and store
         # their categories for
         # future lookup when guiding

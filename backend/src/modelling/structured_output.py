@@ -10,7 +10,7 @@ class RouterOutput(BaseModel):
     """Router output used to route user queries to appropriate agents and retrieve basic context."""
 
     intent: Optional[str] = Field(
-        description="Specifies the type of query based on user intent. Must be one of: 'factual' (if the user is directly asking for facts, data, or statistics), or 'actionable' (if the user is inquiring about actions, measures, or evaluations that can be taken or considered for the specified topic). If it is difficult to distinguish, assume the user is inquiring about 'factual'.",
+        description="Specifies the type of query based on user intent. Must be one of: 'factual' (user is requesting specific data points, statistics, or current state information without seeking planning guidance), or 'actionable' (user is seeking planning guidance, strategic evaluation, or implementation advice, including questions about importance, potential, value, recommendations, strategies, evaluation, implementation, opportunities, or suitability). When in doubt, if the question could benefit from regulatory guidelines, strategic context, or planning methodology, classify as 'actionable'.",
         default=None
     )
     location: Optional[str] = Field(
