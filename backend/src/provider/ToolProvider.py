@@ -209,7 +209,7 @@ class ToolProvider:
         # set in a way to extract "outliers"
         exp_logits = np.exp(logits - np.max(logits))
         scores = exp_logits / np.sum(exp_logits)
-        threshold = np.mean(scores) + np.std(scores)
+        threshold = np.mean(scores) + (0.5 * np.std(scores))
         selected_indices = np.where(scores > threshold)[0]
         # detect uniform distribution
         # using quartile coefficient
@@ -218,6 +218,7 @@ class ToolProvider:
         q1 = np.percentile(scores, 25)
         q3 = np.percentile(scores, 75)
         qcd = (q3 - q1) / (q3 + q1) if (q3 + q1) > 0 else 0
+        print(f"Scores: {scores}, threshold: {threshold}, QCD: {qcd}")
         if qcd < uniformity_threshold:
             # take top max_n directly
             top_indices = np.argsort(scores)[::-1][:max_n]
