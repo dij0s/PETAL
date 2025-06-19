@@ -385,7 +385,9 @@ def _tools_infrastructure(municipality_name: str) -> dict[str, StructuredTool]:
             WindTurbinesInfrastructureTool,
             BiogasInfrastructureTool,
             IncinerationInfrastructureTool,
-            EffectiveRenewableEnergiesTool,
+            OperationalSolarInfrastructureTool,
+            OperationalBiomassInfrastructureTool,
+            OperationalGeothermalInfrastructureTool,
             ThermalNetworksInfrastructureTool,
         ]
     }
