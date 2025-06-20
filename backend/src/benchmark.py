@@ -9,14 +9,13 @@ import json
 import re
 from functools import reduce
 
-from langchain_ollama import ChatOllama
 from langchain_core.messages import AIMessage, SystemMessage
 from langchain.prompts import PromptTemplate
 
+from provider.ModelProvider import ModelProvider
+from provider.GraphProvider import GraphProvider, State
 from pydantic import BaseModel, Field
 from modelling.PydanticStreamOutputParser import PydanticStreamOutputParser
-
-from provider.GraphProvider import GraphProvider, State
 from modelling.structured_output import BenchmarkScore
 
 parser = PydanticStreamOutputParser(pydantic_object=BenchmarkScore, diff=True)
@@ -44,8 +43,15 @@ class Benchmark:
         self._graph_state = None
         self._is_running = False
 
-        MODEL = os.getenv("OLLAMA_MODEL_LLM_BENCHMARKING", "llama3.2:3b")
-        self._llm = ChatOllama(model=MODEL, temperature=0).with_structured_output(BenchmarkScore)
+        self._llm = (
+            ModelProvider
+                .from_env_variable(
+                    "OLLAMA_MODEL_LLM_BENCHMARKING",
+                    temperature=0,
+                    defaults="llama3.2:3b",
+                )
+                .with_structured_output(BenchmarkScore)
+        )
 
         self.REDIS_URL_MEMORIES = os.getenv("REDIS_URL_MEMORIES")
         if self.REDIS_URL_MEMORIES is None:
@@ -55,79 +61,113 @@ class Benchmark:
         self.USER_ID = "999"
 
         self._system_prompt = PromptTemplate.from_template("""
-        You are an expert evaluator for municipal energy planning AI systems.
+        You are an expert evaluator for municipal energy planning AI systems. You must be CRITICAL and SKEPTICAL - good formatting and professional language do not equal good energy planning advice.
 
         CONTEXT:
         - Municipality: {location}
         - User Query: {query}
+        - Query Type: {query_type} (factual = data analysis focus, actionable = planning methodology focus)
         - Municipal Data Available: {municipal_data}
         - Cantonal Guidelines: {cantonal_guidelines}
 
         RESPONSE TO EVALUATE:
         {response}
 
-        COMPREHENSIVE EVALUATION:
-        Evaluate the response across all four criteria and provide scores for each (1-5 scale):
+        CRITICAL EVALUATION FRAMEWORK:
+        Rate each criterion from 1-5, where 5 requires EXCEPTIONAL quality, not just "looks professional":
 
         1. DATA INTERPRETATION (1-5):
-        Rate how accurately the response interprets and presents data:
-        - 5: Correctly interprets all data points, understands units, identifies data gaps, presents data clearly
-        - 4: Minor interpretation issues but generally accurate
-        - 3: Some data misinterpretation but core understanding is correct
-        - 2: Significant data interpretation errors
-        - 1: Completely misinterprets data or presents false information
+        CRITICAL CHECKS - Be harsh on these:
+        - **Query Relevance**: Does it ONLY use data that directly addresses the user's specific question?
+        - **Mathematical Accuracy**: Are all calculations correct? Check arithmetic carefully
+        - **Data Type Logic**: Are energy types properly distinguished and not inappropriately aggregated?
+        - **Units & Precision**: Are units preserved, consistent, and meaningful?
+        - **Zero Value Handling**: Are zero values correctly interpreted as "complete absence" not "constraints"?
 
-        Focus on:
-        - Are municipal data values presented correctly without scaling annotations?
-        - Are units preserved and clearly stated?
-        - Is the distinction between different data types clear?
-        - Are calculations (like totals, gaps) accurate?
+        DATA SANITY CHECKS - Common failure modes from expert feedback:
+        - **CONSUMPTION vs PRODUCTION**: Does it mix these without proper justification?
+        - **DOUBLE-COUNTING**: Could the same energy be counted twice? (e.g., district heating production + end consumption)
+        - **INVALID AGGREGATION**: Are summed values actually additive? (Don't add PV + solar thermal inappropriately)
+        - **IRRELEVANT DATA INCLUSION**: Does it include retrieved data that doesn't match query focus?
+        - **TEMPORAL LOGIC**: Do timeframes make sense? (No past-year projections, consistent time references)
+        - **PRODUCTION vs POTENTIAL**: Are actual vs theoretical values properly distinguished?
+        - **DATA AVAILABILITY CLAIMS**: Does it claim "no data" while having access to that information?
 
-        2. GUIDELINE APPLICATION (1-5):
-        Rate how well the response applies cantonal guidelines to municipal planning:
-        - 5: Appropriately applies guidelines as policy framework, scales specific targets correctly, maintains cantonal context
-        - 4: Good application with minor issues
-        - 3: Generally applies guidelines correctly but with some confusion
-        - 2: Misapplies guidelines or confuses their scope
-        - 1: Completely misunderstands or ignores guidelines
+        RED FLAGS (automatic score ≤2):
+        - Using irrelevant data just because it was retrieved
+        - Mixing consumption/production inappropriately
+        - Double-counting energy flows
+        - Invalid aggregation of incompatible data types
+        - Temporal inconsistencies (projecting past years)
+        - Mathematical errors in calculations
 
-        Focus on:
-        - Are cantonal guidelines used as policy framework rather than direct municipal constraints?
-        - Are specific targets scaled appropriately for the municipality?
-        - Is the relationship between cantonal and municipal planning clear?
+        2. METHODOLOGY ALIGNMENT (1-5):
+        For FACTUAL queries - Data Analysis Standards:
+        - **Current Energy Profile**: Clear presentation of key data points, trends, patterns
+        - **Data Insights**: Identifies significant findings and their implications
+        - **Factual Focus**: Avoids planning recommendations, stays analytical
+
+        For ACTIONABLE queries - Planning Methodology Standards:
+        - **Structured Approach**: Follows resource assessment → optimization strategy → implementation roadmap
+        - **Guideline Integration**: Properly extracts timeframes, implementation phases, milestones
+        - **Collaborative Guidance**: Provides next planning steps and local validation questions
+        - **Expert Positioning**: Presents as collaborative advisor, not directive authority
+
+        RED FLAGS (automatic score ≤2):
+        - Wrong methodology for query type (planning advice for factual query, or pure data for actionable query)
+        - Generic advice that ignores municipal context
+        - Missing key methodology components for query type
 
         3. MUNICIPAL RELEVANCE (1-5):
-        Rate how relevant and actionable the response is for municipal energy planning:
-        - 5: Highly relevant, actionable recommendations, appropriate scope for municipal planning
-        - 4: Relevant with minor scope issues
-        - 3: Generally relevant but some recommendations may be too broad/narrow
-        - 2: Limited relevance to municipal planning needs
-        - 1: Not relevant to municipal planning or provides misleading guidance
+        CRITICAL CHECKS - This is where most responses fail:
+        - **Specificity**: Are insights/recommendations specific to THIS municipality, not generic?
+        - **Scale Appropriateness**: Are suggestions feasible at municipal scale and authority?
+        - **Query Alignment**: Does it directly address the specific question asked?
+        - **Local Context**: Does it consider municipal-specific constraints and opportunities?
+        - **Implementation Feasibility**: Are next steps actionable by municipal decision-makers?
 
-        Focus on:
-        - Are recommendations appropriate for municipal-level decision making?
-        - Does it address the specific municipality's context?
-        - Are next steps actionable at the municipal level?
+        RED FLAGS (automatic score ≤2):
+        - Generic recommendations applicable to any municipality
+        - Suggesting actions outside municipal authority
+        - Not answering the specific question asked
+        - Ignoring obvious municipal constraints or context
 
-        4. SOURCE CITATIONS (1-5):
-        Rate the quality and accuracy of source citations:
-        - 5: All claims properly cited, correct citation format, distinguishes between data sources and guidelines
-        - 4: Most claims cited correctly with minor formatting issues
-        - 3: Generally cites sources but with some omissions or format issues
-        - 2: Inconsistent or incorrect citations
-        - 1: Missing citations or completely incorrect citation format
+        4. TECHNICAL COMPLIANCE (1-5):
+        FORMAT REQUIREMENTS:
+        - **Language Consistency**: Response in correct language throughout
+        - **Header Structure**: Uses only H3 (###) and H4 (####) headers
+        - **Citation Format**: Official sources cited as **Source Name** format
+        - **Structure Quality**: Appropriate use of tables, bullets, formatting
 
-        Focus on:
-        - Are official guidelines cited using the **Source** format?
-        - Are municipal data sources handled appropriately (no citation needed)?
-        - Is the citation format consistent and correct?
+        CONTENT REQUIREMENTS:
+        - **Source Accuracy**: Citations actually support the claims made
+        - **Professional Presentation**: Hides internal tool names, maintains expert positioning
+        - **Completeness**: Includes required conclusion sections (next steps, recommendations)
 
-        SCORING INSTRUCTIONS:
-        Provide your evaluation in this format:
+        RED FLAGS (automatic score ≤2):
+        - Incorrect citation format or false citations
+        - Wrong header levels or poor formatting
+        - Missing required sections for query type
+        - Language inconsistencies
 
+        SCORING PHILOSOPHY:
+        - Score 1-2: Major errors, misleading advice, fundamental misunderstanding, or wrong methodology
+        - Score 3: Basic competence but significant limitations, generic advice, or methodology gaps
+        - Score 4: Good quality with minor issues, genuinely useful for municipal planning, correct methodology
+        - Score 5: Exceptional - accurate, specific, actionable, demonstrates deep understanding, perfect methodology alignment
+
+        BE ESPECIALLY CRITICAL OF:
+        - Responses that include irrelevant data just because it was retrieved
+        - Professional-sounding advice that's actually generic or inappropriate
+        - Methodology mismatches (planning advice for data queries, or vice versa)
+        - Mathematical errors disguised by confident presentation
+        - Claims not supported by actual data or guidelines
+
+        SCORING FORMAT:
         {scoring_format}
-        """
-        )
+
+        Remember: Your job is to catch responses that sound authoritative but provide poor energy planning guidance. Be especially harsh on data misuse and methodology misalignment.
+        """)
 
     async def prompt(self, request: str):
         """Puts the request and on_end callback into the queue."""
@@ -158,6 +198,7 @@ class Benchmark:
         prompt = [SystemMessage(content=self._system_prompt.format(
             location=state.router.location,
             query=request,
+            query_type=state.router.intent,
             municipal_data=state.geocontext.context_tools,
             cantonal_guidelines=state.geocontext.context_constraints,
             response=last_ai_message,

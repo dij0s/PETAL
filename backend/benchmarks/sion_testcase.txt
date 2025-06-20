@@ -1,0 +1,9 @@
+What is the current energy consumption per energy vector and per consumer type in Sion ?
+How is is this demand expected to evolve until 2050 ?
+What energy efficiency measures should be considered to reduce this consumption ?
+Can you tell me the amount of CO2 associated to this demand ?
+What are potential sources of renewable energy in Sion (GWh/an for each source) ?
+How much of this potential is currently exploited ?
+How much is expected to be exploited in the future ?
+Can you provide me with a map of the electricity grid and potential PV production on roofs and other surfaces ?
+Can you provide me with a map of heat/cold demand density and potential sources of heat/cold ?

@@ -50,15 +50,10 @@ class Memory(BaseModel):
 
 class BenchmarkScore(BaseModel):
     data_interpretation: int = Field(description="Score from 1 to 5 indicating how accurately the response interprets and presents data.")
-    data_reasoning: str = Field(description="Detailed explanation of the data interpretation scoring.")
     guideline_application: int = Field(description="Score from 1 to 5 indicating how well the response applies cantonal guidelines to municipal planning.")
-    guideline_reasoning: str = Field(description="Detailed explanation of the guideline application scoring.")
     municipal_relevance: int = Field(description="Score from 1 to 5 indicating how relevant and actionable the response is for municipal energy planning.")
-    relevance_reasoning: str = Field(description="Detailed explanation of the municipal relevance scoring.")
     source_citations: int = Field(description="Score from 1 to 5 indicating the quality and accuracy of source citations.")
-    citations_reasoning: str = Field(description="Detailed explanation of the source citations scoring.")
-    specific_issues: list[str] = Field(description="List of any specific problems found across all criteria.")
-    improvements: str = Field(description="Suggestions for improvement across all criteria.")
+    specific_issues: list[str] = Field(description="List of any specific problems found across all criteria.", default_factory=list)
 
 class State(BaseModel):
     messages: Annotated[list[AnyMessage], add_messages]
