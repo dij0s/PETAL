@@ -110,7 +110,7 @@ async def stream_tokens(request: Request, user_id: str, thread_id: str):
         return {"error": "No prompt found for user."}
 
     checkpoint_data = session_data.get("checkpoint_data")
-    lang = session_store.get(user_id, {}).get("lang", "en")
+    lang = session_data.get("lang", "en")
 
     async def event_generator():
         last_state: Optional[State] = None

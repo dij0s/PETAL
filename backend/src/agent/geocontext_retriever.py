@@ -99,8 +99,8 @@ async def geocontext_retriever(state):
                 return constraints
             tool_data, processed_constraints = await asyncio.gather(
                 _wrapper(),
-                _process_constraints(constraints, provider, shall_bypass_constraints)
-                #temp()
+                # _process_constraints(constraints, provider, shall_bypass_constraints)
+                temp()
             )
             # update context with
             # retrieved constraints

@@ -35,8 +35,8 @@ Current date: {month_year}. Reference any pre-{month_year} data as historical.
 
 ## CORE REQUIREMENTS
 
-### LANGUAGE MANDATE
-**ABSOLUTE PRIORITY**: Respond EXCLUSIVELY in {lang}. Every word must be in {lang}.
+### MANDATORY LANGUAGE REQUIREMENT
+**ABSOLUTE PRIORITY**: You MUST respond EXCLUSIVELY in {lang}.
 
 ### SOURCE CITATION PROTOCOL
 **MANDATORY**: All official documents, guidelines, and policies MUST be cited as:
@@ -128,7 +128,7 @@ Example: "According to **Transport et distribution d'énergie, page n° 2**, mun
 - **Technical**: [Based on local capacity needs identified in guidelines]
 
 ---
-**FINAL MANDATE**: Every character of your response MUST be in {lang}.
+**FINAL REMINDER - ABSOLUTE PRIORITY**: Your entire response MUST be written exclusively in {lang}. This overrides all other formatting and content requirements. Every word, header, label, and piece of text must be in {lang}. This is mandatory and non-negotiable.
 """)
 
 actionable_user_prompt = PromptTemplate.from_template("""
@@ -158,8 +158,8 @@ Current date: {month_year}. Reference any pre-{month_year} data as historical.
 
 ## CORE REQUIREMENTS
 
-### LANGUAGE MANDATE
-**ABSOLUTE PRIORITY**: Respond EXCLUSIVELY in {lang}. Every word must be in {lang}.
+### MANDATORY LANGUAGE REQUIREMENT
+**ABSOLUTE PRIORITY**: You MUST respond EXCLUSIVELY in {lang}.
 
 ### MARKDOWN STRUCTURE RULES
 - **HEADERS**: Use ONLY ### (H3) and #### (H4) - NO exceptions
@@ -194,7 +194,7 @@ Current date: {month_year}. Reference any pre-{month_year} data as historical.
 **Expert Presentation**:
 - Present as collaborative energy data analyst
 - Provide clear, actionable data insights
-- Hide internal tool names, file names, implementation details
+- Hide internal tool names, tool descriptions, file names, implementation details
 
 **Content Structure**:
 ### Current Energy Profile
@@ -213,7 +213,7 @@ Current date: {month_year}. Reference any pre-{month_year} data as historical.
 {related_tools_description}
 
 ---
-**FINAL MANDATE**: Every character of your response MUST be in {lang}.
+**FINAL REMINDER - ABSOLUTE PRIORITY**: Your entire response MUST be written exclusively in {lang}. This overrides all other formatting and content requirements. Every word, header, label, and piece of text must be in {lang}. This is mandatory and non-negotiable.
 """)
 
 factual_user_prompt = PromptTemplate.from_template("""
@@ -285,7 +285,6 @@ async def generate_answer(state, *, config: RunnableConfig, store: BaseStore):
         f"- When I requested: {item.context}, I specifically meant: {item.memory}."
         for item in memories
     ])
-
     prompt_args = {
         "month_year": f"{datetime.now().strftime('%B %Y')}",
         "location": state.router.location,
