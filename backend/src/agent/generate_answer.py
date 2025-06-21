@@ -266,7 +266,7 @@ async def generate_answer(state, *, config: RunnableConfig, store: BaseStore):
     if last_categories is None:
         last_categories = []
     related_tools = reduce(
-        lambda res, c: [*res, *toolbox.get_tools(c)],
+        lambda res, c: [*res, *toolbox.get_tools(c)], # type: ignore
         last_categories,
         []
     )

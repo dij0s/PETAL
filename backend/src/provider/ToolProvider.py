@@ -3,17 +3,15 @@ import asyncio
 import uuid
 import numpy as np
 
-from typing import Callable, Optional, Awaitable
+from typing import Callable, Optional, Literal
 from functools import reduce
 
 from langchain_core.tools.structured import StructuredTool
 from langchain_core.documents import Document
 from langchain_core.vectorstores import InMemoryVectorStore
-from langchain_core.vectorstores.base import VectorStore
 from langchain_ollama import OllamaEmbeddings
 
 from langchain_redis import RedisVectorStore
-from redisvl.schema import IndexSchema
 
 from sentence_transformers import CrossEncoder
 
@@ -118,24 +116,12 @@ class ToolProvider:
         """
         return self._tool_registry_by_name.get(name, None)
 
-    def get_category(self, name: str) -> Optional[str]:
-        """
-        Get the category associated to a tool.
-
-        Args:
-            name (str): The tool's associated name.
-
-        Returns:
-            Optional[str]: The category of the tool, if associated.
-        """
-        return self._category_by_tool_name.get(name, None)
-
-    def get_tools(self, category_name: str) -> list[StructuredTool | Any]:
+    def get_tools(self, category_name: Literal["needs", "potential", "infrastructure"]) -> list[StructuredTool | Any]:
         """
         Get the tools associated to a category.
 
         Args:
-            category_name (str): The name of the category.
+            category_name (Literal["needs", "potential", "infrastructure"]): The name of the category.
 
         Returns:
             list[StructuredTool | Any]: The list of tools associated to that category.
@@ -183,7 +169,7 @@ class ToolProvider:
         # embedding differently ?
         return await asyncio.gather(tools_task, constraints_task)
 
-    async def _rerank_documents(self, query: str, docs: list[Document], max_n: int, batch_size: int = 5, uniformity_threshold: float = 0.5) -> list[Document]:
+    async def _rerank_documents(self, query: str, docs: list[Document], max_n: int, batch_size: int = 5, uniformity_threshold: float = 0.5) -> tuple[list[Document], bool]:
         """
         Rerank a list of documents based on their relevance to the query using the cross-encoder model.
 
@@ -195,10 +181,10 @@ class ToolProvider:
             uniformity_threshold (float): The threshold for uniformity of scores. Defaults to 0.5.
 
         Returns:
-            list[Document]: A list of the top reranked documents that meet the threshold, or an empty list if no documents meet the criteria.
+            tuple[list[Document], bool]: A tuple with a list of the top reranked documents that meet the threshold, or an empty list if no documents meet the criteria and a boolean indicating if documents yield from a uniform distribution.
         """
         if not docs:
-            return []
+            return [], False
         # apply crossencoder reranking
         pairs = [(query, doc.page_content) for doc in docs]
         # predict by batches for
@@ -222,15 +208,15 @@ class ToolProvider:
         if qcd < uniformity_threshold:
             # take top max_n directly
             top_indices = np.argsort(scores)[::-1][:max_n]
-            return [docs[index] for index in top_indices]
+            return [docs[index] for index in top_indices], True
         else:
             # take top max_n from the
             # thresholded results
             selected_scores = scores[selected_indices]
             top_indices = np.argsort(selected_scores)[::-1][:max_n]
-            return [docs[selected_indices[index]] for index in top_indices]
+            return [docs[selected_indices[index]] for index in top_indices], False
 
-    async def _asearch_tools(self, query: str, max_n: int, k: int = 5, filter: Optional[Callable[[Document], bool]] = None) -> list[StructuredTool]:
+    async def _asearch_tools(self, query: str, max_n: int, k: int = 5, filter: Optional[Callable[[Document], bool]] = None) -> tuple[list[StructuredTool], bool]:
         """
         Search for StructuredTool objects matching the query and filter.
         First retrieves documents based on cosine similarity indicator and the applies crossencoder reranking.
@@ -242,7 +228,7 @@ class ToolProvider:
             filter (Callable[[Document], bool]): A callable that takes a Document and returns True if it matches the filter criteria. By default, assigned to None.
 
         Returns:
-            list[StructuredTool]: A list of relevant StructuredTool objects that match the query and filter. By default, no filtering
+            tuple[list[StructuredTool], bool]: A tuple with the list of relevant StructuredTool objects that match the query and filter and a boolean indicating if the tools yield from uniform distribution. By default, no filtering
         """
         # handle invalid number of
         # documents to retrieve after
@@ -254,7 +240,7 @@ class ToolProvider:
         # using cosine similarity
         docs = await self._vector_store_tools.asimilarity_search(query=query, k=k, filter=filter)
         # rerank documents
-        top_docs = await self._rerank_documents(query=query, docs=docs, max_n=max_n)
+        top_docs, is_uniform = await self._rerank_documents(query=query, docs=docs, max_n=max_n)
         # get top tools and store
         # their categories for
         # future lookup when guiding
@@ -268,7 +254,7 @@ class ToolProvider:
             for tool in top_tools
         ]))
 
-        return top_tools
+        return top_tools, is_uniform
 
     async def _asearch_constraints(self, query: str) -> list[tuple[str, str]]:
         """
@@ -317,7 +303,7 @@ class ToolProvider:
         )
         # rerank chunks from
         # retrieved documents
-        top_docs = await self._rerank_documents(query=query, docs=docs, max_n=10, uniformity_threshold=0.35)
+        top_docs, _ = await self._rerank_documents(query=query, docs=docs, max_n=10, uniformity_threshold=0.35)
         return [
             (doc.page_content, doc.metadata.get("source", ""))
             for doc in top_docs

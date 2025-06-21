@@ -1,24 +1,22 @@
 import re
 import asyncio
 
-from typing import Optional, Any, Awaitable
-from pydantic import BaseModel, Field, ValidationError
+from typing import Optional, Any
 
-from functools import reduce, partial
+from functools import reduce
 
 from langchain_core.prompts import PromptTemplate
-from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+from langchain_core.messages import AIMessage, SystemMessage
 from langchain_core.tools.structured import StructuredTool
-from langgraph.func import task
 from langgraph.config import get_stream_writer
+from langgraph.types import StreamWriter
 
 from provider.ModelProvider import ModelProvider
 from provider.GeoSessionProvider import GeoSessionProvider
 from provider.ToolProvider import ToolProvider
 from modelling.structured_output import RouterOutput, GeoContextOutput
-from modelling.utils import reduce_missing_attributes
 
-llm = (
+llm_processing = (
     ModelProvider
         .from_env_variable(
             env_variable="OLLAMA_MODEL_LLM_PROCESSING",
@@ -27,6 +25,45 @@ llm = (
             extract_reasoning=True
         )
 )
+
+llm_tool_retrieval = (
+    ModelProvider
+        .from_env_variable(
+            env_variable="OLLAMA_MODEL_LLM_TOOLS",
+            temperature=0,
+            defaults="qwen3:1.7b",
+        )
+)
+
+system_prompt_tool_retrieval = PromptTemplate.from_template("""
+    You are an energy planning expert and you are given the following task :
+
+    In response to the user's input, you can select and execute any number of tools from the available set.
+    They will retrieve for you the data needed to answer the user input.
+    **IMPORTANT: The tools don't require any configuration.**
+
+    **Please note that all tools allow you to retrieve data specific to "{location}"**
+
+    ### User Request: "{user_request}"
+    """)
+
+system_prompt_processing = PromptTemplate.from_template("""
+    You are a text processor. Your job is to scale energy numbers in the following documents.
+
+    Instructions:
+    - For each document, find energy-related numbers.
+    - Multiply ONLY those numbers by {scaling_factor} and replace them in the text, rounded to 1 decimal place.
+    - DO NOT scale percentages, dates, or any other numbers.
+    - DO NOT add any explanations, notes, or comments.
+    - DO NOT change any other part of the text.
+    - Return the processed documents, separated by <doc>.
+
+    Input documents:
+    {constraints}
+
+    Output:
+    Return the same documents, in the same order, separated by <doc>. Only the relevant energy numbers should be changed.
+    """)
 
 async def geocontext_retriever(state):
     """
@@ -73,32 +110,28 @@ async def geocontext_retriever(state):
             GeoSessionProvider.get_or_create(router_state.location, 500, 1.0)
             GeoSessionProvider.get_or_create(router_state.location, 1000, 1.0)
             writer({"type": "log", "content": "Ok, that's done."})
+
             # retrieve relevant tools
             # and process constraints
             # for location-aware data
             writer({"type": "info", "content": "Retrieving tools and effective guidelines..."})
             shall_bypass_constraints: bool = router_state.intent == "factual"
             toolbox: ToolProvider = await ToolProvider.acreate(router_state.location)
-            tools, constraints = await toolbox.asearch(query=router_state.aggregated_query, max_n_tools=8, k_tools=10, bypass_constraints=shall_bypass_constraints)
+            (tools, are_tools_uniform), constraints = await toolbox.asearch(query=router_state.aggregated_query, max_n_tools=6, k_tools=10, bypass_constraints=shall_bypass_constraints)
             writer({"type": "log", "content": "I FOUND THEM!"})
             # filter out tools whose
             # data we already have
             tools = [tool for tool in tools if tool.name not in geocontext.context_tools.keys()]
-            async def _wrapper():
-                if len(tools) > 0:
-                    writer({"type": "info", "content": "Fetching data from retrieved tools..."})
-                    return await _ainvoke_tools(tools)
-                else:
-                    # needed data is already retrieved
-                    writer({"type": "info", "content": "We already have them!"})
-                    return {}
+
             # invoke necessary tools
             # and process constraints
             # concurrently if needed
             async def temp():
                 return constraints
+
+            writer({"type": "info", "content": "Fetching data from retrieved tools and processing guidelines.."})
             tool_data, processed_constraints = await asyncio.gather(
-                _wrapper(),
+                _invoke_tools(tools, are_tools_uniform, router_state),
                 # _process_constraints(constraints, provider, shall_bypass_constraints)
                 temp()
             )
@@ -126,6 +159,50 @@ async def geocontext_retriever(state):
     except Exception as e:
         print(f"Exception: {e}")
         return state
+
+async def _invoke_tools(tools: list[StructuredTool], are_tools_uniform: bool, router_state: RouterOutput) -> dict[str, Any]:
+    """
+    Invokes a list of StructuredTool objects asynchronously and returns their results as a dictionary.
+
+    This function checks if there are tools to invoke. If the probability distribution of the tools is uniform,
+    it prompts the language model to help select the most relevant tools for the user's query. It then fetches
+    data from the selected tools asynchronously.
+
+    Args:
+        tools (list[StructuredTool]): The list of tools to be invoked.
+        are_tools_uniform (bool): Indicates if the probability distribution of the tools is uniform.
+        router_state (RouterOutput): The current router state containing location and query information.
+
+    Returns:
+        dict[str, Any]: A dictionary containing the results from the invoked tools. If no tools are invoked,
+                        returns an empty dictionary.
+    """
+    if len(tools) > 0:
+        # prompt the llm to better
+        # choose the tools if the
+        # retrieved tools underlying
+        # probability distribution
+        # is uniform
+        if are_tools_uniform:
+            tools_bound_llm = llm_tool_retrieval.bind_tools(tools)
+            response = await tools_bound_llm.ainvoke([SystemMessage(content=system_prompt_tool_retrieval.format(
+                location=router_state.location,
+                user_request=router_state.aggregated_query
+            ))])
+
+            toolbox: ToolProvider = await ToolProvider.acreate(router_state.location) # type: ignore
+            # if no tools were chosen
+            # by the llm, default to
+            # the larger distribution
+            if hasattr(response, "tool_calls"):
+                tools = [
+                    toolbox.get(tool.get("name"))
+                    for tool in response.tool_calls # type: ignore
+                ]  # type: ignore
+
+        return await _ainvoke_tools(tools)
+    else:
+        return {}
 
 async def _process_constraints(constraints: list[tuple[str, str]], provider: GeoSessionProvider, bypass_constraints: bool = False) -> list[tuple[str, str]]:
     """
@@ -156,30 +233,14 @@ async def _process_constraints(constraints: list[tuple[str, str]], provider: Geo
         ([], [])
     )
 
-    prompt = [HumanMessage(content=PromptTemplate.from_template("""
-        You are a text processor. Your job is to scale energy numbers in the following documents.
-
-        Instructions:
-        - For each document, find energy-related numbers.
-        - Multiply ONLY those numbers by {scaling_factor} and replace them in the text, rounded to 1 decimal place.
-        - DO NOT scale percentages, dates, or any other numbers.
-        - DO NOT add any explanations, notes, or comments.
-        - DO NOT change any other part of the text.
-        - Return the processed documents, separated by <doc>.
-
-        Input documents:
-        {constraints}
-
-        Output:
-        Return the same documents, in the same order, separated by <doc>. Only the relevant energy numbers should be changed.
-        """).format(
+    prompt = [SystemMessage(content=system_prompt_processing.format(
         scaling_factor=SCALING_FACTOR,
         constraints="\n".join(f"<doc>{chunk}</doc>" for chunk in constraints_chunks),
     ))]
     # prompt the llm for the scaled
     # constraints specific for the
     # location
-    response = await llm.ainvoke(prompt)
+    response = await llm_processing.ainvoke(prompt)
     # extract the documents
     # from the response and
     # return original ones

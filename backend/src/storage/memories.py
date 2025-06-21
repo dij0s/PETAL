@@ -41,6 +41,9 @@ async def fetch_memories(config: RunnableConfig, store: BaseStore, query: str) -
             Memory(**item.value)
             for item in await store.asearch(namespace, query=query, limit=5)
         ]
+        if len(memories) == 0:
+            return []
+
         pairs = [(query, item.context) for item in memories]
         # no need to batch as at most
         # 5 memories are retrieved
@@ -53,12 +56,12 @@ async def fetch_memories(config: RunnableConfig, store: BaseStore, query: str) -
         # threshold the relevant items
         # using the mean score (1 being the sum p.d.)
         threshold = 1 / len(memories)
+
         top_indices = [
             index
             for index, score in enumerate(scores)
             if score > threshold
         ]
-
         return [memories[index] for index in top_indices]
     except Exception as e:
         print(f"Exception: {e}")
