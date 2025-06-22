@@ -24,6 +24,7 @@ wheels/
 *.npz
 extracted_pages.json
 documents_with_visual_analysis.json
+citizen_data
 
 # Marimo context
 __marimo__
