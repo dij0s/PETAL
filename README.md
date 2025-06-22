@@ -95,9 +95,31 @@ All services are packaged into separate Docker containers for streamlined deploy
 
 Before running the project, ensure that Docker and Docker Compose are installed on your system. For installation instructions, refer to the official Docker Compose documentation: https://docs.docker.com/compose/install/
 
-Before proceeding, create an environment configuration file by copying `.env.example` to either `.env.dev` or `.env.prod`, depending on your deployment needs, and adjust the settings as required.
+Install the NVIDIA Container Toolkit on the host machine that will run the Ollama Docker service, as Ollama is a GPU-intensive service. This enables GPU passthrough for optimal performance. Follow the official NVIDIA Container Toolkit installation guide: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
 
-# todo
+Before getting started, create an environment configuration file by duplicating `.env.example` as either `.env.dev` or `.env.prod`, according to your deployment requirements. Specify the models you intend to use in this file and modify any other settings as needed.
 
-AI NOTICE
-LICENSE
+To launch the various services, use the `run.sh` script:
+
+```bash
+./run.sh <env> docker compose up
+# where <env> is either 'dev' or 'prod'
+```
+This script automatically loads the correct environment variables from either `.env.dev` or `.env.prod`, depending on the mode you specify, before running the chosen command.
+
+If you wish to start only a specific service let's say on a particular host, you can do so with:
+
+```bash
+./run.sh <env> docker compose up <service>
+# where <env> is either 'dev' or 'prod', and <service> is one of 'ollama','redis', 'backend', or 'frontend'
+```
+
+The web interface can be accessed at `http://localhost:5000`, by default.
+
+## References
+
+All references can be found in the thesis report.
+
+## Note
+
+For any additional questions not addressed in this document or the thesis report, please feel free to reach out to me at you can also contact me at [dion(dot)08osmani(at)gmail(dot)com](mailto:dion.08osmani@gmail.com).
