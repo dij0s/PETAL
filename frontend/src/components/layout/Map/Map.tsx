@@ -90,12 +90,19 @@ const MapComponent = ({ mapLayers, focusedMunicipalitySFSO }: MapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapObj = useRef<Map | null>(null);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [baseLayer, _setBaseLayer] = useState<"swissimage" | "pixelkarte">(
+  const [baseLayer, setBaseLayer] = useState<"swissimage" | "pixelkarte">(
     "swissimage",
   );
 
-  const handleToggle = (layerName: string) => {
+  const handleToggleBaseLayer = () => {
+    if (!mapObj.current) return;
+    setBaseLayer((prev) => {
+      const next = prev === "swissimage" ? "pixelkarte" : "swissimage";
+      return next;
+    });
+  };
+
+  const handleToggleExtraLayer = (layerName: string) => {
     if (!mapObj.current) return;
     const layers = mapObj.current.getLayers();
     // find layer and toggle visibility
@@ -244,7 +251,12 @@ const MapComponent = ({ mapLayers, focusedMunicipalitySFSO }: MapProps) => {
 
   return (
     <div className="map-wrapper" ref={mapRef}>
-      <MapControls mapLayers={mapLayers} handleToggle={handleToggle} />
+      <MapControls
+        currentBaseLayer={baseLayer}
+        handleBaseLayerToggle={handleToggleBaseLayer}
+        extraLayers={mapLayers}
+        handleExtraLayerToggle={handleToggleExtraLayer}
+      />
     </div>
   );
 };
