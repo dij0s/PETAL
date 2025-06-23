@@ -1451,7 +1451,7 @@ class BuildingsConstructionPeriodsTool(GeoDataTool):
             municipality_name=municipality_name,
             func=_fetch_building_construction_periods,
             name="building_construction_periods",
-            layer_id="ch.bfs.gebaeude_wohnungs_register",
+            layer_id="",
             description="**Building construction periods**. Returns the building construction periods, where each result is a tuple of (construction period, number of buildings). The number of buildings can be summed or grouped according to their construction periods.",
         )
 

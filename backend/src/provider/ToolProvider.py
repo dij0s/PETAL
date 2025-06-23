@@ -207,11 +207,13 @@ class ToolProvider:
         print(f"Scores: {scores}, threshold: {threshold}, QCD: {qcd}")
         if qcd < uniformity_threshold:
             # take top max_n directly
+            print(f"Score distribution is uniform")
             top_indices = np.argsort(scores)[::-1][:max_n]
             return [docs[index] for index in top_indices], True
         else:
             # take top max_n from the
             # thresholded results
+            print(f"Only considering {len(selected_indices)} thresholded document(s)")
             selected_scores = scores[selected_indices]
             top_indices = np.argsort(selected_scores)[::-1][:max_n]
             return [docs[selected_indices[index]] for index in top_indices], False

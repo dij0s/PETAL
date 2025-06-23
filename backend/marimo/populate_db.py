@@ -98,22 +98,6 @@ def _():
             "label": "Zones agricoles",
             "type": "coordination_sheet"
         },
-        "A.10 Parcs naturels et patrimoine mondial de l'UNESCO.pdf": {
-            "label": "Parcs naturels et patrimoine mondial de l'UNESCO",
-            "type": "coordination_sheet"
-        },
-        "A.11.pdf": {
-            "label": "Réseaux écologiques et corridors à faune",
-            "type": "coordination_sheet"
-        },
-        "A.12.pdf": {
-            "label": "Troisième correction du Rhône",
-            "type": "coordination_sheet"
-        },
-        "A.13.pdf": {
-            "label": "Aménagement, renaturation et entretien des cours d’eau",
-            "type": "coordination_sheet"
-        },
         "A.14.pdf": {
             "label": "Bisses",
             "type": "coordination_sheet"
@@ -128,10 +112,6 @@ def _():
         },
         "A.2.pdf": {
             "label": "Surfaces d'assolement",
-            "type": "coordination_sheet"
-        },
-        "A.3.pdf": {
-            "label": "Vignes",
             "type": "coordination_sheet"
         },
         "A.4.pdf": {
@@ -156,26 +136,6 @@ def _():
         },
         "A.9.pdf": {
             "label": "Protection et gestion de la nature",
-            "type": "coordination_sheet"
-        },
-        "B.1.pdf": {
-            "label": "Tourisme intégré",
-            "type": "coordination_sheet"
-        },
-        "B.2.pdf": {
-            "label": "Hébergement touristique",
-            "type": "coordination_sheet"
-        },
-        "B.3.pdf": {
-            "label": "Camping",
-            "type": "coordination_sheet"
-        },
-        "B.4.pdf": {
-            "label": "Domaines skiables",
-            "type": "coordination_sheet"
-        },
-        "B.5.pdf": {
-            "label": "Terrains de golf",
             "type": "coordination_sheet"
         },
         "B.6.pdf": {
@@ -206,54 +166,6 @@ def _():
             "label": "Agglomérations",
             "type": "coordination_sheet"
         },
-        "C.6.pdf": {
-            "label": "Prévention des accidents majeurs",
-            "type": "coordination_sheet"
-        },
-        "C.7.pdf": {
-            "label": "Installations générant un trafic important (IGT)  ",
-            "type": "coordination_sheet"
-        },
-        "C.8.pdf": {
-            "label": "Installations d'intérêt public",
-            "type": "coordination_sheet"
-        },
-        "C.9.pdf": {
-            "label": "Installations militaires",
-            "type": "coordination_sheet"
-        },
-        "D.1.pdf": {
-            "label": "Transports publics",
-            "type": "coordination_sheet"
-        },
-        "D.2.pdf": {
-            "label": "Interfaces d'échanges modaux",
-            "type": "coordination_sheet"
-        },
-        "D.3.pdf": {
-            "label": "Réseaux ferroviaires",
-            "type": "coordination_sheet"
-        },
-        "D.4.pdf": {
-            "label": "Réseaux routiers",
-            "type": "coordination_sheet"
-        },
-        "D.5.pdf": {
-            "label": "Mobilité douce quotidienne (MDQ)",
-            "type": "coordination_sheet"
-        },
-        "D.6.pdf": {
-            "label": "Infrastructures de transport public par câble",
-            "type": "coordination_sheet"
-        },
-        "D.7.pdf": {
-            "label": "Infrastructures de transport de marchandises",
-            "type": "coordination_sheet"
-        },
-        "D.8.pdf": {
-            "label": "Infrastructures aéronautiques",
-            "type": "coordination_sheet"
-        },
         "E.1.pdf": {
             "label": "Gestion de l'eau",
             "type": "coordination_sheet"
@@ -280,10 +192,6 @@ def _():
         },
         "E.7.pdf": {
             "label": "Transport et distribution d'énergie",
-            "type": "coordination_sheet"
-        },
-        "E.8.pdf": {
-            "label": "Approvisionnement en matériaux pierreux et terreux",
             "type": "coordination_sheet"
         },
         "E.9.pdf": {
@@ -322,16 +230,17 @@ def _(redis):
 @app.cell
 def _(md_splitter, metadata, pages, pipeline, uuid):
     for page in pages.values():
-        json_doc = {
-            "document_title": metadata[page["document_filename"]]["label"],
-            "document_type": metadata[page["document_filename"]]["type"],
-            "page_number": page["page_index"] + 1,
-            "description": page["visual_analysis"]["analysis"],
-            "chunks": [doc.page_content for doc in md_splitter.split_text(page["visual_analysis"]["analysis"])],
-            "raw_content": page["content"],
-        }
-        redis_key = f"doc:{uuid.uuid4()}"
-        pipeline.json().set(redis_key, "$", json_doc)
+        if page["document_filename"] in metadata:
+            json_doc = {
+                "document_title": metadata[page["document_filename"]]["label"],
+                "document_type": metadata[page["document_filename"]]["type"],
+                "page_number": page["page_index"] + 1,
+                "description": page["visual_analysis"]["analysis"],
+                "chunks": [doc.page_content for doc in md_splitter.split_text(page["visual_analysis"]["analysis"])],
+                "raw_content": page["content"],
+            }
+            redis_key = f"doc:{uuid.uuid4()}"
+            pipeline.json().set(redis_key, "$", json_doc)
     res = pipeline.execute()
     return
 
@@ -345,7 +254,7 @@ def _(client):
 
 @app.cell
 def _(client):
-    client.json().get("doc:9be78250-0169-48dd-a7a5-64a52926be8d")
+    client.json().get("doc:21765f94-45b8-49e3-b3f5-2657ccc1997f")
     return
 
 

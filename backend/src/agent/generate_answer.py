@@ -48,6 +48,7 @@ Example: "According to **Transport et distribution d'énergie, page n° 2**, mun
 - **NO BLANK LINES**: Avoid whitespace-only lines
 - Use tables for comparisons, bullet points for findings
 - **Bold** for key values, *italics* for policy emphasis
+- **MANDATORY SOURCE CITATION**: When citing legislative documents or official guidelines, you MUST ALWAYS include the source using format: **Source**. There is no need to include the source for data points.
 
 ## MEMORY-DRIVEN INTERPRETATION
 
@@ -117,7 +118,8 @@ Example: "According to **Transport et distribution d'énergie, page n° 2**, mun
 
 **Conclusion Format**:
 ### Your Next Planning Steps
-*Based on this analysis, here are the most valuable next investigations:*
+End with a section suggesting one or more related analyses from the available data sources that are the most valuable next investigations, phrased in a friendly and helpful way.
+**DO NOT EXPOSE THE INTERNAL DETAILS THAT MAKE UP THE DESCRIPTION OF A TOOL**:
 {related_tools_description}
 
 ### Questions for Local Validation
@@ -166,6 +168,7 @@ Current date: {month_year}. Reference any pre-{month_year} data as historical.
 - **NO BLANK LINES**: Avoid whitespace-only lines
 - Use tables for comparisons, bullet points for findings
 - **Bold** for key values, *italics* for emphasis
+- **MANDATORY SOURCE CITATION**: When citing legislative documents or official guidelines, you MUST ALWAYS include the source using format: **Source**. There is no need to include the source for data points.
 
 ## MEMORY-DRIVEN INTERPRETATION
 
@@ -208,8 +211,9 @@ Current date: {month_year}. Reference any pre-{month_year} data as historical.
 - **Data Relationships**: Connections between different energy metrics
 
 **Conclusion Format**:
-### Recommended Data Explorations
-*To build on this analysis, consider investigating:*
+### Your Next Planning Steps
+End with a section suggesting one or more related analyses from the available data sources that are the most valuable next investigations, phrased in a friendly and helpful way.
+**DO NOT EXPOSE THE INTERNAL DETAILS THAT MAKE UP THE DESCRIPTION OF A TOOL**:
 {related_tools_description}
 
 ---
@@ -276,7 +280,6 @@ async def generate_answer(state, *, config: RunnableConfig, store: BaseStore):
     related_tools_description = "\n".join(tool.description for tool in related_tools)
 
     writer({"type": "info", "content": "Organizing the information."})
-    writer({"type": "log", "content": f"Providing {state.router.intent} information, constraining context is of length {len(state.geocontext.context_constraints)}"})
     # build prompt based on factual
     # or actionable user request
     # retrieve user memories

@@ -9,7 +9,6 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.messages import AIMessage, SystemMessage
 from langchain_core.tools.structured import StructuredTool
 from langgraph.config import get_stream_writer
-from langgraph.types import StreamWriter
 
 from provider.ModelProvider import ModelProvider
 from provider.GeoSessionProvider import GeoSessionProvider
@@ -48,21 +47,30 @@ system_prompt_tool_retrieval = PromptTemplate.from_template("""
     """)
 
 system_prompt_processing = PromptTemplate.from_template("""
-    You are a text processor. Your job is to scale energy numbers in the following documents.
+    You are a text processor that scales energy capacity and consumption figures for municipal planning.
 
     Instructions:
-    - For each document, find energy-related numbers.
-    - Multiply ONLY those numbers by {scaling_factor} and replace them in the text, rounded to 1 decimal place.
-    - DO NOT scale percentages, dates, or any other numbers.
-    - DO NOT add any explanations, notes, or comments.
-    - DO NOT change any other part of the text.
-    - Return the processed documents, separated by <doc>.
+    - Find numbers that represent energy QUANTITIES (capacities, generation amounts, consumption volumes, storage amounts)
+    - Multiply ONLY these quantity numbers by {scaling_factor}, rounded to 1 decimal place
+    - DO NOT scale: percentages, efficiency ratings, ratios, years/dates, temperatures, voltages, frequencies, minimum/maximum thresholds, safety factors, or technical specifications
+    - DO NOT add explanations or change any other text
+    - If uncertain whether a number should be scaled, DO NOT scale it
+
+    Examples of what TO scale:
+    - "500 MW solar capacity" → scale the 500
+    - "2,000 MWh annual consumption" → scale the 2,000
+    - "50 GWh battery storage" → scale the 50
+
+    Examples of what NOT to scale:
+    - "80% efficiency requirement" → keep 80%
+    - "Grid voltage of 480V" → keep 480V
+    - "Implemented by 2030" → keep 2030
+    - "Minimum 15% renewable mix" → keep 15%
 
     Input documents:
     {constraints}
 
-    Output:
-    Return the same documents, in the same order, separated by <doc>. Only the relevant energy numbers should be changed.
+    Output: Return the same documents in order, separated by <doc>, with only energy quantity numbers modified.
     """)
 
 async def geocontext_retriever(state):
@@ -241,6 +249,8 @@ async def _process_constraints(constraints: list[tuple[str, str]], provider: Geo
     # constraints specific for the
     # location
     response = await llm_processing.ainvoke(prompt)
+    print(f"This is what we prompted: {prompt}")
+    print(f"And this is the resulting response: {response}")
     # extract the documents
     # from the response and
     # return original ones
