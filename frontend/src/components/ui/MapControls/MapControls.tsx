@@ -24,7 +24,7 @@ const MapControls = ({
   extraLayers,
   handleExtraLayerToggle,
 }: MapControlsProps) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [layersMetadata, setLayersMetadata] = useState<
     Record<string, LayerMetadata>
   >({});
