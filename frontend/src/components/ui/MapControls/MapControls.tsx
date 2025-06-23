@@ -151,7 +151,8 @@ const MapControls = ({
     }
     expandedTimeoutRef.current = setTimeout(() => {
       setIsExpanded(false);
-    }, 200);
+      setActiveLegend(null);
+    }, 350);
   };
 
   return (
@@ -173,16 +174,18 @@ const MapControls = ({
             className="extra-layer-wrapper"
             onClick={() => toggleLayerVisibility(layerId)}
           >
-            <input
-              type="checkbox"
-              checked={layersMetadata[layerId]?.isVisible ?? true}
-              onChange={() => {}}
-              className="extra-layer-checkbox"
-              readOnly
-            />
-            <span className="extra-layer-name">
-              {layersMetadata[layerId]?.name || layerId}
-            </span>
+            <div className="extra-layer-controls">
+              <input
+                type="checkbox"
+                checked={layersMetadata[layerId]?.isVisible ?? true}
+                onChange={() => {}}
+                className="extra-layer-checkbox"
+                readOnly
+              />
+              <span className="extra-layer-name">
+                {layersMetadata[layerId]?.name || layerId}
+              </span>
+            </div>
             <span
               className="extra-layer-info-button"
               onClick={(e) => {
@@ -200,9 +203,14 @@ const MapControls = ({
                   className="extra-layer-legend-tooltip"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setActiveLegend(null);
                   }}
                 >
+                  <span
+                    className="extra-layer-tooltip-close"
+                    onClick={() => setActiveLegend(null)}
+                  >
+                    ×
+                  </span>
                   <div
                     dangerouslySetInnerHTML={{
                       __html: layersMetadata[layerId].legendHtml,
@@ -212,6 +220,7 @@ const MapControls = ({
               )}
           </div>
         ))}
+        <div className="map-controls-layers-blankspace" />
       </div>
       <div
         className="map-controls-preview"
