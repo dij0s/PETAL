@@ -1,9 +1,9 @@
-import { useState, useRef, useEffect } from "react";
-import Prompt from "../../ui/Prompt";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import loader from "../../../assets/loader.webp";
 import type { Message } from "../../../types/Message";
 import Chat from "../../ui/Chat";
-import loader from "../../../assets/loader.webp";
+import Prompt from "../../ui/Prompt";
 import "./Conversation.css";
 
 interface ConversationProps {

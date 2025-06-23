@@ -1,55 +1,51 @@
-/* .map-controls-wrapper {
-    position: absolute;
-    top: 0.5em;
-    right: 0.5em;
-    z-index: 1;
-    width: 40%;
-}
-
-.map-controls-toggle {
-    display: flex;
-    justify-content: right;
-    color: var(--background-color-action-85-opacity);
-}
-
-.map-layer-controls {
+.map-controls-wrapper {
     display: flex;
     flex-direction: column;
-}
-
-.map-single-control {
-    display: flex;
-    justify-content: space-between;
-}
-
-.map-layer-name {
-    color: var(--text-color-85-opacity);
-} */
-
-.map-controls-wrapper {
+    justify-content: flex-end;
+    align-items: flex-start;
     position: absolute;
-    width: 100%;
-    bottom: 0px;
-    left: 0px;
+    width: 80px;
+    bottom: 40px;
+    left: 10px;
+    transition:
+        width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.map-controls-wrapper[data-expanded="true"] {
+    width: 280px;
+    min-height: 80px;
+    border-radius: 10px 10px 0 0;
 }
 
 .map-controls-preview {
-    position: absolute;
-    bottom: 40px;
-    left: 10px;
-    width: 60px;
-    aspect-ratio: 1/1;
+    width: 100%;
+    height: 80px;
     background-size: cover;
     background-position: center;
     border-radius: 10px;
-    border: 1px solid var(--border-color);
+    border: 2px solid white;
     box-sizing: border-box;
     z-index: 1;
 }
 
+.map-controls-wrapper[data-expanded="true"] > .map-controls-preview {
+    border-top: none;
+    border-bottom: 1px solid var(--border-color);
+    border-left: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    border-radius: 0px 0px 10px 10px;
+}
+
+.map-controls-preview:hover {
+    cursor: pointer;
+}
+
 .map-controls-preview[data-base-layer="swissimage"] {
     background-image:
-        linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0) 100%),
+        linear-gradient(to top, rgba(0, 0, 0, 0.4) 20%, rgba(0, 0, 0, 0) 100%),
         url("/src/assets/swissimage.jpeg");
 }
 
@@ -60,66 +56,31 @@
 }
 
 .map-controls-layers {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-around;
-    position: absolute;
-    bottom: 0px;
-    left: calc(50% - 200px);
-    width: 400px;
-    height: 160px;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    height: 0px;
+    padding: 4px 10px 80px 10px;
+    font-size: 0.875rem;
     background-color: var(--background-color);
+    box-sizing: border-box;
     border-top: 1px solid var(--border-color);
     border-left: 1px solid var(--border-color);
     border-right: 1px solid var(--border-color);
     border-radius: 10px 10px 0 0;
-    z-index: 1;
     opacity: 0;
+    z-index: 0;
     transition:
-        color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-        opacity 0.1s 0.1s;
+        height 0.3s cubic-bezier(0.4, 0, 0.2, 1) 0.1s,
+        color 0.1s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.1s cubic-bezier(0.4, 0, 0.2, 1),
+        z-index 0.1s;
 }
 
 .map-controls-layers[data-visible="true"] {
+    height: max-content;
     opacity: 1;
-}
-
-.alternative-base-layer-preview {
-    width: 60px;
-    aspect-ratio: 1/1;
-    background-size: cover;
-    background-position: center;
-    border-radius: 10px;
-    border: 1px solid var(--border-color);
-    box-sizing: border-box;
-}
-
-.alternative-base-layer-preview:hover,
-.map-controls-preview:hover {
-    cursor: pointer;
-}
-
-.alternative-base-layer-preview[data-base-layer="swissimage"] {
-    background-image:
-        linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0) 100%),
-        url("/src/assets/swissimage.jpeg");
-}
-
-.alternative-base-layer-preview[data-base-layer="pixelkarte"] {
-    background-image:
-        linear-gradient(to top, rgba(0, 0, 0, 0.4) 20%, rgba(0, 0, 0, 0) 100%),
-        url("/src/assets/pixelkarte.jpeg");
-}
-
-.extra-layers-wrapper {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-    align-items: flex-end;
-    width: 75%;
-    height: 100%;
-    font-size: 0.875rem;
+    z-index: 1;
 }
 
 .extra-layer-info-button {
@@ -142,5 +103,4 @@
     border: 1px solid var(--border-color);
     border-radius: 10px;
     white-space: normal;
-    z-index: 1;
 }

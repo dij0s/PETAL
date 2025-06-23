@@ -1,6 +1,6 @@
 import json
 
-with open("benchmarking/sion_benchmarking_bigger_model.json", "r") as f:
+with open("benchmarking/sion_benchmarking_deepseek.json", "r") as f:
     data = json.load(f)
 
 from functools import reduce

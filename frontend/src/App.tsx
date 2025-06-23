@@ -41,7 +41,8 @@ function App() {
     <Layout
       sidebarState={sidebarState}
       setSidebarState={setSidebarState}
-      mapLayers={streamingState.mapLayers}
+      // mapLayers={streamingState.mapLayers}
+      mapLayers={["ch.bfe.solarenergie-eignung-daecher"]}
       focusedMunicipalitySFSO={streamingState.mapFocusedMunicipality}
       onSelectConversation={handleSelectConversation}
       onNewConversation={handleNewConversation}

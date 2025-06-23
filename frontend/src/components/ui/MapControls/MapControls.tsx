@@ -24,7 +24,7 @@ const MapControls = ({
   extraLayers,
   handleExtraLayerToggle,
 }: MapControlsProps) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
   const [layersMetadata, setLayersMetadata] = useState<
     Record<string, LayerMetadata>
   >({});
@@ -32,6 +32,7 @@ const MapControls = ({
   const { i18n } = useTranslation();
   const currentLang = i18n.language;
   const lastLangRef = useRef(currentLang);
+  const expandedTimeoutRef = useRef(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -116,6 +117,7 @@ const MapControls = ({
     return () => {
       isMounted = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [extraLayers, currentLang]);
 
   const toggleLayerVisibility = useCallback(
@@ -132,74 +134,94 @@ const MapControls = ({
     [handleExtraLayerToggle],
   );
 
+  const handleControlsMouseEnter = () => {
+    if (expandedTimeoutRef.current) {
+      clearTimeout(expandedTimeoutRef.current);
+      expandedTimeoutRef.current = null;
+    }
+    expandedTimeoutRef.current = setTimeout(() => {
+      setIsExpanded(true);
+      expandedTimeoutRef.current = null;
+    }, 650);
+  };
+
+  const handleControlsMouseLeave = () => {
+    if (expandedTimeoutRef.current) {
+      clearTimeout(expandedTimeoutRef.current);
+    }
+    expandedTimeoutRef.current = setTimeout(() => {
+      setIsExpanded(false);
+    }, 200);
+  };
+
   return (
-    <div className="map-controls-wrapper">
+    <div
+      className="map-controls-wrapper"
+      onMouseEnter={handleControlsMouseEnter}
+      onMouseLeave={handleControlsMouseLeave}
+      data-expanded={isExpanded}
+    >
+      <div
+        className="map-controls-layers"
+        data-visible={isExpanded}
+        onMouseEnter={handleControlsMouseEnter}
+        onMouseLeave={handleControlsMouseLeave}
+      >
+        {extraLayers.map((layerId) => (
+          <div
+            key={layerId}
+            className="extra-layer-wrapper"
+            onClick={() => toggleLayerVisibility(layerId)}
+          >
+            <input
+              type="checkbox"
+              checked={layersMetadata[layerId]?.isVisible ?? true}
+              onChange={() => {}}
+              className="extra-layer-checkbox"
+              readOnly
+            />
+            <span className="extra-layer-name">
+              {layersMetadata[layerId]?.name || layerId}
+            </span>
+            <span
+              className="extra-layer-info-button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveLegend((prev) => (prev === layerId ? null : layerId));
+              }}
+              role="button"
+              aria-label="Layer information"
+            >
+              <FontAwesomeIcon icon={faCircleInfo} />
+            </span>
+            {activeLegend === layerId &&
+              layersMetadata[layerId]?.legendHtml && (
+                <div
+                  className="extra-layer-legend-tooltip"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveLegend(null);
+                  }}
+                >
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: layersMetadata[layerId].legendHtml,
+                    }}
+                  />
+                </div>
+              )}
+          </div>
+        ))}
+      </div>
       <div
         className="map-controls-preview"
-        onClick={() => setIsExpanded((prev) => !prev)}
-        data-base-layer={currentBaseLayer}
+        onClick={() => {
+          handleBaseLayerToggle();
+        }}
+        data-base-layer={
+          currentBaseLayer === "swissimage" ? "pixelkarte" : "swissimage"
+        }
       ></div>
-      <div className="map-controls-layers" data-visible={isExpanded}>
-        <div
-          className="alternative-base-layer-preview"
-          onClick={() => {
-            handleBaseLayerToggle();
-            setIsExpanded(false);
-          }}
-          data-base-layer={
-            currentBaseLayer === "swissimage" ? "pixelkarte" : "swissimage"
-          }
-        />
-        <div className="extra-layers-wrapper">
-          {extraLayers.map((layerId) => (
-            <div
-              key={layerId}
-              className="extra-layer-wrapper"
-              onClick={() => toggleLayerVisibility(layerId)}
-            >
-              <input
-                type="checkbox"
-                checked={layersMetadata[layerId]?.isVisible ?? true}
-                onChange={() => {}}
-                className="extra-layer-checkbox"
-                readOnly
-              />
-              <span className="extra-layer-name">
-                {layersMetadata[layerId]?.name || layerId}
-              </span>
-              <span
-                className="extra-layer-info-button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setActiveLegend((prev) =>
-                    prev === layerId ? null : layerId,
-                  );
-                }}
-                role="button"
-                aria-label="Layer information"
-              >
-                <FontAwesomeIcon icon={faCircleInfo} />
-              </span>
-              {activeLegend === layerId &&
-                layersMetadata[layerId]?.legendHtml && (
-                  <div
-                    className="extra-layer-legend-tooltip"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActiveLegend(null);
-                    }}
-                  >
-                    <div
-                      dangerouslySetInnerHTML={{
-                        __html: layersMetadata[layerId].legendHtml,
-                      }}
-                    />
-                  </div>
-                )}
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 };
