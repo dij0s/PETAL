@@ -136,23 +136,23 @@ const MapControls = ({
 
   const handleControlsMouseEnter = () => {
     if (expandedTimeoutRef.current) {
-      clearTimeout(expandedTimeoutRef.current);
+      clearTimeout(expandedTimeoutRef.current as unknown as number);
       expandedTimeoutRef.current = null;
     }
     expandedTimeoutRef.current = setTimeout(() => {
       setIsExpanded(true);
       expandedTimeoutRef.current = null;
-    }, 650);
+    }, 650) as unknown as null;
   };
 
   const handleControlsMouseLeave = () => {
     if (expandedTimeoutRef.current) {
-      clearTimeout(expandedTimeoutRef.current);
+      clearTimeout(expandedTimeoutRef.current as unknown as number);
     }
     expandedTimeoutRef.current = setTimeout(() => {
       setIsExpanded(false);
       setActiveLegend(null);
-    }, 350);
+    }, 350) as unknown as null;
   };
 
   return (
