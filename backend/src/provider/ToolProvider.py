@@ -280,7 +280,7 @@ class ToolProvider:
         pipe = client.pipeline()
         pipe.json().mget([
             doc.metadata.get("id", "")
-            for doc in await self._vector_store_constraints.asimilarity_search(query=query, k=25)
+            for doc in await self._vector_store_constraints.asimilarity_search(query=query, k=15)
         ], "$['document_title', 'page_number', 'chunks']")
         # flatten documents into
         # both the chunks and source
@@ -305,7 +305,7 @@ class ToolProvider:
         )
         # rerank chunks from
         # retrieved documents
-        top_docs, _ = await self._rerank_documents(query=query, docs=docs, max_n=10, uniformity_threshold=0.35)
+        top_docs, _ = await self._rerank_documents(query=query, docs=docs, max_n=5, uniformity_threshold=0.35)
         return [
             (doc.page_content, doc.metadata.get("source", ""))
             for doc in top_docs

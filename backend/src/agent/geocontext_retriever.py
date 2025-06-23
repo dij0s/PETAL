@@ -15,6 +15,15 @@ from provider.GeoSessionProvider import GeoSessionProvider
 from provider.ToolProvider import ToolProvider
 from modelling.structured_output import RouterOutput, GeoContextOutput
 
+llm_tool_retrieval = (
+    ModelProvider
+        .from_env_variable(
+            env_variable="OLLAMA_MODEL_LLM_TOOLS",
+            temperature=0,
+            defaults="qwen3:1.7b",
+        )
+)
+
 llm_processing = (
     ModelProvider
         .from_env_variable(
@@ -22,15 +31,6 @@ llm_processing = (
             temperature=0,
             defaults="qwen3:1.7b",
             extract_reasoning=True
-        )
-)
-
-llm_tool_retrieval = (
-    ModelProvider
-        .from_env_variable(
-            env_variable="OLLAMA_MODEL_LLM_TOOLS",
-            temperature=0,
-            defaults="qwen3:1.7b",
         )
 )
 
@@ -47,30 +47,21 @@ system_prompt_tool_retrieval = PromptTemplate.from_template("""
     """)
 
 system_prompt_processing = PromptTemplate.from_template("""
-    You are a text processor that scales energy capacity and consumption figures for municipal planning.
+    You are a text processor. Your job is to scale energy numbers in the following documents.
 
     Instructions:
-    - Find numbers that represent energy QUANTITIES (capacities, generation amounts, consumption volumes, storage amounts)
-    - Multiply ONLY these quantity numbers by {scaling_factor}, rounded to 1 decimal place
-    - DO NOT scale: percentages, efficiency ratings, ratios, years/dates, temperatures, voltages, frequencies, minimum/maximum thresholds, safety factors, or technical specifications
-    - DO NOT add explanations or change any other text
-    - If uncertain whether a number should be scaled, DO NOT scale it
-
-    Examples of what TO scale:
-    - "500 MW solar capacity" → scale the 500
-    - "2,000 MWh annual consumption" → scale the 2,000
-    - "50 GWh battery storage" → scale the 50
-
-    Examples of what NOT to scale:
-    - "80% efficiency requirement" → keep 80%
-    - "Grid voltage of 480V" → keep 480V
-    - "Implemented by 2030" → keep 2030
-    - "Minimum 15% renewable mix" → keep 15%
+    - For each document, find energy-related numbers.
+    - Multiply ONLY those numbers by {scaling_factor} and replace them in the text, rounded to 1 decimal place.
+    - DO NOT scale percentages, dates, or any other numbers.
+    - DO NOT add any explanations, notes, or comments.
+    - DO NOT change any other part of the text.
+    - Return the processed documents, separated by <doc>.
 
     Input documents:
     {constraints}
 
-    Output: Return the same documents in order, separated by <doc>, with only energy quantity numbers modified.
+    Output:
+    Return the same documents, in the same order, separated by <doc>. Only the relevant energy numbers should be changed.
     """)
 
 async def geocontext_retriever(state):
@@ -249,8 +240,6 @@ async def _process_constraints(constraints: list[tuple[str, str]], provider: Geo
     # constraints specific for the
     # location
     response = await llm_processing.ainvoke(prompt)
-    print(f"This is what we prompted: {prompt}")
-    print(f"And this is the resulting response: {response}")
     # extract the documents
     # from the response and
     # return original ones
