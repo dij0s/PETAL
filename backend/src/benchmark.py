@@ -60,6 +60,8 @@ class Benchmark:
         self.THREAD_ID = "1000"
         self.USER_ID = "999"
 
+        self._init_benchmark()
+
         self._system_prompt = PromptTemplate.from_template("""
         You are an expert evaluator for municipal energy planning AI systems. You must be CRITICAL and SKEPTICAL - good formatting and professional language do not equal good energy planning advice.
 
@@ -216,28 +218,40 @@ class Benchmark:
             "request": request,
             "response": response,
             "score": score.model_dump(),
-            "time": time
+            "response_time": time,
         }
 
         try:
-            if os.path.exists(output_path):
-                with open(output_path, "r+", encoding="utf-8") as f:
-                    try:
-                        f.seek(0)
-                        data = json.load(f)
-                        if not isinstance(data, list):
-                            data = []
-                    except Exception:
-                        data = []
-                    data.append(record)
-                    f.seek(0)
-                    json.dump(data, f, ensure_ascii=False, indent=2)
-                    f.truncate()
-            else:
-                with open(output_path, "w", encoding="utf-8") as f:
-                    json.dump([record], f, ensure_ascii=False, indent=2)
+            with open(output_path, "r+", encoding="utf-8") as f:
+                data = json.load(f)
+                if "results" not in data or not isinstance(data["results"], list):
+                    data["results"] = []
+                data["results"].append(record)
+                f.seek(0)
+                json.dump(data, f, ensure_ascii=False, indent=2)
+                f.truncate()
         except Exception as e:
             print(f"Error saving benchmark record: {e}")
+
+    def _init_benchmark(self):
+        output_path = self._OUTPUT_FILENAME
+        metadata = {
+            "datetime": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.localtime()),
+            "environment": {
+                "OLLAMA_HOST": os.getenv("OLLAMA_HOST"),
+                **{
+                    k: v
+                    for k, v in os.environ.items()
+                    if k.startswith("OLLAMA_MODEL_LLM")
+                },
+            }
+        }
+        # setup benchmark structure
+        with open(output_path, "w", encoding="utf-8") as f:
+            json.dump({
+                "metadata": metadata,
+                "results": []
+            }, f, ensure_ascii=False, indent=2)
 
     async def start(self):
         """
