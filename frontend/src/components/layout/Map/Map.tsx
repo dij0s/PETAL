@@ -1,21 +1,22 @@
-import { useRef, useEffect, useState } from "react";
-import MapControls from "../../ui/MapControls";
+import Feature from "ol/Feature";
 import Map from "ol/Map";
 import View from "ol/View";
-import TileLayer from "ol/layer/Tile";
-import LayerGroup from "ol/layer/Group";
-import WMTS from "ol/source/WMTS";
-import TileGrid from "ol/tilegrid/WMTS";
 import { defaults as defaultControls, ScaleLine } from "ol/control";
-import proj4 from "proj4";
-import { register } from "ol/proj/proj4";
-import VectorLayer from "ol/layer/Vector";
-import VectorSource from "ol/source/Vector";
-import Feature from "ol/Feature";
+import MultiPolygon from "ol/geom/MultiPolygon";
 import Polygon from "ol/geom/Polygon";
-import Style from "ol/style/Style";
-import Fill from "ol/style/Fill";
+import LayerGroup from "ol/layer/Group";
+import TileLayer from "ol/layer/Tile";
+import VectorLayer from "ol/layer/Vector";
 import "ol/ol.css";
+import { register } from "ol/proj/proj4";
+import VectorSource from "ol/source/Vector";
+import WMTS from "ol/source/WMTS";
+import Fill from "ol/style/Fill";
+import Style from "ol/style/Style";
+import TileGrid from "ol/tilegrid/WMTS";
+import proj4 from "proj4";
+import { useEffect, useRef, useState } from "react";
+import MapControls from "../../ui/MapControls";
 import "./Map.css";
 
 // LV95 (EPSG:2056) definition
@@ -31,6 +32,77 @@ const LV95_RESOLUTIONS = [
 ];
 const LV95_ORIGIN = [2420000, 1350000];
 const LV95_MATRIX_IDS = LV95_RESOLUTIONS.map((_, idx) => idx.toString());
+
+const clipLayerToPolygonWithPrerender = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  layer: TileLayer<any> & {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    _clipHandler?: (event: any) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    _restoreHandler?: (event: any) => void;
+  },
+  map: Map,
+  polygonFeature: Feature<Polygon | MultiPolygon> | null,
+) => {
+  // remove previous listeners if any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (layer._clipHandler) layer.un("prerender" as any, layer._clipHandler);
+  if (layer._restoreHandler)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    layer.un("postrender" as any, layer._restoreHandler);
+
+  if (!polygonFeature) return;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  layer._clipHandler = function (event: any) {
+    const ctx = event.context;
+    ctx.save();
+
+    const geom = polygonFeature.getGeometry();
+    if (!geom) {
+      ctx.restore();
+      return;
+    }
+
+    ctx.beginPath();
+
+    if (geom.getType() === "Polygon") {
+      const rings = (geom as Polygon).getCoordinates();
+      rings.forEach((ring: number[][]) => {
+        ring.forEach((coord: number[], i: number) => {
+          const pixel = map.getPixelFromCoordinate(coord);
+          if (i === 0) ctx.moveTo(pixel[0], pixel[1]);
+          else ctx.lineTo(pixel[0], pixel[1]);
+        });
+        ctx.closePath();
+      });
+    } else if (geom.getType() === "MultiPolygon") {
+      const polygons = (geom as MultiPolygon).getCoordinates();
+      polygons.forEach((rings: number[][][]) => {
+        rings.forEach((ring: number[][]) => {
+          ring.forEach((coord: number[], i: number) => {
+            const pixel = map.getPixelFromCoordinate(coord);
+            if (i === 0) ctx.moveTo(pixel[0], pixel[1]);
+            else ctx.lineTo(pixel[0], pixel[1]);
+          });
+          ctx.closePath();
+        });
+      });
+    }
+
+    ctx.clip();
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  layer._restoreHandler = function (event: any) {
+    event.context.restore();
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  layer.on("prerender" as any, layer._clipHandler);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  layer.on("postrender" as any, layer._restoreHandler);
+};
 
 const swissImageBaseLayer = new TileLayer({
   source: new WMTS({
@@ -200,6 +272,30 @@ const MapComponent = ({ mapLayers, focusedMunicipalitySFSO }: MapProps) => {
       .filter((layer) => layer.get("name") === "mask")
       .forEach((layer) => layers.remove(layer));
 
+    // remove any previous clip
+    // handlers from layers
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    layers.getArray().forEach((layer: any) => {
+      if (
+        layer &&
+        typeof layer === "object" &&
+        typeof layer.un === "function"
+      ) {
+        if ("_clipHandler" in layer) {
+          if (layer._clipHandler) {
+            layer.un("prerender", layer._clipHandler);
+          }
+          delete layer._clipHandler;
+        }
+        if ("_restoreHandler" in layer) {
+          if (layer._restoreHandler) {
+            layer.un("postrender", layer._restoreHandler);
+          }
+          delete layer._restoreHandler;
+        }
+      }
+    });
+
     if (!focusedMunicipalitySFSO) return;
 
     fetchMunicipalityGeoJSON(focusedMunicipalitySFSO).then((feature) => {
@@ -230,6 +326,34 @@ const MapComponent = ({ mapLayers, focusedMunicipalitySFSO }: MapProps) => {
       });
       maskLayer.set("name", "mask");
       layers.push(maskLayer);
+
+      const geometryType = feature.geometry.type;
+      const geometryCoords = feature.geometry.coordinates;
+      const municipalityFeature =
+        geometryType === "Polygon"
+          ? new Feature({ geometry: new Polygon(geometryCoords) })
+          : new Feature({ geometry: new MultiPolygon(geometryCoords) });
+
+      // apply clipping to all WMTS
+      // layers except base group
+      if (mapObj.current) {
+        mapObj.current
+          .getLayers()
+          .getArray()
+          .forEach((layer) => {
+            if (
+              layer instanceof TileLayer &&
+              layer.getSource() instanceof WMTS
+            ) {
+              clipLayerToPolygonWithPrerender(
+                layer,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                mapObj.current as any,
+                municipalityFeature,
+              );
+            }
+          });
+      }
 
       // restrict navigation to municipality bbox
       if (mapObj.current) {
