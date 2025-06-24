@@ -14,6 +14,7 @@
     --background-color-prompt: #f0f0f0;
     --background-color-side-panel-active: #e3e3e3;
     --background-color-side-panel-hover: #d5d5d5;
+    --background-color-side-panel-hover-0-opacity: rgba(213, 213, 213, 0);
     --background-color-button-active: #202020;
     --background-color-button-inactive: rgba(32, 32, 32, 0.3);
     --background-color-action-active: #202020;
@@ -45,6 +46,7 @@
     --background-color-prompt: #2f2f2f;
     --background-color-side-panel-active: #181818;
     --background-color-side-panel-hover: #0c0c0c;
+    --background-color-side-panel-hover-0-opacity: rgba(12, 12, 12, 0);
     --background-color-button-active: #f9f9f9;
     --background-color-button-inactive: rgba(249, 249, 249, 0.3);
     --background-color-action-active: #f9f9f9;

@@ -145,28 +145,28 @@ const MapControls = ({
     }, 650) as unknown as null;
   };
 
-  const handleControlsMouseLeave = () => {
+  const handleControlsMouseLeave = (timeout?: number) => {
     if (expandedTimeoutRef.current) {
       clearTimeout(expandedTimeoutRef.current as unknown as number);
     }
     expandedTimeoutRef.current = setTimeout(() => {
       setIsExpanded(false);
       setActiveLegend(null);
-    }, 350) as unknown as null;
+    }, timeout ?? 350) as unknown as null;
   };
 
   return (
     <div
       className="map-controls-wrapper"
       onMouseEnter={handleControlsMouseEnter}
-      onMouseLeave={handleControlsMouseLeave}
+      onMouseLeave={() => handleControlsMouseLeave()}
       data-expanded={isExpanded}
     >
       <div
         className="map-controls-layers"
         data-visible={isExpanded}
         onMouseEnter={handleControlsMouseEnter}
-        onMouseLeave={handleControlsMouseLeave}
+        onMouseLeave={() => handleControlsMouseLeave()}
       >
         {extraLayers.map((layerId) => (
           <div
@@ -203,6 +203,7 @@ const MapControls = ({
                   className="extra-layer-legend-tooltip"
                   onClick={(e) => {
                     e.stopPropagation();
+                    handleControlsMouseLeave(1000);
                   }}
                 >
                   <span

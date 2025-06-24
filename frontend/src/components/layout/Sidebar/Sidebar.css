@@ -21,7 +21,7 @@ aside {
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    height: 60px;
+    min-height: 60px;
     margin: 20px 20px 0 20px;
 }
 
@@ -84,9 +84,18 @@ svg,
 }
 
 .panel-history-wrapper {
+    position: relative;
     margin: 25px 15px 0;
     opacity: 0;
     transition: opacity 0.1s 0.1s;
+    overflow-y: scroll;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.panel-history-wrapper ::-webkit-scrollbar {
+    display: none;
 }
 
 .panel-history-empty {
@@ -101,9 +110,11 @@ svg,
 }
 
 .panel-history-bin-title {
-    margin: 15px 0px 10px 0px;
-    padding-left: 5px;
+    position: sticky;
+    top: 0px;
+    padding: 15px 0px 10px 5px;
     color: var(--text-color-70-opacity);
+    background-color: var(--background-color-side-panel-active);
     font-size: 0.75rem;
 }
 
@@ -135,4 +146,35 @@ svg,
     cursor: pointer;
     color: var(--text-color);
     background-color: var(--background-color-side-panel-hover);
+    position: relative;
+}
+
+.panel-history-item:hover::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 20%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    background: linear-gradient(
+        to left,
+        var(--background-color-side-panel-hover) 10%,
+        var(--background-color-side-panel-hover-0-opacity) 90%
+    );
+    opacity: 1;
+}
+
+.panel-history-item-trash {
+    position: absolute;
+    right: 0;
+    opacity: 0;
+    z-index: 2;
+    color: var(--background-color-action-85-opacity);
+    transition: opacity 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.panel-history-item:hover > .panel-history-item-trash {
+    opacity: 1;
 }

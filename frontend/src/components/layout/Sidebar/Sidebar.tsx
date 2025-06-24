@@ -1,8 +1,13 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTableColumns, faPlus } from "@fortawesome/free-solid-svg-icons";
+import {
+  faTableColumns,
+  faPlus,
+  faTrash,
+} from "@fortawesome/free-solid-svg-icons";
 import { useTranslation } from "react-i18next";
 import { useConversations } from "../../../utils/useConversation";
 import type { Checkpoint } from "../../../types/Checkpoint";
+import { checkpointStorage } from "../../../utils/checkpointStorage";
 import "./Sidebar.css";
 
 interface SidebarProps {
@@ -85,7 +90,14 @@ const Sidebar = ({
               }
               title={conversation.title}
             >
-              {conversation.title}
+              <span>{conversation.title}</span>
+              <FontAwesomeIcon
+                icon={faTrash}
+                onClick={() => {
+                  checkpointStorage.deleteCheckpoint(conversation.threadId);
+                }}
+                className="panel-history-item-trash"
+              />
             </div>
           ))}
         </div>
