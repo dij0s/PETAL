@@ -17,7 +17,7 @@ import Fill from "ol/style/Fill";
 import Style from "ol/style/Style";
 import TileGrid from "ol/tilegrid/WMTS";
 import proj4 from "proj4";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import MapControls from "../../ui/MapControls";
 import "./Map.css";
 
@@ -77,11 +77,6 @@ const baseLayerGroup = new LayerGroup({
   layers: [swissImageBaseLayer, pixelkarteFarbeBaseLayer],
 });
 
-interface MapProps {
-  mapLayers: string[];
-  focusedMunicipalitySFSO: number | null;
-}
-
 const fetchMunicipalityGeoJSON = async (sfso: number) => {
   const url = `https://api3.geo.admin.ch/rest/services/api/MapServer/ch.swisstopo.swissboundaries3d-gemeinde-flaeche.fill/${sfso}?returnGeometry=true&sr=2056&geometryFormat=geojson`;
   const response = await fetch(url);
@@ -89,13 +84,56 @@ const fetchMunicipalityGeoJSON = async (sfso: number) => {
   return data.feature;
 };
 
-const MapComponent = ({ mapLayers, focusedMunicipalitySFSO }: MapProps) => {
+interface MapProps {
+  mapLayers: string[];
+  focusedMunicipalitySFSO: number | null;
+}
+
+const MapComponent = ({
+  mapLayers: extraLayers,
+  focusedMunicipalitySFSO,
+}: MapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapObj = useRef<Map | null>(null);
+  const municipalityGeometryRef = useRef<Polygon | MultiPolygon | null>(null);
 
   const [baseLayer, setBaseLayer] = useState<"swissimage" | "pixelkarte">(
     "swissimage",
   );
+
+  // apply crop filter
+  // to WMTS layers
+  const applyCropFilters = useCallback(() => {
+    if (!mapObj.current || !municipalityGeometryRef.current) return;
+
+    mapObj.current
+      .getLayers()
+      .getArray()
+      .forEach((layer) => {
+        if (layer instanceof TileLayer && layer.getSource() instanceof WMTS) {
+          // @ts-expect-error: _cropFilter is provided by ol-ext
+          if (layer._cropFilter) {
+            // @ts-expect-error: _cropFilter is provided by ol-ext
+            layer.removeFilter(layer._cropFilter);
+            // @ts-expect-error: _cropFilter is provided by ol-ext
+            delete layer._cropFilter;
+          }
+          // add new crop filter
+          if (municipalityGeometryRef.current) {
+            const crop = new Crop({
+              feature: new Feature({
+                geometry: municipalityGeometryRef.current,
+              }),
+              inner: false,
+              wrapX: false,
+            });
+            layer.addFilter(crop);
+            // @ts-expect-error: _cropFilter is provided by ol-ext
+            layer._cropFilter = crop;
+          }
+        }
+      });
+  }, []);
 
   const handleToggleBaseLayer = () => {
     if (!mapObj.current) return;
@@ -142,11 +180,12 @@ const MapComponent = ({ mapLayers, focusedMunicipalitySFSO }: MapProps) => {
     };
   }, []);
 
+  // manage extra layers
   useEffect(() => {
     if (!mapObj.current) return;
     const layers = mapObj.current.getLayers();
-    // remove all non-base layers
-    // that are not in mapLayers
+
+    // remove all non-base layers that are not in mapLayers
     layers
       .getArray()
       .filter(
@@ -154,13 +193,12 @@ const MapComponent = ({ mapLayers, focusedMunicipalitySFSO }: MapProps) => {
           layer !== baseLayerGroup &&
           layer.get("name") !== "municipality" &&
           layer.get("name") !== "mask" &&
-          !mapLayers.includes(layer.get("name")),
+          !extraLayers.includes(layer.get("name")),
       )
       .forEach((layer) => layers.remove(layer));
 
-    // add new layers that
-    // are not present
-    mapLayers.forEach((layer_name, index) => {
+    // add new layers that are not present
+    extraLayers.forEach((layer_name, index) => {
       const alreadyPresent = layers
         .getArray()
         .some((layer) => layer.get("name") === layer_name);
@@ -189,21 +227,29 @@ const MapComponent = ({ mapLayers, focusedMunicipalitySFSO }: MapProps) => {
         layers.push(tileLayer);
       }
     });
-  }, [mapLayers]);
+
+    // apply crop filters
+    // to newly added layers
+    applyCropFilters();
+  }, [extraLayers, applyCropFilters]);
 
   // mask around the municipality
   useEffect(() => {
     if (!mapObj.current) return;
     const layers = mapObj.current.getLayers();
 
-    // remove previous municipality
-    // and mask layers
+    // remove previous mask layer
     layers
       .getArray()
       .filter((layer) => layer.get("name") === "mask")
       .forEach((layer) => layers.remove(layer));
 
-    if (!focusedMunicipalitySFSO) return;
+    if (!focusedMunicipalitySFSO) {
+      // clear geometry when no
+      // municipality is focused
+      municipalityGeometryRef.current = null;
+      return;
+    }
 
     fetchMunicipalityGeoJSON(focusedMunicipalitySFSO).then((feature) => {
       // mask layer with hole for municipality
@@ -241,38 +287,11 @@ const MapComponent = ({ mapLayers, focusedMunicipalitySFSO }: MapProps) => {
           ? new Polygon(geometryCoords)
           : new MultiPolygon(geometryCoords);
 
-      // apply crop filter to
-      // all extra layers
-      if (mapObj.current) {
-        mapObj.current
-          .getLayers()
-          .getArray()
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          .forEach((layer: any) => {
-            if (
-              layer instanceof TileLayer &&
-              layer.getSource() instanceof WMTS
-            ) {
-              // Remove previous crop filter if present
-              // @ts-expect-error: _cropFilter is used for cleanup, not typed
-              if (layer._cropFilter) {
-                // @ts-expect-error: removeFilter is provided by ol-ext
-                layer.removeFilter(layer._cropFilter);
-                // @ts-expect-error: _cropFilter is used for cleanup, not typed
-                delete layer._cropFilter;
-              }
-              // Add new crop filter
-              const crop = new Crop({
-                feature: new Feature({ geometry: municipalityGeometry }),
-                inner: false,
-                wrapX: false,
-              });
-              layer.addFilter(crop);
-              // @ts-expect-error: _cropFilter is used for cleanup, not typed
-              layer._cropFilter = crop;
-            }
-          });
-      }
+      municipalityGeometryRef.current = municipalityGeometry;
+
+      // apply crop filters
+      // to all WMTS layers
+      applyCropFilters();
 
       // restrict navigation to municipality bbox
       if (mapObj.current) {
@@ -284,7 +303,7 @@ const MapComponent = ({ mapLayers, focusedMunicipalitySFSO }: MapProps) => {
         });
       }
     });
-  }, [focusedMunicipalitySFSO]);
+  }, [focusedMunicipalitySFSO, applyCropFilters]);
 
   // handle base layer control
   useEffect(() => {
@@ -297,7 +316,7 @@ const MapComponent = ({ mapLayers, focusedMunicipalitySFSO }: MapProps) => {
       <MapControls
         currentBaseLayer={baseLayer}
         handleBaseLayerToggle={handleToggleBaseLayer}
-        extraLayers={mapLayers}
+        extraLayers={extraLayers}
         handleExtraLayerToggle={handleToggleExtraLayer}
       />
     </div>
