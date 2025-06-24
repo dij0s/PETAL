@@ -89,7 +89,6 @@ class GraphProvider:
                 print(f"Error: {e}")
 
         graph_builder.add_edge(START, "intent_router")
-        graph_builder.add_edge("intent_router", END)
         graph_builder.add_conditional_edges("intent_router", router_condition)
         graph_builder.add_conditional_edges("geocontext_retriever", geocontext_condition)
         # reaching the clarification node should

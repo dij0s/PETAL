@@ -20,13 +20,16 @@ class RouterOutput(BaseModel):
         description="An aggregated summary of the user request, combining all available context from the conversation, including follow-up exchanges. Summarize in a way that merges the relevant turns, without adding extra or hallucinated information ensuring that all content is appropriately translated to English as needed.",
         default=None
     )
+    conversation_type: str = Field(
+       description="Identifies the conversational context to determine appropriate response format. Must be one of: 'new_analysis' (fresh query requiring comprehensive structured response with full data analysis framework), 'correction_request' (user questioning accuracy of previous response, using phrases like 'are you sure', 'that seems wrong', 'incorrect', or pointing out specific errors that need direct acknowledgment), 'follow_up' (user requesting additional detail or expansion on the same topic from previous response). When in doubt between correction_request and other types, look for explicit doubt about accuracy or specific figure questioning.",
+       default="new_analysis"
+    )
     needs_clarification: bool = Field(
         description="""Set to True if you need more information to understand what the user wants (missing location, unclear intent, or vague request). Set to False if the request is clear and you understand what the user is asking for.""",
         default=True
     )
     needs_memoization: bool = Field(
-        description="""Set to True if the user corrects, clarifies, or expresses dissatisfaction with a previous answer. Look for words like "No", "Actually", "I meant", or when the user provides a correction. Otherwise, set to False.
-        """,
+        description="""Set to True ONLY when the user provides explicit preferences, corrections to assumptions, or scope refinements that should be remembered for future queries. Examples: user specifies they only want electricity data (not total energy), corrects interpretation of technical terms, or establishes recurring analysis preferences. Focus on learning user preferences that improve future responses.""",
         default=False
     )
 
