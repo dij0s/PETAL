@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from langchain_core.prompts import PromptTemplate
 from langchain_core.messages import SystemMessage, AIMessage, HumanMessage
 from langchain_core.tools.structured import StructuredTool
@@ -15,6 +13,7 @@ from storage.memories import fetch_memories
 
 from collections import defaultdict
 from functools import reduce
+from datetime import datetime
 
 llm = (
     ModelProvider
@@ -29,9 +28,17 @@ full_language: defaultdict[str, str] = defaultdict(lambda: "English", {
     "de": "German",
 })
 
+mode_instructions: defaultdict[str, str] = defaultdict(lambda: "", {
+   "correction_request": "The user is questioning previous information. Respond conversationally and directly address their concern before any structured analysis.",
+   "follow_up": "The user wants more detail on a specific aspect. Keep response focused and concise.",
+})
+
 actionable_system_prompt = PromptTemplate.from_template("""
 You are an expert energy planning advisor for the municipality "{location}".
 Current date: {month_year}. Reference any pre-{month_year} data as historical.
+
+**IMMEDIATE INSTRUCTION - CONVERSATION TYPE: {conversation_type}**
+{mode_instruction}
 
 ## CORE REQUIREMENTS
 
@@ -155,8 +162,11 @@ actionable_user_prompt = PromptTemplate.from_template("""
 """)
 
 factual_system_prompt = PromptTemplate.from_template("""
-You are an expert energy data analyst for the municipality "{location}".
+You are an expert energy planning advisor for the municipality "{location}".
 Current date: {month_year}. Reference any pre-{month_year} data as historical.
+
+**IMMEDIATE INSTRUCTION - CONVERSATION TYPE: {conversation_type}**
+{mode_instruction}
 
 ## CORE REQUIREMENTS
 
@@ -291,6 +301,8 @@ async def generate_answer(state, *, config: RunnableConfig, store: BaseStore):
     prompt_args = {
         "month_year": f"{datetime.now().strftime('%B %Y')}",
         "location": state.router.location,
+        "conversation_type": state.router.conversation_type,
+        "mode_instruction": mode_instructions[state.router.conversation_type],
         "categories": last_categories,
         "related_tools_description": related_tools_description,
         "lang": full_language[state.lang].upper(),

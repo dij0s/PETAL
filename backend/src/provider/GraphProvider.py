@@ -72,10 +72,13 @@ class GraphProvider:
 
         def router_condition(state: State):
             try:
-                if state.router is not None and state.router.needs_clarification:
-                    return "clarification"
-                else:
-                    return "geocontext_retriever"
+                if state.router is not None:
+                    if state.router.needs_clarification:
+                        return "clarification"
+                    elif state.router.conversation_type == "correction_request":
+                        return "generate_answer"
+                    else:
+                        return "geocontext_retriever"
             except Exception as e:
                 print(f"Error: {e}")
 

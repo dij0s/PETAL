@@ -115,5 +115,7 @@ async def update_memories(config: RunnableConfig, store: BaseStore, last_human_m
 
     # start update task
     # in the background
+    # to avoid blocking
+    # the caller
     asyncio.create_task(helper())
     return
