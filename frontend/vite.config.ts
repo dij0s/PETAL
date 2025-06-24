@@ -27,7 +27,7 @@ export default defineConfig({
             "react-i18next",
             "react-markdown",
           ],
-          mapping: ["ol", "proj4"],
+          mapping: ["ol", "ol-ext", "proj4"],
           vendors: [
             "i18next",
             "remark-gfm",

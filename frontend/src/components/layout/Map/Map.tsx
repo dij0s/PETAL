@@ -7,7 +7,9 @@ import Polygon from "ol/geom/Polygon";
 import LayerGroup from "ol/layer/Group";
 import TileLayer from "ol/layer/Tile";
 import VectorLayer from "ol/layer/Vector";
+import Crop from "ol-ext/filter/Crop";
 import "ol/ol.css";
+import "ol-ext/dist/ol-ext.css";
 import { register } from "ol/proj/proj4";
 import VectorSource from "ol/source/Vector";
 import WMTS from "ol/source/WMTS";
@@ -32,77 +34,6 @@ const LV95_RESOLUTIONS = [
 ];
 const LV95_ORIGIN = [2420000, 1350000];
 const LV95_MATRIX_IDS = LV95_RESOLUTIONS.map((_, idx) => idx.toString());
-
-const clipLayerToPolygonWithPrerender = (
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  layer: TileLayer<any> & {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    _clipHandler?: (event: any) => void;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    _restoreHandler?: (event: any) => void;
-  },
-  map: Map,
-  polygonFeature: Feature<Polygon | MultiPolygon> | null,
-) => {
-  // remove previous listeners if any
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (layer._clipHandler) layer.un("prerender" as any, layer._clipHandler);
-  if (layer._restoreHandler)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    layer.un("postrender" as any, layer._restoreHandler);
-
-  if (!polygonFeature) return;
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  layer._clipHandler = function (event: any) {
-    const ctx = event.context;
-    ctx.save();
-
-    const geom = polygonFeature.getGeometry();
-    if (!geom) {
-      ctx.restore();
-      return;
-    }
-
-    ctx.beginPath();
-
-    if (geom.getType() === "Polygon") {
-      const rings = (geom as Polygon).getCoordinates();
-      rings.forEach((ring: number[][]) => {
-        ring.forEach((coord: number[], i: number) => {
-          const pixel = map.getPixelFromCoordinate(coord);
-          if (i === 0) ctx.moveTo(pixel[0], pixel[1]);
-          else ctx.lineTo(pixel[0], pixel[1]);
-        });
-        ctx.closePath();
-      });
-    } else if (geom.getType() === "MultiPolygon") {
-      const polygons = (geom as MultiPolygon).getCoordinates();
-      polygons.forEach((rings: number[][][]) => {
-        rings.forEach((ring: number[][]) => {
-          ring.forEach((coord: number[], i: number) => {
-            const pixel = map.getPixelFromCoordinate(coord);
-            if (i === 0) ctx.moveTo(pixel[0], pixel[1]);
-            else ctx.lineTo(pixel[0], pixel[1]);
-          });
-          ctx.closePath();
-        });
-      });
-    }
-
-    ctx.clip();
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  layer._restoreHandler = function (event: any) {
-    event.context.restore();
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  layer.on("prerender" as any, layer._clipHandler);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  layer.on("postrender" as any, layer._restoreHandler);
-};
 
 const swissImageBaseLayer = new TileLayer({
   source: new WMTS({
@@ -272,30 +203,6 @@ const MapComponent = ({ mapLayers, focusedMunicipalitySFSO }: MapProps) => {
       .filter((layer) => layer.get("name") === "mask")
       .forEach((layer) => layers.remove(layer));
 
-    // remove any previous clip
-    // handlers from layers
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    layers.getArray().forEach((layer: any) => {
-      if (
-        layer &&
-        typeof layer === "object" &&
-        typeof layer.un === "function"
-      ) {
-        if ("_clipHandler" in layer) {
-          if (layer._clipHandler) {
-            layer.un("prerender", layer._clipHandler);
-          }
-          delete layer._clipHandler;
-        }
-        if ("_restoreHandler" in layer) {
-          if (layer._restoreHandler) {
-            layer.un("postrender", layer._restoreHandler);
-          }
-          delete layer._restoreHandler;
-        }
-      }
-    });
-
     if (!focusedMunicipalitySFSO) return;
 
     fetchMunicipalityGeoJSON(focusedMunicipalitySFSO).then((feature) => {
@@ -329,28 +236,40 @@ const MapComponent = ({ mapLayers, focusedMunicipalitySFSO }: MapProps) => {
 
       const geometryType = feature.geometry.type;
       const geometryCoords = feature.geometry.coordinates;
-      const municipalityFeature =
+      const municipalityGeometry =
         geometryType === "Polygon"
-          ? new Feature({ geometry: new Polygon(geometryCoords) })
-          : new Feature({ geometry: new MultiPolygon(geometryCoords) });
+          ? new Polygon(geometryCoords)
+          : new MultiPolygon(geometryCoords);
 
-      // apply clipping to all WMTS
-      // layers except base group
+      // apply crop filter to
+      // all extra layers
       if (mapObj.current) {
         mapObj.current
           .getLayers()
           .getArray()
-          .forEach((layer) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .forEach((layer: any) => {
             if (
               layer instanceof TileLayer &&
               layer.getSource() instanceof WMTS
             ) {
-              clipLayerToPolygonWithPrerender(
-                layer,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                mapObj.current as any,
-                municipalityFeature,
-              );
+              // Remove previous crop filter if present
+              // @ts-expect-error: _cropFilter is used for cleanup, not typed
+              if (layer._cropFilter) {
+                // @ts-expect-error: removeFilter is provided by ol-ext
+                layer.removeFilter(layer._cropFilter);
+                // @ts-expect-error: _cropFilter is used for cleanup, not typed
+                delete layer._cropFilter;
+              }
+              // Add new crop filter
+              const crop = new Crop({
+                feature: new Feature({ geometry: municipalityGeometry }),
+                inner: false,
+                wrapX: false,
+              });
+              layer.addFilter(crop);
+              // @ts-expect-error: _cropFilter is used for cleanup, not typed
+              layer._cropFilter = crop;
             }
           });
       }

@@ -85,10 +85,14 @@
 }
 
 .extra-layer-wrapper {
-    display: flex;
+    display: none;
     flex-direction: row;
     justify-content: space-between;
     padding: 4px 0px;
+}
+
+.map-controls-layers[data-visible="true"] > .extra-layer-wrapper {
+    display: flex;
 }
 
 .extra-layer-info-button {
