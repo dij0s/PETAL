@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { useConversations } from "../../../utils/useConversation";
 import type { Checkpoint } from "../../../types/Checkpoint";
 import { checkpointStorage } from "../../../utils/checkpointStorage";
+import { conversationEvents } from "../../../utils/conversationEvents";
 import "./Sidebar.css";
 
 interface SidebarProps {
@@ -93,8 +94,12 @@ const Sidebar = ({
               <span>{conversation.title}</span>
               <FontAwesomeIcon
                 icon={faTrash}
-                onClick={() => {
-                  checkpointStorage.deleteCheckpoint(conversation.threadId);
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  await checkpointStorage.deleteCheckpoint(
+                    conversation.threadId,
+                  );
+                  conversationEvents.emit();
                 }}
                 className="panel-history-item-trash"
               />

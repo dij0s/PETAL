@@ -125,14 +125,10 @@ async def geocontext_retriever(state):
             # invoke necessary tools
             # and process constraints
             # concurrently if needed
-            async def temp():
-                return constraints
-
             writer({"type": "info", "content": "Fetching data from retrieved tools and processing guidelines.."})
             tool_data, processed_constraints = await asyncio.gather(
                 _invoke_tools(tools, are_tools_uniform, router_state),
                 _process_constraints(constraints, provider, shall_bypass_constraints)
-                # temp()
             )
             # update context with
             # retrieved constraints

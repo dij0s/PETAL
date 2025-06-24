@@ -154,14 +154,14 @@ svg,
     position: absolute;
     right: 0;
     top: 0;
-    width: 20%;
+    width: 30%;
     height: 100%;
     pointer-events: none;
     z-index: 1;
     background: linear-gradient(
         to left,
-        var(--background-color-side-panel-hover) 10%,
-        var(--background-color-side-panel-hover-0-opacity) 90%
+        var(--background-color-side-panel-hover) 20%,
+        var(--background-color-side-panel-hover-0-opacity) 80%
     );
     opacity: 1;
 }
@@ -169,12 +169,20 @@ svg,
 .panel-history-item-trash {
     position: absolute;
     right: 0;
+    height: 14px;
+    padding-right: 4px;
     opacity: 0;
     z-index: 2;
-    color: var(--background-color-action-85-opacity);
-    transition: opacity 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--background-color-action-60-opacity);
+    transition:
+        color 0.1s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .panel-history-item:hover > .panel-history-item-trash {
     opacity: 1;
+}
+
+.panel-history-item-trash:hover {
+    color: var(--background-color-action-85-opacity);
 }

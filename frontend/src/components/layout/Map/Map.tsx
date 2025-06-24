@@ -162,7 +162,7 @@ const MapComponent = ({
       center: [2600000, 1200000],
       zoom: 8,
       minZoom: 0,
-      maxZoom: 28,
+      maxZoom: 20,
     });
 
     const map = new Map({

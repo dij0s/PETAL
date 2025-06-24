@@ -542,7 +542,7 @@ async def _fetch_wind_turbines_infrastructure(municipality_name: str) -> str:
 
                     total_production_GWh = total_production / 1e6
 
-                    return f"{total_production_GWh:.2}"
+                    return f"{total_production_GWh:.2f}"
                 else:
                     print(f"Could not retrieve wind turbine infrastructure: {response.status}")
     except Exception as e:
