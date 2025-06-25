@@ -72,7 +72,6 @@ class GraphProvider:
         graph_builder.add_node("generate_answer", generate_answer)
 
         def router_condition(state: State):
-            print(f"Here is the state we are routing with: {state}")
             try:
                 if state.router is not None:
                     if state.router.needs_clarification or (state.router.location is None and state.router.aggregated_query is None):
@@ -81,8 +80,6 @@ class GraphProvider:
                         return "geocontext_retriever"
                     elif state.router.intent == "actionable":
                         return "geocontext_retriever", "guidelines_retriever"
-                    elif state.router.conversation_type == "follow_up":
-                        return "generate_answer"
                     else:
                         return "geocontext_retriever"
 

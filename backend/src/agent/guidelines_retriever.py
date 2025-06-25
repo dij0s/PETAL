@@ -58,39 +58,43 @@ async def guidelines_retriever(state):
         geocontext = GeoContextOutput()
 
     router_state: RouterOutput = state.router
+    if router_state.location is None or router_state.aggregated_query is None:
+        raise ValueError("State is undefined")
+    # start the instantiation of
+    # the GeoSession for resident
+    # count to reduce latency
+    provider = GeoSessionProvider.get_or_create(router_state.location, 100, 1.0, with_residents_count=True)
+
+    # retrieve relevant tools
+    # and process constraints
+    # for location-aware data
+    writer({"type": "info", "content": "Retrieving effective guidelines..."})
+    toolbox: ToolProvider = await ToolProvider.acreate(router_state.location)
+    constraints = await toolbox.asearch_constraints(query=router_state.aggregated_query)
+    writer({"type": "log", "content": "Found guidelines"})
+
+    # process constraints
+    writer({"type": "info", "content": "Processing guidelines..."})
     try:
-        if router_state.location is None or router_state.aggregated_query is None:
-            raise ValueError("State is undefined")
-        # start the instantiation of
-        # the GeoSession for resident
-        # count to reduce latency
-        provider = GeoSessionProvider.get_or_create(router_state.location, 100, 1.0, with_residents_count=True)
-
-        # retrieve relevant tools
-        # and process constraints
-        # for location-aware data
-        writer({"type": "info", "content": "Retrieving effective guidelines..."})
-        toolbox: ToolProvider = await ToolProvider.acreate(router_state.location)
-        constraints = await toolbox.asearch_constraints(query=router_state.aggregated_query)
-        print(f"Querying guidelines using the aggregated query: {router_state.aggregated_query}")
-        writer({"type": "log", "content": "Found guidelines"})
-
-        # process constraints
-        writer({"type": "info", "content": "Processing guidelines..."})
         processed_constraints = await _process_constraints(constraints, provider)
-        # update context with
-        # retrieved constraints
-        # overwrite only as query
-        # dependent
-        geocontext.context_constraints = processed_constraints
+    except RuntimeError:
+        # location is not a proper
+        # municipalty, enquire more
+        # clarification by unsetting
+        # the non-valid location
+        router_state.location = None
+        router_state.needs_clarification = True
         return {
-            **state.model_dump(),
-            "messages": [],
-            "geocontext": geocontext,
+            "router": router_state
         }
-    except Exception as e:
-        print(f"Exception: {e}")
-        return state
+    # update context with
+    # retrieved constraints
+    # overwrite only as query
+    # dependent
+    geocontext.context_constraints = processed_constraints
+    return {
+        "geocontext": geocontext,
+    }
 
 async def _process_constraints(constraints: list[tuple[str, str]], provider: GeoSessionProvider) -> list[tuple[str, str]]:
     """

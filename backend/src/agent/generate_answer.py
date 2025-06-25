@@ -331,6 +331,5 @@ async def generate_answer(state, *, config: RunnableConfig, store: BaseStore):
     writer({"type": "info", "content": "Generating a response..."})
     response = await llm.ainvoke(prompt)
     return {
-        **state.model_dump(),
         "messages": [AIMessage(content=response.content)],
     }

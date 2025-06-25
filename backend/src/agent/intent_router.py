@@ -177,8 +177,6 @@ async def intent_router(state, *, config: RunnableConfig, store: BaseStore):
     # reset geocontext on location change
     if last_location != updated_router.location:
         return {
-            **state.model_dump(),
-            "messages": [],
             "router": updated_router,
             "geocontext": GeoContextOutput(),
         }
@@ -189,7 +187,5 @@ async def intent_router(state, *, config: RunnableConfig, store: BaseStore):
     # message itself as we called
     # the _dict_ function on the State
     return {
-        **state.model_dump(),
-        "messages": [],
         "router": updated_router,
     }

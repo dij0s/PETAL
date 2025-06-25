@@ -99,24 +99,35 @@ class GeoSessionProvider:
         """
         async with self._lock:
             if not self._initialized:
-                if not await self.fetch_geometry(self.municipality_name):
-                    # prevent hanging by setting
-                    # event to ready
+                try:
+                    if not await self.fetch_geometry(self.municipality_name):
+                        # prevent hanging by setting
+                        # event to ready
+                        self._ready_event.set()
+                        self._sfso_ready_event.set()
+                        self._residents_count_event.set()
+                        return False
+                    # process geometry to remove unvalid areas
+                    if not await self.remove_unvalid_areas():
+                        self._ready_event.set()
+                        self._sfso_ready_event.set()
+                        self._residents_count_event.set()
+                        return False
+                    # compute tiles from the refined geometry
+                    self.total_tiles, self.sampled_tiles = await self.compute_tiles(self.tile_size, self.sampling_rate)
+                    # retrieve population count
+                    if self._with_residents_count:
+                        await self.fetch_residents_count()
+
+                    self._initialized = True
                     self._ready_event.set()
-                    return False
-                # process geometry to remove unvalid areas
-                if not await self.remove_unvalid_areas():
-                    return False
-                # compute tiles from the refined geometry
-                self.total_tiles, self.sampled_tiles = await self.compute_tiles(self.tile_size, self.sampling_rate)
-                # retrieve population count
-                if self._with_residents_count:
-                    await self.fetch_residents_count()
 
-                self._initialized = True
-                self._ready_event.set()
-
-                return True
+                    return True
+                except:
+                    self._ready_event.set()
+                    self._sfso_ready_event.set()
+                    self._residents_count_event.set()
+                    return False
             else:
                 return None
 
@@ -125,8 +136,13 @@ class GeoSessionProvider:
 
         Returns:
             None. Completes when the session is ready to use.
+
+        Raises:
+            RuntimeError: If initialization failed.
         """
         await self._ready_event.wait()
+        if not self._initialized:
+            raise RuntimeError("Session initialization failed")
 
     async def wait_until_sfso_ready(self) -> None:
         """Wait until the SFSO municipality number is available.
@@ -141,8 +157,14 @@ class GeoSessionProvider:
 
         Returns:
             None. Completes when the residents count is ready to use.
+
+        Raises:
+            RuntimeError: If initialization failed.
         """
         await self._residents_count_event.wait()
+        print(f"I am residents count and initialized is set to {self._initialized}")
+        if not self._initialized:
+            raise RuntimeError("Session initialization failed")
 
     async def fetch_geometry(self, municipality_name: str) -> bool:
         """Fetches the geometry data for a municipality.

@@ -48,6 +48,7 @@ def _sanitize(state: Optional[State]) -> State:
         router=RouterOutput(
             intent=state.router.intent,
             location=state.router.location,
+            conversation_type=state.router.conversation_type,
             needs_clarification=True,
             needs_memoization=False
         ) if state.router else None,

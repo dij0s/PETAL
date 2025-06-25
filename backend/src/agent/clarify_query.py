@@ -11,7 +11,7 @@ llm = (
     ModelProvider
         .from_env_variable(
             env_variable="OLLAMA_MODEL_LLM_ANSWERING",
-            temperature=0.95,
+            temperature=0.0,
             defaults="qwen3:1.7b"
         )
 )
@@ -24,6 +24,8 @@ full_language: defaultdict[str, str] = defaultdict(lambda: "English", {
 system_prompt = PromptTemplate.from_template("""
 You are an AI assistant helping to clarify user requests about energy planning in Switzerland.
 Formulate a question asking for the specific missing details.
+**Do not try to assume if a location is valid or not.**
+
 If there is no extra needed information, then, they must have mistakenly input something.
 Keep the answer short and address the user in a friendly, non-robotic way.
 
@@ -70,6 +72,5 @@ async def clarify_query(state):
     response = await llm.ainvoke(prompt)
 
     return {
-        **state.model_dump(),
         "messages": [AIMessage(content=response.content)],
     }

@@ -98,7 +98,7 @@ def _geocontext_reducer(a: GeoContextOutput | dict, b: GeoContextOutput | dict) 
     return updated_state
 
 def _override_reducer(_, b):
-    # b is the new state
+    # b being the new state
     return b
 
 class State(BaseModel):
