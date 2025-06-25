@@ -55,52 +55,41 @@ async def geocontext_retriever(state):
         # instantiate potentially needed
         # geometry sessions and schemas
         # based on router location
-        # also check that aggregated query
-        # is set for type safety but, logically
-        # speaking, it is set if we are inside
-        # the current node
-        if router_state.location is not None and router_state.aggregated_query is not None:
-            # start the instantiation of
-            # the different GeoSession
-            # for said location to reduce
-            # latency when they are used
-            # in the tools themselves
-            writer({"type": "log", "content": "Let's start the machine."})
-            GeoSessionProvider.get_or_create(router_state.location, 100, 1.0)
-            GeoSessionProvider.get_or_create(router_state.location, 100, 0.3)
-            GeoSessionProvider.get_or_create(router_state.location, 500, 1.0)
-            GeoSessionProvider.get_or_create(router_state.location, 1000, 1.0)
-            writer({"type": "log", "content": "Ok, that's done."})
+        if router_state.location is None or router_state.aggregated_query is None:
+            raise ValueError("State is undefined")
+        # start the instantiation of
+        # the different GeoSession
+        # for said location to reduce
+        # latency when they are used
+        # in the tools themselves
+        writer({"type": "log", "content": "Let's start the machine."})
+        GeoSessionProvider.get_or_create(router_state.location, 100, 1.0)
+        GeoSessionProvider.get_or_create(router_state.location, 100, 0.3)
+        GeoSessionProvider.get_or_create(router_state.location, 500, 1.0)
+        GeoSessionProvider.get_or_create(router_state.location, 1000, 1.0)
+        writer({"type": "log", "content": "Ok, that's done."})
 
-            # retrieve relevant tools
-            # for location-aware data
-            writer({"type": "info", "content": "Retrieving tools..."})
-            toolbox: ToolProvider = await ToolProvider.acreate(router_state.location)
-            print(f"Querying tools using the aggregated query: {router_state.aggregated_query}")
-            tools, are_tools_uniform = await toolbox.asearch_tools(query=router_state.aggregated_query, max_n=6, k=10)
-            writer({"type": "log", "content": "I FOUND THEM!"})
-            # filter out tools whose
-            # data we already have
-            tools = [tool for tool in tools if tool.name not in geocontext.context_tools.keys()]
+        # retrieve relevant tools
+        # for location-aware data
+        writer({"type": "info", "content": "Retrieving tools..."})
+        toolbox: ToolProvider = await ToolProvider.acreate(router_state.location)
+        print(f"Querying tools using the aggregated query: {router_state.aggregated_query}")
+        tools, are_tools_uniform = await toolbox.asearch_tools(query=router_state.aggregated_query, max_n=6, k=10)
+        writer({"type": "log", "content": "I FOUND THEM!"})
+        # filter out tools whose
+        # data we already have
+        tools = [tool for tool in tools if tool.name not in geocontext.context_tools.keys()]
 
-            # invoke necessary tools
-            writer({"type": "info", "content": "Fetching data from retrieved tools..."})
-            tool_data = await _invoke_tools(tools, are_tools_uniform, router_state)
-            # update context
-            geocontext.context_tools = {**geocontext.context_tools, **tool_data}
-            return {
-                **state.model_dump(),
-                "messages": [AIMessage(content="Successfully retrieved data.")],
-                "geocontext": geocontext,
-            }
-        else:
-            # inquire extra clarification
-            router_state.needs_clarification = True
-            return {
-                **state.model_dump(),
-                "messages": [],
-                "router": router_state,
-            }
+        # invoke necessary tools
+        writer({"type": "info", "content": "Fetching data from retrieved tools..."})
+        tool_data = await _invoke_tools(tools, are_tools_uniform, router_state)
+        # update context
+        geocontext.context_tools = {**geocontext.context_tools, **tool_data}
+        return {
+            **state.model_dump(),
+            "messages": [AIMessage(content="Successfully retrieved data.")],
+            "geocontext": geocontext,
+        }
     except Exception as e:
         print(f"Exception: {e}")
         return state

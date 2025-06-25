@@ -75,7 +75,7 @@ class GraphProvider:
             print(f"Here is the state we are routing with: {state}")
             try:
                 if state.router is not None:
-                    if state.router.needs_clarification:
+                    if state.router.needs_clarification or (state.router.location is None and state.router.aggregated_query is None):
                         return "clarification"
                     elif state.router.conversation_type == "correction_request":
                         return "geocontext_retriever"
