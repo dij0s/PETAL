@@ -140,35 +140,6 @@ class ToolProvider:
         """
         return self._last_retrieved_categories if len(self._last_retrieved_categories) > 0 else None
 
-    async def asearch(
-        self,
-        query: str,
-        max_n_tools: int,
-        k_tools: int,
-        bypass_constraints: bool = False):
-        """
-        Search for StructuredTool objects and constraining document chunks matching the query and filter.
-
-        Args:
-            query (str): The search query string.
-            max_n_tools (int): The maximum number of tools to select after crossencoder reranking.
-            k_tools (int): The number of tools and constraining chunks to retrieve from the vector store for futher reranking.
-            bypass_constraints (bool): If True, bypasses the constraints search and only returns tools. Defaults to False.
-
-        Returns:
-            tuple[list[StructuredTool], list[str]]: A tuple containing a list of relevant StructuredTool objects that match the query and filter, along with the the constraining document chunks. By default, no filtering is applied.
-        """
-        async def no_op() -> list[tuple[str, str]]:
-            return []
-        tools_task = self._asearch_tools(query, max_n_tools, k_tools)
-        constraints_task = self._asearch_constraints(query) if not bypass_constraints else no_op()
-        # run both results
-        # asynchronously and
-        # then only gather
-        # maybe handle query
-        # embedding differently ?
-        return await asyncio.gather(tools_task, constraints_task)
-
     async def _rerank_documents(self, query: str, docs: list[Document], max_n: int, batch_size: int = 5, uniformity_threshold: float = 0.5) -> tuple[list[Document], bool]:
         """
         Rerank a list of documents based on their relevance to the query using the cross-encoder model.
@@ -218,7 +189,7 @@ class ToolProvider:
             top_indices = np.argsort(selected_scores)[::-1][:max_n]
             return [docs[selected_indices[index]] for index in top_indices], False
 
-    async def _asearch_tools(self, query: str, max_n: int, k: int = 5, filter: Optional[Callable[[Document], bool]] = None) -> tuple[list[StructuredTool], bool]:
+    async def asearch_tools(self, query: str, max_n: int, k: int = 5, filter: Optional[Callable[[Document], bool]] = None) -> tuple[list[StructuredTool], bool]:
         """
         Search for StructuredTool objects matching the query and filter.
         First retrieves documents based on cosine similarity indicator and the applies crossencoder reranking.
@@ -258,7 +229,7 @@ class ToolProvider:
 
         return top_tools, is_uniform
 
-    async def _asearch_constraints(self, query: str) -> list[tuple[str, str]]:
+    async def asearch_constraints(self, query: str) -> list[tuple[str, str]]:
         """
         Search for constraining document chunks matching the query.
 

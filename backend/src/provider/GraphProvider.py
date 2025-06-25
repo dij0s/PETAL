@@ -9,12 +9,12 @@ from langchain_ollama import OllamaEmbeddings
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.store.redis.aio import AsyncRedisStore
 
-from typing import Annotated, AsyncGenerator, Optional, Callable, Any
-from pydantic import BaseModel
+from typing import AsyncGenerator, Optional, Callable, Any
 
 from agent.intent_router import intent_router
 from agent.clarify_query import clarify_query
 from agent.geocontext_retriever import geocontext_retriever
+from agent.guidelines_retriever import guidelines_retriever
 from agent.generate_answer import generate_answer
 from modelling.structured_output import State
 
@@ -68,17 +68,24 @@ class GraphProvider:
         graph_builder.add_node("intent_router", intent_router)
         graph_builder.add_node("clarification", clarify_query)
         graph_builder.add_node("geocontext_retriever", geocontext_retriever)
+        graph_builder.add_node("guidelines_retriever", guidelines_retriever)
         graph_builder.add_node("generate_answer", generate_answer)
 
         def router_condition(state: State):
+            print(f"Here is the state we are routing with: {state}")
             try:
                 if state.router is not None:
                     if state.router.needs_clarification:
                         return "clarification"
                     elif state.router.conversation_type == "correction_request":
+                        return "geocontext_retriever"
+                    elif state.router.intent == "actionable":
+                        return "geocontext_retriever", "guidelines_retriever"
+                    elif state.router.conversation_type == "follow_up":
                         return "generate_answer"
                     else:
                         return "geocontext_retriever"
+
             except Exception as e:
                 print(f"Error: {e}")
 
@@ -91,9 +98,19 @@ class GraphProvider:
             except Exception as e:
                 print(f"Error: {e}")
 
+        def guidelines_condition(state: State):
+            try:
+                if state.router is not None and state.router.needs_clarification:
+                    return "clarification"
+                else:
+                    return "generate_answer"
+            except Exception as e:
+                print(f"Error: {e}")
+
         graph_builder.add_edge(START, "intent_router")
         graph_builder.add_conditional_edges("intent_router", router_condition)
         graph_builder.add_conditional_edges("geocontext_retriever", geocontext_condition)
+        graph_builder.add_conditional_edges("guidelines_retriever", guidelines_condition)
         # reaching the clarification node should
         # stop the flow too to then process
         # extra user-given context

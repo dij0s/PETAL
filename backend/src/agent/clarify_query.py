@@ -71,5 +71,5 @@ async def clarify_query(state):
 
     return {
         **state.model_dump(),
-        "messages": state.messages + [AIMessage(content=response.content)],
+        "messages": [AIMessage(content=response.content)],
     }

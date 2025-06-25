@@ -1,7 +1,7 @@
 """This file exports Pydantic models for data used throughout the conversation context."""
 
-from langchain_core.messages import AIMessageChunk, AnyMessage, HumanMessage
-from langgraph.graph import StateGraph, START, END, add_messages
+from langchain_core.messages import AnyMessage
+from langgraph.graph import add_messages
 
 from typing import Optional, Any, Annotated
 from pydantic import BaseModel, Field
@@ -58,11 +58,56 @@ class BenchmarkScore(BaseModel):
     source_citations: int = Field(description="Score from 1 to 5 indicating the quality and accuracy of source citations.")
     specific_issues: list[str] = Field(description="List of any specific problems found across all criteria.", default_factory=list)
 
+def _geocontext_reducer(a: GeoContextOutput | dict, b: GeoContextOutput | dict) -> GeoContextOutput:
+    """
+    Custom reducer for concurrent GeoContextOutput state updates.
+
+    Args:
+        a (GeoContextOutput): The first GeoContextOutput instance.
+        b (GeoContextOutput): The second GeoContextOutput instance.
+
+    Returns:
+        GeoContextOutput: The reduced GeoContextOutput instance combining information from both inputs.
+    """
+    # reduce to state whose
+    # individual keys are the
+    # one with the most data
+    updated_state = GeoContextOutput()
+    if isinstance(a, dict):
+        a = GeoContextOutput(**a)
+    if isinstance(b, dict):
+        b = GeoContextOutput(**b)
+
+    if a == b:
+        return b
+
+    if len(a.context_tools) >= len(b.context_tools):
+        updated_state.context_tools = a.context_tools
+        if len(a.context_constraints) > len(b.context_constraints):
+            updated_state.context_constraints = a.context_constraints
+        else:
+            updated_state.context_constraints = b.context_constraints
+    else:
+        # per definition as each state
+        # is only updated by a single
+        # node we can deduce the other
+        # from evaluating the first one
+        updated_state.context_tools = b.context_tools
+        updated_state.context_constraints = a.context_constraints
+
+    return updated_state
+
+def _override_reducer(_, b):
+    # b is the new state
+    return b
+
 class State(BaseModel):
     messages: Annotated[list[AnyMessage], add_messages]
-    router: Optional[RouterOutput] = None
-    geocontext: Optional[GeoContextOutput] = None
-    lang: str = "en"
+    # router is ensured to be the same at every superstep
+    router: Annotated[Optional[RouterOutput], _override_reducer] = None
+    geocontext: Annotated[Optional[GeoContextOutput], _geocontext_reducer] = None
+    # lang is ensured to be the same at every superstep
+    lang: Annotated[str, _override_reducer] = "en"
 
 class PromptRequest(BaseModel):
     user_id: str

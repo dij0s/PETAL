@@ -43,7 +43,7 @@ class GeoSessionProvider:
             GeoSessionProvider: An instance of GeoSessionProvider with the specified configuration.
         """
         # unique key for configuration
-        instance_key = f"{municipality_name}_{tile_size}_{sampling_rate}"
+        instance_key = f"{municipality_name}_{tile_size}_{sampling_rate}_{with_residents_count}"
 
         if instance_key not in cls._instances:
             instance = super().__new__(cls)

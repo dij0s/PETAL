@@ -101,6 +101,7 @@ async def intent_router(state, *, config: RunnableConfig, store: BaseStore):
     human_messages: list[str] = [msg.content for msg in reversed(state.messages) if isinstance(msg, HumanMessage)] # type: ignore
     last_human_message: str = human_messages[0] if human_messages else ""
     previous_human_message: str = human_messages[1] if len(human_messages) > 1 else ""
+    print(f"The last human message is '{last_human_message}' and the previous one is '{previous_human_message}'")
     # retrieve curent router context
     # and fill it in the prompt for
     # context carry over
@@ -178,7 +179,7 @@ async def intent_router(state, *, config: RunnableConfig, store: BaseStore):
     if last_location != updated_router.location:
         return {
             **state.model_dump(),
-            "messages": state.messages,
+            "messages": [],
             "router": updated_router,
             "geocontext": GeoContextOutput(),
         }
@@ -190,6 +191,6 @@ async def intent_router(state, *, config: RunnableConfig, store: BaseStore):
     # the _dict_ function on the State
     return {
         **state.model_dump(),
-        "messages": state.messages,
+        "messages": [],
         "router": updated_router,
     }
