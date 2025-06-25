@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import loader from "../../../assets/loader.webp";
 import type { Message } from "../../../types/Message";
+import type { Checkpoint } from "../../../types/Checkpoint";
 import Chat from "../../ui/Chat";
 import Prompt from "../../ui/Prompt";
 import "./Conversation.css";
@@ -11,10 +12,10 @@ interface ConversationProps {
   onSendPrompt: (prompt: string) => void;
   isStreaming: boolean;
   processingStatus: string;
-  toolCalls: string[];
   thinkingContent?: string;
   isThinking?: boolean;
   isInitialConversation?: boolean;
+  selectedCheckpoint?: Checkpoint | null;
 }
 
 const Conversation = ({
@@ -25,8 +26,7 @@ const Conversation = ({
   thinkingContent = "",
   isThinking = false,
   isInitialConversation = false,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  toolCalls: _toolCalls,
+  selectedCheckpoint = null,
 }: ConversationProps) => {
   const [promptInput, setPromptInput] = useState<string>("");
   const { t } = useTranslation();
@@ -98,9 +98,30 @@ const Conversation = ({
     }
   };
 
+  // checkpoint message on
+  // clicked conversation
+  const createCheckpointMessage = (checkpoint: Checkpoint) => {
+    const location = checkpoint.data.router?.location;
+
+    return {
+      role: "assistant",
+      content: `### ${checkpoint.title}\n**Safe, private, and local** — that’s how we do it in ${location}.
+      `,
+    } as Message;
+  };
+
+  // display relevant messages
+  const displayMessages = useCallback(() => {
+    if (selectedCheckpoint && messages.length === 0) {
+      return [createCheckpointMessage(selectedCheckpoint)];
+    }
+    return messages;
+  }, [selectedCheckpoint, messages]);
+  const messagesToDisplay = displayMessages();
+
   return (
     <main>
-      {messages.length === 0 && (
+      {messagesToDisplay.length === 0 && (
         <div
           className={"conversation-fallback-wrapper"}
           data-visible={
@@ -134,13 +155,13 @@ const Conversation = ({
           </div>
         </div>
       )}
-      {messages.length > 0 && (
+      {messagesToDisplay.length > 0 && (
         <div
           ref={messagesWrapperRef}
           className="conversation-messages-wrapper"
           onScroll={handleScroll}
         >
-          {messages.map((msg, index) => (
+          {messagesToDisplay.map((msg, index) => (
             <Chat key={index} message={msg} />
           ))}
           {processingStatus !== "" && (

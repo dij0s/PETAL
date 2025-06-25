@@ -4,6 +4,8 @@ import Conversation from "./components/layout/Conversation";
 import { useTranslation } from "react-i18next";
 import { useStreamingChat } from "./utils/useStreamingChat";
 import { getOrCreateUserId } from "./utils/userId";
+import { checkpointStorage } from "./utils/checkpointStorage";
+import type { Checkpoint } from "./types/Checkpoint";
 import "./i18n";
 import "./App.css";
 
@@ -12,13 +14,13 @@ function App() {
     "collapsed",
   );
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [toolCalls, _setToolCalls] = useState<string[]>([]);
-
   const [currentThreadId, setCurrentThreadId] = useState<string>(() =>
     crypto.randomUUID(),
   );
-  const [isInitialConversation, setIsInitialConversation] = useState(true);
+  const [isInitialConversation, setIsInitialConversation] =
+    useState<boolean>(true);
+  const [selectedCheckpoint, setSelectedCheckpoint] =
+    useState<Checkpoint | null>(null);
   const { i18n } = useTranslation();
 
   const [streamingState, streamingActions] = useStreamingChat({
@@ -30,11 +32,23 @@ function App() {
   const handleSelectConversation = async (threadId: string) => {
     setCurrentThreadId(threadId);
     setIsInitialConversation(false);
+
+    try {
+      const checkpoint = await checkpointStorage.getCheckpoint(threadId);
+      setSelectedCheckpoint(checkpoint);
+    } catch {
+      setSelectedCheckpoint(null);
+    }
   };
 
   const handleNewConversation = () => {
     const newThreadId = crypto.randomUUID();
     setCurrentThreadId(newThreadId);
+  };
+
+  const handleSendPrompt = (prompt: string) => {
+    setSelectedCheckpoint(null);
+    streamingActions.sendPrompt(prompt);
   };
 
   return (
@@ -49,13 +63,13 @@ function App() {
     >
       <Conversation
         messages={streamingState.messages}
-        onSendPrompt={streamingActions.sendPrompt}
+        onSendPrompt={handleSendPrompt}
         isStreaming={streamingState.isStreaming}
         processingStatus={streamingState.processingStatus}
-        toolCalls={toolCalls}
         thinkingContent={streamingState.thinkingContent}
         isThinking={streamingState.isThinking}
         isInitialConversation={isInitialConversation}
+        selectedCheckpoint={selectedCheckpoint}
       />
     </Layout>
   );
