@@ -267,7 +267,7 @@ async def generate_answer(state, *, config: RunnableConfig, store: BaseStore):
     toolbox: ToolProvider = await ToolProvider.acreate(state.router.location)
     tools_data, layers = reduce(
         lambda res, d: (
-            res[0] + f"['description': {toolbox.get(d[0]).description}, 'value': {d[1][1]}]" + "\n", # type: ignore
+            res[0] + (f"['description': {toolbox.get(d[0]).description}, 'value': {d[1][1]}]" + "\n" if toolbox.get(d[0]) is not None else ""), # type: ignore
             res[1] + [d[1][0]] if d[1][0] != "" else res[1]
         ),
         state.geocontext.context_tools.items(),
