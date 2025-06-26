@@ -47,7 +47,7 @@ def _():
 
 @app.cell
 def _(np):
-    data = np.load("./compiled_files.npz", allow_pickle=True)
+    data = np.load("./citizen_data_export.npz", allow_pickle=True)
     images_list = data["base64_images"]
     return (images_list,)
 
@@ -76,67 +76,38 @@ def _(
 @app.cell
 def _():
     system_prompt = """
-    You will be provided with an image of a PDF page. The content is written in **French** and originates from either:
+    You will receive an image of a document page in French, originating from municipal citizen data (scans or digitalized documents).
+    Your task is to extract and deliver a **literal, complete, and detailed English translation** of all meaningful content on the page.
 
-    1. Official Swiss legislation, which follows a strict structure (e.g., numbered titles, subtitles, and articles such as "Art. XX"), or
-    2. Strategic and planning documents that may contain diagrams, charts, tables, and explanatory text.
+    **CRITICAL ANONYMIZATION REQUIREMENTS - ABSOLUTE PRIORITY:**
+    - **MANDATORY: Replace ALL personal identifiers without exception** - names (first, last, maiden, nicknames), addresses (street, city, postal codes), phone numbers, email addresses, social security numbers, ID numbers, passport numbers, driver's license numbers, tax identification numbers, bank account details, medical record numbers, employee IDs, student IDs, membership numbers, license plates, and ANY other identifying information.
+    - **MANDATORY: Anonymize ALL dates** - birth dates, appointment dates, registration dates, expiration dates, etc. Replace with [DATE_REDACTED] or generic placeholders like [BIRTH_DATE], [REGISTRATION_DATE].
+    - **MANDATORY: Replace ALL signatures, initials, or handwritten personal marks** with [SIGNATURE_REDACTED].
+    - **MANDATORY: Replace company names, organization names, and institutional affiliations** with generic placeholders like [COMPANY_NAME], [ORGANIZATION], [INSTITUTION].
+    - **MANDATORY: Anonymize financial information** - account numbers, transaction amounts, salaries, debts - replace with [FINANCIAL_DATA_REDACTED].
+    - **MANDATORY: Redact ANY reference numbers, case numbers, file numbers, or tracking codes** that could be used to trace back to individuals.
+    - **MANDATORY: Replace geographical specifics** beyond general region/city type with [LOCATION_REDACTED].
+    - **MANDATORY: Use consistent placeholder formatting** - always use square brackets with descriptive labels like [PERSONAL_NAME], [HOME_ADDRESS], [PHONE_NUMBER], [EMAIL_ADDRESS], [ID_NUMBER].
 
-    Your role is to extract and deliver a **literal, and detailed translation** of the content in **English**. **You MUST translate ALL meaningful content from French to English.** This is required for legal and regulatory compliance.
+    **SECONDARY REQUIREMENTS:**
+    - Translate **all written text fully and literally** without omitting important details.
+    - Describe any charts, tables, or diagrams clearly, translating all labels and data into English while maintaining anonymization.
+    - Maintain logical structure and section order.
+    - Do NOT mention page numbers or formatting details.
+    - Ensure the output is exhaustive and suitable for machine indexing in a retrieval system.
 
-    **Your output must cover the full content of the page but can be summarized to takeway the important information. Do not emit what is important.**
+    **VERIFICATION CHECKLIST - Before finalizing output, confirm:**
+    ✓ No real names remain visible
+    ✓ No actual addresses are present
+    ✓ No genuine dates are displayed
+    ✓ No contact information is exposed
+    ✓ No identification numbers are shown
+    ✓ All personal data uses consistent [PLACEHOLDER] format
 
-    ---
+    **REMEMBER: Privacy protection is the absolute top priority. When in doubt, REDACT.**
 
-    ## Context and Purpose:
-
-    The goal is to extract and preserve all important information from each page. The output will later be used in a **Retrieval-Augmented Generation (RAG)** system. This system will respond to user queries to determine **what must or should be done**, based on the content of Swiss legislation and government-designed energy planning.
-
-    Your output must therefore be exhaustive, clear, and suitable for machine indexing and retrieval.
-
-    ---
-
-    ## If the document is legislative (structured):
-
-    - A single page may contain **multiple articles or sections** — include **all of them** in your output.
-    - Preserve the hierarchical structure exactly:
-      - Titles and subtitles (e.g., "1", "1.1")
-      - Article identifiers (e.g., "Art. 4")
-      - Paragraphs, bullet points, and numbered clauses
-
-    - Translate the article title into English.
-    - Translate the entire content literally into English, with clear formatting to distinguish between sections and articles.
-    - DO NOT rephrase legant content, only condense to takeaway important information.
-
-    ---
-
-    ## If the document is unstructured or contains visual elements:
-
-    - Thoroughly describe any **charts, diagrams, plots, or visuals**:
-      - Explain the meaning of each component and the relationships depicted.
-      - Translate any text, annotations, or labels into English.
-
-    - For **tables**, explain the data clearly and narratively.
-      - Example: “The table shows electricity production in 2022: hydropower accounts for 58%, solar for 12%, and nuclear for 20%.”
-
-    - Translate all written text fully.
-    - Define technical terms in simple, accessible English when appropriate.
-    - If strategic objectives or forecasts are present, explain their meaning and implications.
-
-    ---
-
-    ## General Guidelines:
-
-    - DO NOT mention page numbers, layout, visual formatting, or document type.
-    - DO translate all meaningful French content — **literal and complete translation is mandatory**.
-    - DO maintain logical structure and section order.
-    - DO explain legal, regulatory, or strategic context when evident.
-    - DO ensure that the output represents the **entire content of the page**, even if it includes multiple components.
-
-    ---
-
-    ## Output Format:
-
-    {Translated content of the full page}
+    Output format:  
+    {Full anonymized, translated content of the page in English}
     """
     return (system_prompt,)
 
@@ -174,7 +145,7 @@ def _(model, process_vision_info, processor, system_prompt):
         )
         inputs = inputs.to(model.device)
 
-        generated_ids = model.generate(**inputs, max_new_tokens=500, do_sample=False) # do_sample=False equiv. temperature=0
+        generated_ids = model.generate(**inputs, max_new_tokens=1024, do_sample=False) # do_sample=False equiv. temperature=0
         generated_ids_trimmed = [
             out_ids[len(in_ids) :] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
         ]
@@ -190,7 +161,7 @@ def _(model, process_vision_info, processor, system_prompt):
 def _(analyze_image, images_list, json):
     results = {}
 
-    checkpoint_path = "./infered_pages_latest.json"
+    checkpoint_path = "./citizen_data_anonimised.json"
 
     for index, data_uri in enumerate(images_list):
         image_id = f"page_{index:04d}"
