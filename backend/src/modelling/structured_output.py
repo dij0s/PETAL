@@ -77,8 +77,10 @@ def _geocontext_reducer(a: GeoContextOutput | dict, b: GeoContextOutput | dict) 
         a = GeoContextOutput(**a)
     if isinstance(b, dict):
         b = GeoContextOutput(**b)
-
-    if a == b:
+    # if geocontext is cleared,
+    # we must properly overwrite
+    # the current geocontext
+    if (a == b) or (b == GeoContextOutput()):
         return b
 
     if len(a.context_tools) >= len(b.context_tools):

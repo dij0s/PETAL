@@ -11,7 +11,7 @@ llm = (
     ModelProvider
         .from_env_variable(
             env_variable="OLLAMA_MODEL_LLM_ANSWERING",
-            temperature=0.0,
+            temperature=0.5,
             defaults="qwen3:1.7b"
         )
 )
@@ -57,7 +57,7 @@ async def clarify_query(state):
     last_human_message = next(msg.content for msg in state.messages if isinstance(msg, HumanMessage))
 
     missing_attributes = reduce_missing_attributes(state.router)
-    prompt = messages = [
+    prompt = [
         SystemMessage(content=system_prompt.format(
             lang=full_language[state.lang].upper()
         )),

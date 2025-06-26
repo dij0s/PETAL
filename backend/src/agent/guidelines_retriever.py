@@ -5,7 +5,7 @@ from typing import Optional
 from functools import reduce
 
 from langchain_core.prompts import PromptTemplate
-from langchain_core.messages import AIMessage, SystemMessage
+from langchain_core.messages import  SystemMessage
 from langgraph.config import get_stream_writer
 
 from provider.ModelProvider import ModelProvider

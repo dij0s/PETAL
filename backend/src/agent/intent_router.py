@@ -1,19 +1,15 @@
 from langchain_core.prompts import PromptTemplate
-from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.store.base import BaseStore
 from langgraph.config import get_stream_writer
 
 from provider.ModelProvider import ModelProvider
 from modelling.PydanticStreamOutputParser import PydanticStreamOutputParser
-from modelling.structured_output import GeoContextOutput, RouterOutput, Memory
-from modelling.utils import reduce_missing_attributes
+from modelling.structured_output import GeoContextOutput, RouterOutput
 from storage.memories import update_memories
 
-from typing import Optional, Any
-from pydantic import BaseModel, Field, ValidationError
-
-from functools import reduce
+from typing import Any
 
 # define system prompt for enhanced
 # formatting and data scheme validation

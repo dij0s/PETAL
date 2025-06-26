@@ -1,4 +1,3 @@
-import re
 import asyncio
 
 from typing import Optional, Any
@@ -84,7 +83,6 @@ async def geocontext_retriever(state):
         try:
             tool_data = await _invoke_tools(tools, are_tools_uniform, router_state)
         except RuntimeError:
-            print("Shit going downhill in geocontext retriever")
             # location is not a proper
             # municipalty, enquire more
             # clarification by unsetting

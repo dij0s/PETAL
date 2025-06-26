@@ -1,8 +1,6 @@
 from langchain_core.prompts import PromptTemplate
 from langchain_core.messages import SystemMessage, AIMessage, HumanMessage
-from langchain_core.tools.structured import StructuredTool
 from langchain_core.runnables import RunnableConfig
-from langchain_ollama import ChatOllama
 from langgraph.store.base import BaseStore
 from langgraph.config import get_stream_writer
 
