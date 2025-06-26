@@ -12,6 +12,7 @@ interface ConversationProps {
   onSendPrompt: (prompt: string) => void;
   isStreaming: boolean;
   processingStatus: string;
+  dataSources: [string, string, any][];
   thinkingContent?: string;
   isThinking?: boolean;
   isInitialConversation?: boolean;
@@ -23,6 +24,7 @@ const Conversation = ({
   onSendPrompt,
   isStreaming,
   processingStatus,
+  dataSources,
   thinkingContent = "",
   isThinking = false,
   isInitialConversation = false,
@@ -190,6 +192,7 @@ const Conversation = ({
         promptInput={promptInput}
         setPromptInput={setPromptInput}
         onSend={handleSendPrompt}
+        dataSources={dataSources}
         disabled={isStreaming}
       />
     </main>

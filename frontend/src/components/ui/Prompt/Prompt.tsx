@@ -2,6 +2,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowUp } from "@fortawesome/free-solid-svg-icons";
 import { pelletConfig, type Indicator } from "../../../utils/feedbackPellet";
 import { useTranslation } from "react-i18next";
+import DataSources from "../DataSources";
 import "./Prompt.css";
 
 interface PromptProps {
@@ -9,6 +10,7 @@ interface PromptProps {
   promptInput: string;
   setPromptInput: (value: string) => void;
   onSend: (prompt: string) => void;
+  dataSources: [string, string, any][];
   disabled?: boolean;
 }
 
@@ -17,6 +19,7 @@ const Prompt = ({
   promptInput,
   setPromptInput,
   onSend,
+  dataSources,
   disabled = false,
 }: PromptProps) => {
   const { color, translationKey } = pelletConfig[indicator];
@@ -24,6 +27,7 @@ const Prompt = ({
 
   return (
     <div className="prompt-wrapper">
+      <DataSources dataSources={dataSources} />
       <div className="prompt-wrapper-inner">
         <textarea
           className="prompt-textarea"

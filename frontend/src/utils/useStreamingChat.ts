@@ -16,6 +16,7 @@ interface StreamingState {
   messages: Message[];
   processingStatus: string;
   mapLayers: string[];
+  dataSources: [string, string, any][];
   mapFocusedMunicipality: number | null;
   thinkingContent: string;
   isThinking: boolean;
@@ -33,6 +34,7 @@ export const useStreamingChat = (
   const [messages, setMessages] = useState<Message[]>([]);
   const [processingStatus, setProcessingStatus] = useState<string>("");
   const [mapLayers, setMapLayers] = useState<string[]>([]);
+  const [dataSources, setDataSources] = useState<[string, string, any][]>([]);
   const [mapFocusedMunicipality, setMapFocusedMunicipality] = useState<
     number | null
   >(null);
@@ -144,6 +146,9 @@ export const useStreamingChat = (
   const pendingLayersRef = useRef<string[]>([]);
   const pendingMunicipalityRef = useRef<number | null>(null);
   const layersAppliedRef = useRef<boolean>(false);
+
+  const pendingSourcesRef = useRef<[string, string, any][]>([]);
+  const sourcesAppliedRef = useRef<boolean>(false);
 
   const displayedWordsRef = useRef<number>(0);
   const targetWordsRef = useRef<string[]>([]);
@@ -308,6 +313,13 @@ export const useStreamingChat = (
     }
   }, []);
 
+  const applyPendingSources = useCallback(() => {
+    if (!sourcesAppliedRef.current && pendingSourcesRef.current.length > 0) {
+      setDataSources(pendingSourcesRef.current);
+      sourcesAppliedRef.current = true;
+    }
+  }, []);
+
   const flushTokenBuffer = useCallback(() => {
     const { thinking, response, hasCompleteThinking } = parseContent(
       tokenBufferRef.current,
@@ -332,6 +344,7 @@ export const useStreamingChat = (
       setProcessingStatus("");
       // apply layers when actual response starts
       applyPendingLayers();
+      applyPendingSources();
     }
     // update response content if we
     // are past thinking mode or if
@@ -345,12 +358,19 @@ export const useStreamingChat = (
       // (for cases without thinking blocks)
       if (!thinking) {
         applyPendingLayers();
+        applyPendingSources();
       }
 
       startTypewriterAnimation();
     }
     animationFrameRef.current = null;
-  }, [parseContent, startTypewriterAnimation, isThinking, applyPendingLayers]);
+  }, [
+    parseContent,
+    startTypewriterAnimation,
+    isThinking,
+    applyPendingLayers,
+    applyPendingSources,
+  ]);
 
   const scheduleTokenUpdate = useCallback(() => {
     if (animationFrameRef.current === null) {
@@ -401,9 +421,11 @@ export const useStreamingChat = (
       responseBufferRef.current = "";
       hasSeenThinkingEndRef.current = false;
       pendingLayersRef.current = [];
+      pendingSourcesRef.current = [];
       pendingMunicipalityRef.current = null;
       pendingCheckpointRef.current = null;
       layersAppliedRef.current = false;
+      sourcesAppliedRef.current = false;
 
       setThinkingContent("");
       setIsThinking(false);
@@ -484,6 +506,14 @@ export const useStreamingChat = (
         // always buffer layers
         // until response starts
         pendingLayersRef.current = data.layers;
+      });
+
+      // handle sources update
+      es.addEventListener("sources", (e) => {
+        const data = JSON.parse(e.data);
+        // always buffer layers
+        // until response starts
+        pendingSourcesRef.current = data.sources;
       });
 
       // handle end event
@@ -575,6 +605,7 @@ export const useStreamingChat = (
       messages,
       processingStatus,
       mapLayers,
+      dataSources,
       mapFocusedMunicipality,
       thinkingContent,
       isThinking,

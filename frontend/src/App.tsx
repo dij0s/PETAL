@@ -66,6 +66,7 @@ function App() {
         onSendPrompt={handleSendPrompt}
         isStreaming={streamingState.isStreaming}
         processingStatus={streamingState.processingStatus}
+        dataSources={streamingState.dataSources}
         thinkingContent={streamingState.thinkingContent}
         isThinking={streamingState.isThinking}
         isInitialConversation={isInitialConversation}
