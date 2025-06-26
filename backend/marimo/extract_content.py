@@ -42,12 +42,6 @@ def _():
 
 @app.cell
 def _():
-    from layoutparser.models import Detectron2LayoutModel
-    return (Detectron2LayoutModel,)
-
-
-@app.cell
-def _():
     DATASET_PATH = "./dataset"
     OUTPUT_JSON_PATH = "./extracted_pages.json"
     return (DATASET_PATH,)
@@ -82,21 +76,6 @@ def _(pixmap_to_base64, pymupdf, reduce):
 
         return page_content
     return (extract_content,)
-
-
-@app.cell
-def _(Detectron2LayoutModel):
-    model = Detectron2LayoutModel('lp://PubLayNet/faster_rcnn_R_50_FPN_3x/config')
-    def segment_with_layoutparser(page_img_pil):
-        layout = model.detect(page_img_pil)
-        segments = []
-        for block in layout:
-            if block.type in ['Figure', 'Table']:  # or whatever you want
-                x1, y1, x2, y2 = map(int, block.coordinates)
-                crop = page_img_pil.crop((x1, y1, x2, y2))
-                segments.append(crop)
-        return segments
-    return
 
 
 @app.cell

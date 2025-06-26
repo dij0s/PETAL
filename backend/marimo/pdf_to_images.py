@@ -71,7 +71,7 @@ def _(extract_text):
 
 @app.cell
 def _(os):
-    dataset_directory_path = "./dataset/citizen_data"
+    dataset_directory_path = "./dataset/citizen_data/energy/"
     files = filter(
         lambda f: f.lower().endswith(("pdf", "jpg", "jpeg", "png")),
         [
@@ -101,7 +101,7 @@ def _(convert_doc_to_images, files, get_img_uri, np):
         for filename in files
         for img in convert_doc_to_images(filename)
     ]
-    np.savez_compressed("./citizen_data_export.npz", base64_images=base64_images)
+    np.savez_compressed("./citizen_data_energy_export.npz", base64_images=base64_images)
     return
 
 

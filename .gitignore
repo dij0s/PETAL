@@ -25,6 +25,7 @@ wheels/
 extracted_pages.json
 documents_with_visual_analysis.json
 citizen_data*
+!citizen_data_energy_datapoints.json
 
 # Marimo context
 __marimo__
