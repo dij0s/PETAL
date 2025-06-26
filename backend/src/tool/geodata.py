@@ -1264,7 +1264,7 @@ class GeoDataTool(StructuredTool):
             # returns data with the name of the
             # tool that was invoked and extra
             # layer_id
-            async def wrapper(*args, **inner_kwargs) -> dict[str, tuple[str, Any]]:
+            async def wrapper(*args, **inner_kwargs) -> dict[str, tuple[str, Any, str, str]]:
                 # write custom events
                 # on custom tool call
                 writer = get_stream_writer()
@@ -1274,7 +1274,7 @@ class GeoDataTool(StructuredTool):
                 writer({"type": "tool_call", "name": clean_name, "isFinished": True})
 
                 return {
-                    name: (layer_id, result)
+                    name: (layer_id, result, clean_name, source)
                 }
 
             super().__init__(

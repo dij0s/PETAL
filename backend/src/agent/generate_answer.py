@@ -8,6 +8,7 @@ from provider.ModelProvider import ModelProvider
 from provider.GeoSessionProvider import GeoSessionProvider
 from provider.ToolProvider import ToolProvider
 from storage.memories import fetch_memories
+from tool.geodata import GeoDataTool
 
 from collections import defaultdict
 from functools import reduce
@@ -260,15 +261,31 @@ async def generate_answer(state, *, config: RunnableConfig, store: BaseStore):
     provider = GeoSessionProvider.get_or_create(state.router.location, 100, 0.3)
 
     last_human_message = next(msg.content for msg in reversed(state.messages) if isinstance(msg, HumanMessage))
+    # breakdown context tools
+    # into data and metadata
+    tools_data, tools_metadata = reduce(
+        lambda res, d: (
+            {
+                **res[0],
+                d[0]: d[1][:2]
+            },
+            {
+                **res[1],
+                d[0]: d[1][2:]
+            },
+        ),
+        state.geocontext.context_tools.items(),
+        ({}, {})
+    )
     # retrieve description of
     # aggregated data using tools
     toolbox: ToolProvider = await ToolProvider.acreate(state.router.location)
-    tools_data, layers = reduce(
+    tools_data_description, layers = reduce(
         lambda res, d: (
             res[0] + (f"['description': {toolbox.get(d[0]).description}, 'value': {d[1][1]}]" + "\n" if toolbox.get(d[0]) is not None else ""), # type: ignore
             res[1] + [d[1][0]] if d[1][0] != "" else res[1]
         ),
-        state.geocontext.context_tools.items(),
+        tools_data.items(),
         ("", [])
     )
     # retrieve similar tools
@@ -306,10 +323,11 @@ async def generate_answer(state, *, config: RunnableConfig, store: BaseStore):
         "lang": full_language[state.lang].upper(),
         "memories_description": memories_description,
         "constraints": state.geocontext.context_constraints,
-        "tools_data": tools_data,
+        "tools_data": tools_data_description,
         "aggregated_query": state.router.aggregated_query,
         "user_query": last_human_message,
     }
+
     # update state with response
     # and push the new layers and
     # municipality's SFSO number
@@ -318,6 +336,14 @@ async def generate_answer(state, *, config: RunnableConfig, store: BaseStore):
         await provider.wait_until_sfso_ready()
         writer({"type": "layers", "layers": layers})
         writer({"type": "sfso_number", "sfso_number": provider.municipality_sfso_number})
+
+    # push the source data and
+    # its associated metadata
+    sources = [
+        (*v, tools_data[k][1])
+        for k, v in tools_metadata.items()
+    ]
+    writer({"type": "sources", "sources": sources})
 
     prompt = [
         SystemMessage(content=factual_system_prompt.format(**prompt_args)),

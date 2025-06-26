@@ -36,7 +36,7 @@ class RouterOutput(BaseModel):
 class GeoContextOutput(BaseModel):
     """GeoContext Retriever output used to fetch relevant data from the user query and process it further."""
 
-    context_tools: dict[str, tuple[str, Any]] = Field(
+    context_tools: dict[str, tuple[str, Any, str, str]] = Field(
         description="Maps tool called to the retrieved layer and data of any type",
         default_factory=dict
     )
