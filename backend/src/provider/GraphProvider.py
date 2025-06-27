@@ -16,6 +16,7 @@ from agent.clarify_query import clarify_query
 from agent.geocontext_retriever import geocontext_retriever
 from agent.guidelines_retriever import guidelines_retriever
 from agent.generate_answer import generate_answer
+from agent.critic_answer import critic_answer
 from modelling.structured_output import State
 
 class GraphProvider:
@@ -70,6 +71,7 @@ class GraphProvider:
         graph_builder.add_node("geocontext_retriever", geocontext_retriever)
         graph_builder.add_node("guidelines_retriever", guidelines_retriever)
         graph_builder.add_node("generate_answer", generate_answer)
+        graph_builder.add_node("critic_answer", critic_answer)
 
         def router_condition(state: State):
             try:
@@ -111,8 +113,9 @@ class GraphProvider:
         # reaching the clarification node should
         # stop the flow too to then process
         # extra user-given context
+        graph_builder.add_edge("generate_answer", "critic_answer")
+        graph_builder.add_edge("critic_answer", END)
         graph_builder.add_edge("clarification", END)
-        graph_builder.add_edge("generate_answer", END)
         # compile graph and define
         # runtime configuration
         self._graph = graph_builder.compile(checkpointer=self._checkpointer, store=self._store)

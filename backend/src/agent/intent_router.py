@@ -6,7 +6,7 @@ from langgraph.config import get_stream_writer
 
 from provider.ModelProvider import ModelProvider
 from modelling.PydanticStreamOutputParser import PydanticStreamOutputParser
-from modelling.structured_output import GeoContextOutput, RouterOutput
+from modelling.structured_output import State, GeoContextOutput, RouterOutput
 from storage.memories import update_memories
 
 from typing import Any
@@ -73,7 +73,7 @@ llm = (
 )
 parser = PydanticStreamOutputParser(pydantic_object=RouterOutput, diff=True)
 
-async def intent_router(state, *, config: RunnableConfig, store: BaseStore):
+async def intent_router(state: State, *, config: RunnableConfig, store: BaseStore):
     """
     Routes user intent based on the latest human message in the conversation state.
 

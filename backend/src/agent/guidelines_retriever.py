@@ -11,7 +11,7 @@ from langgraph.config import get_stream_writer
 from provider.ModelProvider import ModelProvider
 from provider.GeoSessionProvider import GeoSessionProvider
 from provider.ToolProvider import ToolProvider
-from modelling.structured_output import RouterOutput, GeoContextOutput
+from modelling.structured_output import State, GeoContextOutput
 
 llm_processing = (
     ModelProvider
@@ -41,7 +41,7 @@ system_prompt_processing = PromptTemplate.from_template("""
     Return the same documents, in the same order, separated by <doc>. Only the relevant energy numbers should be changed.
     """)
 
-async def guidelines_retriever(state):
+async def guidelines_retriever(state: State):
     """
     Function for retrieving and augmenting the conversation state with relevant guidelines data.
 
@@ -57,20 +57,20 @@ async def guidelines_retriever(state):
     if geocontext is None:
         geocontext = GeoContextOutput()
 
-    router_state: RouterOutput = state.router
-    if router_state.location is None or router_state.aggregated_query is None:
-        raise ValueError("State is undefined")
+    if state.router is None or state.router.location is None or state.router.aggregated_query is None:
+        raise ValueError("Router state is undefined")
+
     # start the instantiation of
     # the GeoSession for resident
     # count to reduce latency
-    provider = GeoSessionProvider.get_or_create(router_state.location, 100, 1.0, with_residents_count=True)
+    provider = GeoSessionProvider.get_or_create(state.router.location, 100, 1.0, with_residents_count=True)
 
     # retrieve relevant tools
     # and process constraints
     # for location-aware data
     writer({"type": "info", "content": "Retrieving effective guidelines..."})
-    toolbox: ToolProvider = await ToolProvider.acreate(router_state.location)
-    constraints = await toolbox.asearch_constraints(query=router_state.aggregated_query)
+    toolbox: ToolProvider = await ToolProvider.acreate(state.router.location)
+    constraints = await toolbox.asearch_constraints(query=state.router.aggregated_query)
     writer({"type": "log", "content": "Found guidelines"})
 
     # process constraints
@@ -82,10 +82,11 @@ async def guidelines_retriever(state):
         # municipalty, enquire more
         # clarification by unsetting
         # the non-valid location
-        router_state.location = None
-        router_state.needs_clarification = True
+        updated_state = state.router.model_copy()
+        updated_state.location = None
+        updated_state.needs_clarification = True
         return {
-            "router": router_state
+            "router": updated_state
         }
     # update context with
     # retrieved constraints

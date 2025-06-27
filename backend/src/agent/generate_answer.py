@@ -7,8 +7,8 @@ from langgraph.config import get_stream_writer
 from provider.ModelProvider import ModelProvider
 from provider.GeoSessionProvider import GeoSessionProvider
 from provider.ToolProvider import ToolProvider
+from modelling.structured_output import State
 from storage.memories import fetch_memories
-from tool.geodata import GeoDataTool
 
 from collections import defaultdict
 from functools import reduce
@@ -247,7 +247,7 @@ factual_user_prompt = PromptTemplate.from_template("""
 **TASK**: Provide comprehensive data analysis with insights, trends, and factual findings.
 """)
 
-async def generate_answer(state, *, config: RunnableConfig, store: BaseStore):
+async def generate_answer(state: State, *, config: RunnableConfig, store: BaseStore):
     """
     Generates an appropriate answer to the user's request.
 
@@ -258,6 +258,17 @@ async def generate_answer(state, *, config: RunnableConfig, store: BaseStore):
         A dictionary with updated messages including the generated answer
     """
     writer = get_stream_writer()
+    # ensure typesafety by
+    # evaluating the state
+    if state.router is None or state.geocontext is None:
+        raise ValueError("State isn't properly defined")
+
+    if state.router.location is None or state.router.aggregated_query is None:
+        raise ValueError("Router state isn't properly defined")
+
+    if state.geocontext.context_tools is None or state.geocontext.context_constraints is None:
+        raise ValueError("Geocontext state isn't properly defined")
+
     provider = GeoSessionProvider.get_or_create(state.router.location, 100, 0.3)
 
     last_human_message = next(msg.content for msg in reversed(state.messages) if isinstance(msg, HumanMessage))

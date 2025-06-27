@@ -10,7 +10,7 @@ from langgraph.config import get_stream_writer
 from provider.ModelProvider import ModelProvider
 from provider.GeoSessionProvider import GeoSessionProvider
 from provider.ToolProvider import ToolProvider
-from modelling.structured_output import RouterOutput, GeoContextOutput
+from modelling.structured_output import State, RouterOutput, GeoContextOutput
 
 llm_tool_retrieval = (
     ModelProvider
@@ -33,7 +33,7 @@ system_prompt_tool_retrieval = PromptTemplate.from_template("""
     ### User Request: "{user_request}"
     """)
 
-async def geocontext_retriever(state):
+async def geocontext_retriever(state: State):
     """
     Function for retrieving and augmenting the conversation state with relevant geographic data.
 
@@ -49,12 +49,11 @@ async def geocontext_retriever(state):
     if geocontext is None:
         geocontext = GeoContextOutput()
 
-    router_state: RouterOutput = state.router
     try:
         # instantiate potentially needed
         # geometry sessions and schemas
         # based on router location
-        if router_state.location is None or router_state.aggregated_query is None:
+        if state.router is None or state.router.location is None or state.router.aggregated_query is None:
             raise ValueError("State is undefined")
         # start the instantiation of
         # the different GeoSession
@@ -62,17 +61,17 @@ async def geocontext_retriever(state):
         # latency when they are used
         # in the tools themselves
         writer({"type": "log", "content": "Let's start the machine."})
-        GeoSessionProvider.get_or_create(router_state.location, 1000, 1.0)
-        GeoSessionProvider.get_or_create(router_state.location, 500, 1.0)
-        GeoSessionProvider.get_or_create(router_state.location, 100, 1.0)
-        GeoSessionProvider.get_or_create(router_state.location, 100, 0.3)
+        GeoSessionProvider.get_or_create(state.router.location, 1000, 1.0)
+        GeoSessionProvider.get_or_create(state.router.location, 500, 1.0)
+        GeoSessionProvider.get_or_create(state.router.location, 100, 1.0)
+        GeoSessionProvider.get_or_create(state.router.location, 100, 0.3)
         writer({"type": "log", "content": "Ok, that's done."})
 
         # retrieve relevant tools
         # for location-aware data
         writer({"type": "info", "content": "Retrieving tools..."})
-        toolbox: ToolProvider = await ToolProvider.acreate(router_state.location)
-        tools, are_tools_uniform = await toolbox.asearch_tools(query=router_state.aggregated_query, max_n=6, k=10)
+        toolbox: ToolProvider = await ToolProvider.acreate(state.router.location)
+        tools, are_tools_uniform = await toolbox.asearch_tools(query=state.router.aggregated_query, max_n=6, k=10)
         writer({"type": "log", "content": "I FOUND THEM!"})
         # filter out tools whose
         # data we already have
@@ -81,16 +80,17 @@ async def geocontext_retriever(state):
         # invoke necessary tools
         writer({"type": "info", "content": "Fetching data from retrieved tools..."})
         try:
-            tool_data = await _invoke_tools(tools, are_tools_uniform, router_state)
+            tool_data = await _invoke_tools(tools, are_tools_uniform, state.router)
         except RuntimeError:
             # location is not a proper
             # municipalty, enquire more
             # clarification by unsetting
             # the non-valid location
-            router_state.location = None
-            router_state.needs_clarification = True
+            updated_state = state.router.model_copy()
+            updated_state.location = None
+            updated_state.needs_clarification = True
             return {
-                "router": router_state
+                "router": updated_state
             }
         # update context
         geocontext.context_tools = {**geocontext.context_tools, **tool_data}

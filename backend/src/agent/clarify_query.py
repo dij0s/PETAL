@@ -3,6 +3,7 @@ from langchain_core.messages import AIMessage, SystemMessage, HumanMessage
 from langgraph.config import get_stream_writer
 
 from provider.ModelProvider import ModelProvider
+from modelling.structured_output import State
 from modelling.utils import reduce_missing_attributes
 
 from collections import defaultdict
@@ -40,7 +41,7 @@ The user just queried some information and you need additional details about:
 User input: "{user_input}"
 """)
 
-async def clarify_query(state):
+async def clarify_query(state: State):
     """
     Creates a clarification message to ask the user for more information.
 
