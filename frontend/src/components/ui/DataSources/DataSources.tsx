@@ -7,36 +7,50 @@ interface DataSourcesProps {
 
 const DataSources = ({ dataSources }: DataSourcesProps) => {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
-
-  const temp = [["Heating and cooling needs", "somewebsite.com", 56]];
+  console.log(dataSources);
 
   return (
-    <div className="data-sources-wrapper" data-expanded={isExpanded}>
-      <div
-        className="data-sources-action"
-        onClick={() => setIsExpanded((prev) => !prev)}
-      >
-        Sources
-      </div>
-      <table className="data-sources-table" data-visible={isExpanded}>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Data</th>
-            <th>Dataset URL</th>
-          </tr>
-        </thead>
-        <tbody>
-          {temp.map(([name, dataset_url, data]) => (
-            <tr key={name}>
-              <td>{name}</td>
-              <td>{data}</td>
-              <td>{dataset_url}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <>
+      {dataSources && dataSources.length > 0 && (
+        <div className="data-sources-wrapper" data-expanded={isExpanded}>
+          <div
+            className="data-sources-action"
+            onClick={() => setIsExpanded((prev) => !prev)}
+          >
+            Datapoints
+          </div>
+          <div className="data-sources-table-wrapper" data-visible={isExpanded}>
+            <table className="data-sources-table">
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th className="th-centered">Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dataSources.map(([description, source, data], index) => (
+                  <tr key={index}>
+                    <td
+                      className="table-td-description"
+                      onClick={() => {
+                        if (source !== "") {
+                          window.open(source as string, "_blank");
+                        }
+                      }}
+                    >
+                      {description}
+                    </td>
+                    <td className="table-td-value">
+                      {Array.isArray(data) ? data.join(", ") : data}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
