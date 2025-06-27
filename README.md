@@ -118,7 +118,7 @@ The web interface can be accessed at `http://localhost:5000`, by default.
 
 ## References
 
-All references can be found in the thesis report.
+All references can be found in the thesis report, located at `./thesis/bachelor_thesis.pdf`.
 
 ## Note
 
