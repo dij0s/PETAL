@@ -72,11 +72,34 @@ The general structure of a bachelor thesis typically includes the following sect
 This structure may vary depending on the field of study, but these elements are commonly found in most bachelor theses. They are compulsory for the _ISC Bachelor thesis_.
 
 = Introduction
-Have fun #todo[writing your thesis!] and good luck with it !
 
-#figure(image("figs/pixelize.png", height: 4cm), caption: [Grace Hopper]) <fig_engineer>
+Over the past few decades, society has been sensitized and slowly became more aware of significant problems that we are likely to face in the coming years.
 
-#lorem(1000)
+Climate change and other environmental issues arise as a result of human-driven activities.
+
+Scientists have monitored this matter and proposed various frameworks to address and mitigate these problems. In Switzerland, these different frameworks are implemented in the legislation and guidelines (at federal and state levels) to steer the country towards a more sustainable future.
+
+Municipalities in Switzerland are required to submit an energy planning document which outlines their future strategies to comply with those directives while also considering the characteristics of their energetical landscape.
+
+These different properties can be quantified and analyzed through the use of a very valuable resource: data.
+Data is emitted by various sources ; sensors, energy models or citizen records for e.g. all yield datapoints that help us assess different indicators we are willing to measure against our municipality. These indicators, _in fine_, help us evaluate our progress towards that goal.
+
+Over the past two years, artificial intelligence (AI) has rapidly transformed our habits when interacting with information.
+
+Large language models (LLMs) allow users to interact with these systems in natural language facilitating the interface between humans and _machines_. They can provide insights into vast amounts of data at speed and scales which are beyond our capabilities.
+
+This work tackles this exact problem that is the implementation of a solution which assists users into energy planning for a municipality.
+
+This complex problem is approached by leveraging the power of _specialized_ AIs which each offer expertise into a variety of domains and are coordinated using an _orchestration_ AI to provide a solution. The expertise of the user interacting with the system tailors this solution to the specificities of the municipality.
+
+The key steps in the engineering of this implementation are identifying the key information and datasources that are relevant to this process, structure the different AIs into an architecture whose components and interfaces are well-defined and ultimately implementing the solution.
+
+The main objective of this work is to investigate how effective and reliable such a solution is and to assess its strengths and weaknesses. Additional goals are also outlined:
+- Defining the important information in assisting user decision making.
+- Understanding which datasources are available and relevant for this decision making.
+- Structuring the decision by using an orchestration AI and many specialized AIs.
+- Training specialized AIs on specialized datasets.
+- Simplifying the user interface by handling the communication between the orchestration AI and the specialized AIs.
 
 = Methodology
 #lorem(800)
