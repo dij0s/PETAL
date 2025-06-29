@@ -77,7 +77,7 @@ Over the past few decades, society has been sensitized and slowly became more aw
 
 Climate change and other environmental issues arise as a result of human-driven activities.
 
-Scientists have monitored this matter and proposed various frameworks to address and mitigate these problems. In Switzerland, these different frameworks are implemented in the legislation and guidelines (at federal and state levels) to steer the country towards a more sustainable future.
+Scientists have monitored this matter and proposed various frameworks to address and mitigate these problems. In Switzerland, these different frameworks are implemented in the legislation and guidelines (at federal and canton levels) to steer the country towards a more sustainable future.
 
 Municipalities in Switzerland are required to submit an energy planning document which outlines their future strategies to comply with those directives while also considering the characteristics of their energetical landscape.
 
@@ -101,7 +101,16 @@ The main objective of this work is to investigate how effective and reliable suc
 - Training specialized AIs on specialized datasets.
 - Simplifying the user interface by handling the communication between the orchestration AI and the specialized AIs.
 
-= Methodology
+The project is scoped to municipalities within the canton of Valais/Wallis and strictly relies on publicly available data.
+Certain measures are taken to ensure the privacy and security of data that would not be of public order considering the future implementation of extra datasources.
+
+The solution is designed to offer a user-friendly interface from which users can interact with the system in a conversational manner and visualize a map of the municipality with different layers.
+
+User behaviour is analyzed to takeaway user preferences which gradually adapt the answers to better meet the user expectations.
+
+#highlight[TODO: provide a brief overview of the structure of the thesis (plan), add reference to extra scope in methodology?]
+
+= Methodology <methodology>
 #lorem(800)
 
 #lorem(800)
