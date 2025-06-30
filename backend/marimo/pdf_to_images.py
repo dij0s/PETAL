@@ -10,16 +10,13 @@ def _(mo):
         r"""
     The following notebook will serve as base for handling and embedding PDF files and their multimodal content (text and images) for further use in RAG-application context.
 
-    The documents are policies, prescriptions and "design" documents related to the energy planning and transition, in Switzerland.
-
     Sources:
     https://cookbook.openai.com/examples/parse_pdf_docs_for_rag
 
-    Le traitement de documents PDF nécessite l'installation du programme ```poppler``` sur l'hôte (https://pypi.org/project/pdf2image/).
+    Processing PDF documents requires the installation of the `poppler` program on the host (https://pypi.org/project/pdf2image/).
     """
     )
     return
-
 
 @app.cell
 def _():
@@ -53,7 +50,7 @@ def _(Image, convert_from_path):
             else:
                 return [Image.open(path)]
         except Exception as e:
-            print(f"⚠️ Skipping file due to error: {path}\n   Error: {e}")
+            print(f"Skipping file due to error: {path}\n   Error: {e}")
             return []
     return (convert_doc_to_images,)
 
@@ -64,13 +61,14 @@ def _(extract_text):
         try:
             return extract_text(path)
         except Exception as e:
-            print(f"⚠️ Could not extract text from: {path}\n   Error: {e}")
+            print(f"Could not extract text from: {path}\n   Error: {e}")
             return ""
     return
 
 
 @app.cell
 def _(os):
+    # retrieve files from dataset
     dataset_directory_path = "./dataset/citizen_data/energy/"
     files = filter(
         lambda f: f.lower().endswith(("pdf", "jpg", "jpeg", "png")),
@@ -96,6 +94,8 @@ def _(base64, io):
 
 @app.cell
 def _(convert_doc_to_images, files, get_img_uri, np):
+    # convert files to individual
+    # pages and save as archive
     base64_images = [
         get_img_uri(img)
         for filename in files

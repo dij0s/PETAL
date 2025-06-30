@@ -8,14 +8,9 @@ app = marimo.App(width="medium")
 def _(mo):
     mo.md(
         r"""
-    The following notebook will serve as base for handling and embedding PDF files and their multimodal content (text and images) for further use in RAG-application context.
+    This notebook provides a foundation for inferring key insights and actionable takeaways from guidelines and legislation relevant to energy planning in Switzerland. It processes and embeds PDF files—including both text and images—to support retrieval-augmented generation (RAG) applications.
 
-    The documents are policies, prescriptions and "design" documents related to the energy planning and transition, in Switzerland.
-
-    Sources:
-    https://cookbook.openai.com/examples/parse_pdf_docs_for_rag
-
-    Le traitement de documents PDF nécessite l'installation du programme ```poppler``` sur l'hôte (https://pypi.org/project/pdf2image/).
+    The documents analyzed include policies, prescriptions, and strategic design documents that inform energy transition and planning.
     """
     )
     return

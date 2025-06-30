@@ -4,6 +4,15 @@ __generated_with = "0.13.15"
 app = marimo.App(width="medium")
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
+    This notebook populates a Redis database with documents, which are embedded for further retrieval.
+    """
+    )
+    return
+
 @app.cell
 def _():
     import marimo as mo
@@ -48,39 +57,9 @@ def _(pages):
 
 
 @app.cell
-def _(MarkdownHeaderTextSplitter):
-    #text_splitter = RecursiveCharacterTextSplitter(chunk_size=350, chunk_overlap=50)
-    md_splitter = MarkdownHeaderTextSplitter(headers_to_split_on=[("###", "Header 3")], strip_headers=False)
-    return (md_splitter,)
-
-
-@app.cell
 def _():
-    #def split_page(page_content: str):
-    #    md_split_text = md_splitter.split_text(page_content)
-    #    split_text = text_splitter.split_documents(md_split_text)
-    #    return split_text
-    return
-
-
-@app.cell
-def _(md_splitter, pages):
-    print(md_splitter.split_text([p for p in pages.values()][245]["visual_analysis"]["analysis"]))
-    return
-
-
-@app.cell
-def _():
-    #def clean_markdown(text: str):
-    #    text = re.sub(r"^#+\s*", "", text, flags=re.MULTILINE) # remove headings
-    #    text = re.sub(r"(\*\*|\*|__|_)(.*?)\1", r"\2", text) # remove italic and bold
-    #    text = re.sub(r"^\s*(\(?\d+[a-z]?[.)]|\(?[a-zA-Z][.)])\s+", "", text, flags=re.MULTILINE) # remove "points"
-    #    return text.strip()
-    return
-
-
-@app.cell
-def _():
+    # manually labelling the rendered
+    # pages with document source
     metadata = {
         "(2019) Vision 2060 et objectifs 2035.pdf": {
             "label": "Vision 2060 et objectifs 2035, Valais, Terre d'énergies",
@@ -389,7 +368,7 @@ def _(client, encoded_query, np, query):
         {
           'query_vector': np.array(encoded_query, dtype=np.float32).tobytes()
         }
-    ).docs[0] 
+    ).docs[0]
     type(temp)
     return
 
