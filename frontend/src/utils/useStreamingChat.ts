@@ -378,6 +378,104 @@ export const useStreamingChat = (
     }
   }, [flushTokenBuffer]);
 
+  const endStream = async (es?: EventSource) => {
+    // cancel batching frame
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+
+    // complete animation
+    // when stream ends
+    if (typewriterFrameRef.current) {
+      cancelAnimationFrame(typewriterFrameRef.current);
+      typewriterFrameRef.current = null;
+    }
+
+    // apply any remaining
+    // pending layers
+    applyPendingLayers();
+
+    // final parse and display
+    const { response } = parseContent(tokenBufferRef.current);
+    displayedContentRef.current = response;
+    responseBufferRef.current = response;
+    displayedWordsRef.current = splitIntoWords(response).length;
+    targetWordsRef.current = splitIntoWords(response);
+
+    // clear thinking state
+    setIsThinking(false);
+    setThinkingContent("");
+    setProcessingStatus("");
+
+    setMessages((msgs) => {
+      if (msgs[msgs.length - 1]?.role === "assistant") {
+        return [...msgs.slice(0, -1), { role: "assistant", content: response }];
+      } else {
+        return [...msgs, { role: "assistant", content: response }];
+      }
+    });
+
+    // store conversation checkpoint
+    if (pendingCheckpointRef.current) {
+      try {
+        const title = extractTitle(response);
+        const conversation = checkpointStorage.createCheckpoint(
+          options.threadId,
+          options.userId,
+          title,
+          pendingCheckpointRef.current,
+        );
+
+        await checkpointStorage.storeCheckpoint(conversation);
+        // clear the pending checkpoint
+        pendingCheckpointRef.current = null;
+        // notify conversations update
+        conversationEvents.emit(conversation);
+      } catch (error) {
+        console.error("Failed to store checkpoint:", error);
+      }
+    }
+    // save current state
+    saveConversationState(options.threadId);
+
+    es?.close();
+    setIsStreaming(false);
+  };
+
+  const resetStreamingState = () => {
+    // reset all state for new prompt
+    tokenBufferRef.current = "";
+    displayedContentRef.current = "";
+    displayedWordsRef.current = 0;
+    targetWordsRef.current = [];
+    isFirstTokenRef.current = true;
+    lastUpdateTimeRef.current = 0;
+    thinkingBufferRef.current = "";
+    responseBufferRef.current = "";
+    hasSeenThinkingEndRef.current = false;
+    pendingLayersRef.current = [];
+    pendingSourcesRef.current = [];
+    pendingMunicipalityRef.current = null;
+    pendingCheckpointRef.current = null;
+    layersAppliedRef.current = false;
+    sourcesAppliedRef.current = false;
+
+    setThinkingContent("");
+    setIsThinking(false);
+    setProcessingStatus("");
+
+    // cancel pending animations
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+    if (typewriterFrameRef.current) {
+      cancelAnimationFrame(typewriterFrameRef.current);
+      typewriterFrameRef.current = null;
+    }
+  };
+
   const sendPrompt = useCallback(
     async (prompt: string) => {
       // save conversation state
@@ -410,36 +508,7 @@ export const useStreamingChat = (
       }
       setConversationType("active");
 
-      // reset all state for new prompt
-      tokenBufferRef.current = "";
-      displayedContentRef.current = "";
-      displayedWordsRef.current = 0;
-      targetWordsRef.current = [];
-      isFirstTokenRef.current = true;
-      lastUpdateTimeRef.current = 0;
-      thinkingBufferRef.current = "";
-      responseBufferRef.current = "";
-      hasSeenThinkingEndRef.current = false;
-      pendingLayersRef.current = [];
-      pendingSourcesRef.current = [];
-      pendingMunicipalityRef.current = null;
-      pendingCheckpointRef.current = null;
-      layersAppliedRef.current = false;
-      sourcesAppliedRef.current = false;
-
-      setThinkingContent("");
-      setIsThinking(false);
-      setProcessingStatus("");
-
-      // cancel pending animations
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-        animationFrameRef.current = null;
-      }
-      if (typewriterFrameRef.current) {
-        cancelAnimationFrame(typewriterFrameRef.current);
-        typewriterFrameRef.current = null;
-      }
+      resetStreamingState();
 
       const response = await fetch("/api/send", {
         method: "POST",
@@ -516,74 +585,17 @@ export const useStreamingChat = (
         pendingSourcesRef.current = data.sources;
       });
 
-      // handle end event
-      es.addEventListener("end", async () => {
-        // cancel batching frame
-        if (animationFrameRef.current) {
-          cancelAnimationFrame(animationFrameRef.current);
-          animationFrameRef.current = null;
-        }
+      // handle retry
+      es.addEventListener("retry", (e) => {
+        const data = JSON.parse(e.data);
+        endStream();
+        resetStreamingState();
 
-        // complete animation
-        // when stream ends
-        if (typewriterFrameRef.current) {
-          cancelAnimationFrame(typewriterFrameRef.current);
-          typewriterFrameRef.current = null;
-        }
-
-        // apply any remaining
-        // pending layers
-        applyPendingLayers();
-
-        // final parse and display
-        const { response } = parseContent(tokenBufferRef.current);
-        displayedContentRef.current = response;
-        responseBufferRef.current = response;
-        displayedWordsRef.current = splitIntoWords(response).length;
-        targetWordsRef.current = splitIntoWords(response);
-
-        // clear thinking state
-        setIsThinking(false);
-        setThinkingContent("");
-        setProcessingStatus("");
-
-        setMessages((msgs) => {
-          if (msgs[msgs.length - 1]?.role === "assistant") {
-            return [
-              ...msgs.slice(0, -1),
-              { role: "assistant", content: response },
-            ];
-          } else {
-            return [...msgs, { role: "assistant", content: response }];
-          }
-        });
-
-        // store conversation checkpoint
-        if (pendingCheckpointRef.current) {
-          try {
-            const title = extractTitle(response);
-            const conversation = checkpointStorage.createCheckpoint(
-              options.threadId,
-              options.userId,
-              title,
-              pendingCheckpointRef.current,
-            );
-
-            await checkpointStorage.storeCheckpoint(conversation);
-            // clear the pending checkpoint
-            pendingCheckpointRef.current = null;
-            // notify conversations update
-            conversationEvents.emit(conversation);
-          } catch (error) {
-            console.error("Failed to store checkpoint:", error);
-          }
-        }
-        // save current state
-        saveConversationState(options.threadId);
-
-        es.close();
-        setIsStreaming(false);
+        setProcessingStatus(data.content);
       });
+
+      // handle end event
+      es.addEventListener("end", () => endStream(es));
 
       eventSourceRef.current = es;
     },
