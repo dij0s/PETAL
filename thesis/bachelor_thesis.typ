@@ -35,13 +35,62 @@
 // Let's get started folks!
 
 #cleardoublepage()
-#include "pages/abstract.typ"
+#heavy-title("Abstract")
+
+The abstract of a bachelor thesis should provide a concise summary of the entire work. It typically includes:
+
+- The context and motivation for the research.
+- The main objective or research question.
+- A brief description of the methodology or approach used.
+- The key results or findings.
+- The main conclusion or implications of the work.
+
+The abstract should be self-contained, clear, and usually does not exceed 250–300 words. It allows readers to quickly understand the purpose and outcomes of the thesis without reading the full document.
+
+The abstract *must* be written in both French and English.
+
+#lorem(150)
+
+#v(1fr)
+
+*Keywords* : #context inc.global-keywords.get().join(", ")
 
 #cleardoublepage()
-#include "pages/résumé.typ"
+#heavy-title("Résumé")
+
+Le résumé d’un mémoire de bachelor doit fournir un aperçu concis de l’ensemble du travail. Il inclut généralement :
+
+- Le contexte et la motivation de la recherche.
+- L’objectif principal ou la question de recherche.
+- Une brève description de la méthodologie ou de l’approche utilisée.
+- Les principaux résultats ou découvertes.
+- La conclusion principale ou les implications du travail.
+
+Le résumé doit être autonome, clair et ne pas dépasser habituellement 250 à 300 mots. Il permet aux lecteurs de comprendre rapidement le but et les résultats du mémoire sans lire l’intégralité du document.
+
+Le résumé doit être rédigé en français *et* en anglais.
+
+
+#lorem(150)
+
+#v(1fr)
+
+*Keywords* : #context inc.global-keywords.get().join(", ")
 
 #cleardoublepage()
-#include "pages/acknowledgements.typ"
+// Get the proper title for acknowledgements if not written in English
+#heavy-title(context i18n(inc.global-language.get(), "acknowledgements"))
+
+The *Acknowledgements* section of a bachelor thesis is where you express gratitude to those who supported you during your research and writing process. It is an *OPTIONAL* section. It may include:
+
+- Academic supervisors or advisors who provided guidance.
+- Professors or instructors who offered feedback or resources.
+- Family and friends for emotional or practical support.
+- Institutions or organizations that provided funding, facilities, or data.
+- Anyone else who contributed significantly to your work.
+
+Keep this section concise and sincere. It is typically placed after the abstract and before the main content of your thesis.
+
 
 #table-of-contents(depth: 2)
 
@@ -82,7 +131,7 @@ Scientists have monitored this matter and proposed various frameworks to address
 Municipalities in Switzerland are required to submit an energy planning document which outlines their future strategies to comply with those directives while also considering the characteristics of their energetical landscape.
 
 These different properties can be quantified and analyzed through the use of a very valuable resource: data.
-Data is emitted by various sources ; sensors, energy models or citizen records for e.g. all yield datapoints that help us assess different indicators we are willing to measure against our municipality. These indicators, _in fine_, help us evaluate our progress towards that goal.
+Data is emitted by various sources ; sensors, energy models or citizen records for e.g. all yield datapoints that help us assess different indicators we are willing to measure against our municipality. These indicators, _in fine_, help us evaluate our progress towards energy-related goals.
 
 Over the past two years, artificial intelligence (AI) has rapidly transformed our habits when interacting with information.
 
@@ -109,6 +158,8 @@ The solution is designed to offer a user-friendly interface from which users can
 User behaviour is analyzed to takeaway user preferences which gradually adapt the answers to better meet the user expectations.
 
 #highlight[TODO: provide a brief overview of the structure of the thesis (plan), add reference to extra scope in methodology?]
+
+= State of the Art
 
 = Methodology <methodology>
 #lorem(800)
