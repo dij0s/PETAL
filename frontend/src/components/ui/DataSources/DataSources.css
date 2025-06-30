@@ -48,7 +48,7 @@
 
 .data-sources-table-wrapper[data-visible="true"] {
     height: 200px;
-    padding: 5px 10px 0px 10px;
+    padding: 0px 10px;
     overflow: scroll;
     opacity: 1;
     border-left: 1px solid var(--border-color);
@@ -60,6 +60,13 @@
 
 .data-sources-table {
     width: 100%;
+    border-collapse: collapse;
+}
+
+thead {
+    position: sticky;
+    top: 0;
+    background-color: var(--background-color);
 }
 
 th {
@@ -68,6 +75,12 @@ th {
 
 .th-centered {
     text-align: center;
+    width: 30%;
+}
+
+.table-tr-datapoint {
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .table-td-description {

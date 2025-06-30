@@ -7,7 +7,6 @@ interface DataSourcesProps {
 
 const DataSources = ({ dataSources }: DataSourcesProps) => {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
-  console.log(dataSources);
 
   return (
     <>
@@ -29,7 +28,7 @@ const DataSources = ({ dataSources }: DataSourcesProps) => {
               </thead>
               <tbody>
                 {dataSources.map(([description, source, data], index) => (
-                  <tr key={index}>
+                  <tr key={index} className="table-tr-datapoint">
                     <td
                       className="table-td-description"
                       onClick={() => {
