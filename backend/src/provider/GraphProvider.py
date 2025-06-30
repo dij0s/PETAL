@@ -17,7 +17,7 @@ from agent.geocontext_retriever import geocontext_retriever
 from agent.guidelines_retriever import guidelines_retriever
 from agent.generate_answer import generate_answer
 from agent.critic_answer import critic_answer
-from modelling.structured_output import State
+from modelling.structured_output import State, CriticOutput
 
 class GraphProvider:
     """
@@ -106,15 +106,21 @@ class GraphProvider:
             except Exception as e:
                 print(f"Error: {e}")
 
+        def critic_condition(state: CriticOutput):
+            if state.retry:
+                return "intent_router"
+            else:
+                return END
+
         graph_builder.add_edge(START, "intent_router")
         graph_builder.add_conditional_edges("intent_router", router_condition)
         graph_builder.add_conditional_edges("geocontext_retriever", geocontext_condition)
         graph_builder.add_conditional_edges("guidelines_retriever", guidelines_condition)
+        graph_builder.add_edge("generate_answer", "critic_answer")
         # reaching the clarification node should
         # stop the flow too to then process
         # extra user-given context
-        graph_builder.add_edge("generate_answer", "critic_answer")
-        graph_builder.add_edge("critic_answer", END)
+        graph_builder.add_conditional_edges("critic_answer", critic_condition)
         graph_builder.add_edge("clarification", END)
         # compile graph and define
         # runtime configuration

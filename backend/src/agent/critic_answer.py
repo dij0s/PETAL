@@ -1,12 +1,12 @@
 from langchain_core.prompts import PromptTemplate
 from langchain_core.messages import SystemMessage, AIMessage, HumanMessage
-from langchain_core.runnables import RunnableConfig
-from langgraph.store.base import BaseStore
+from langchain_core.exceptions import OutputParserException
+from langgraph.config import get_stream_writer
 
 from provider.ModelProvider import ModelProvider
 from provider.GeoSessionProvider import GeoSessionProvider
 from provider.ToolProvider import ToolProvider
-from modelling.structured_output import State
+from modelling.structured_output import State, CriticScore, CriticOutput
 
 from functools import reduce
 
@@ -17,12 +17,12 @@ llm = (
             temperature=0.8,
             defaults="qwen3:1.7b",
         )
-)
+).with_structured_output(CriticScore)
 
 system_prompt = PromptTemplate.from_template("""
-Given that the municipality "{location}" has {residents_count} residents, a total surface of {total_surface} m² and an exploitable surface of {exploitable_surface} m², we redacted the following report to answer the user request.
+Given that the municipality "{location}" has {residents_count} residents and an exploitable surface of {exploitable_surface} ha, we redacted the following report to answer the user request.
 
-This is the data we've had at our disposal:
+This is the data we have at our disposal:
 
 ### Datapoints for "{location}"
 {datapoints_description}
@@ -31,10 +31,16 @@ And this is our answer to the user request "{user_request}":
 
 {llm_answer}
 
-Please provide in output a single confidence score between 0 and 1, indicating the confidence level of the answer and how probative the data looks considering the municipality's description.
+Only check for common interpretation errors:
+1. Unit confusion (GWh vs MWh vs kWh)
+2. Per-capita vs total confusion
+3. Annual vs instantaneous values
+4. Potential vs actual production mixing
+
+Please provide in output a single score between 0 and 1.
 """)
 
-async def critic_answer(state: State):
+async def critic_answer(state: State) -> CriticOutput:
     """
     Evaluates and critiques the answer given to the user's request.
 
@@ -42,8 +48,9 @@ async def critic_answer(state: State):
         state: The current conversation state
 
     Returns:
-        A dictionary with updated messages including the generated answer
+        CriticOutput: The private state indicating if the prompt should be retried.
     """
+    writer = get_stream_writer()
     # ensure typesafety by
     # evaluating the state
     if state.router is None or state.geocontext is None:
@@ -63,7 +70,7 @@ async def critic_answer(state: State):
     last_human_message = next(msg.content for msg in reversed(state.messages) if isinstance(msg, HumanMessage))
     last_ai_message = next(msg.content for msg in reversed(state.messages) if isinstance(msg, AIMessage))
 
-    # format context data
+    # retrieve contextual data
     datapoints_description = reduce(
         lambda res, d: res + [f"['description': {toolbox.get(d[0]).description}, 'value': {d[1][1]}]" + "\n" if toolbox.get(d[0]) is not None else ""], # type: ignore
         reduce(
@@ -77,19 +84,40 @@ async def critic_answer(state: State):
         []
     )
 
-    prompt = [
-        SystemMessage(content=system_prompt.format(
-            location=state.router.location,
-            residents_count=23000,
-            total_surface=2000,
-            exploitable_surface=200,
-            datapoints_description=datapoints_description,
-            user_request=last_human_message,
-            llm_answer=last_ai_message,
-        ))
-    ]
-    response = await llm.ainvoke(prompt)
-    print(response.content)
-    # return {
-    #     "messages": [AIMessage(content=response.content)],
-    # }
+    try:
+        await provider.wait_until_residents_count_ready()
+        prompt = [
+            SystemMessage(content=system_prompt.format(
+                location=state.router.location,
+                residents_count=provider.residents_count,
+                exploitable_surface=f"{provider.exploitable_surface:.2f}",
+                datapoints_description=datapoints_description,
+                user_request=last_human_message,
+                llm_answer=last_ai_message,
+            ))
+        ]
+
+        response = await llm.ainvoke(prompt)
+    except RuntimeError as e:
+        print(f"Runtime error: {e}")
+        # no retry as this is probably
+        # due to external factors which
+        # mean residents count is not
+        # retrieveable
+        return CriticOutput(retry=False)
+    except OutputParserException as e:
+        print(f"Could not parse output into Pydantic definition: {e}")
+        writer({"type": "retry", "content": "Not satisfied with the answer. Let's retry."})
+        return CriticOutput(retry=True)
+
+    if isinstance(response, CriticScore):
+        # only retry if scores is low
+        # and there are clear issues
+        output = CriticOutput(retry=((response.score < 0.6) and (len(response.issues) > 0)))
+        if output.retry:
+            writer({"type": "retry", "content": "Not satisfied with the answer. Let's retry."})
+
+        return output
+
+    writer({"type": "retry", "content": "Not satisfied with the answer. Let's retry."})
+    return CriticOutput(retry=True)

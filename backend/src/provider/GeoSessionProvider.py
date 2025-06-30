@@ -114,7 +114,7 @@ class GeoSessionProvider:
                         self._residents_count_event.set()
                         return False
                     # compute tiles from the refined geometry
-                    self.total_tiles, self.sampled_tiles = await self.compute_tiles(self.tile_size, self.sampling_rate)
+                    self.total_tiles, self.exploitable_surface, self.sampled_tiles = await self.compute_tiles(self.tile_size, self.sampling_rate)
                     # retrieve population count
                     if self._with_residents_count:
                         await self.fetch_residents_count()
@@ -162,7 +162,6 @@ class GeoSessionProvider:
             RuntimeError: If initialization failed.
         """
         await self._residents_count_event.wait()
-        print(f"I am residents count and initialized is set to {self._initialized}")
         if not self._initialized:
             raise RuntimeError("Session initialization failed")
 
@@ -326,7 +325,7 @@ class GeoSessionProvider:
 
         return False
 
-    async def compute_tiles(self, tile_size: float, sampling_rate: float) -> tuple[int, list]:
+    async def compute_tiles(self, tile_size: float, sampling_rate: float) -> tuple[int, float, list]:
         """Computes map tiles based on the provided geometry and tiling parameters.
 
         Applies a mesh grid to the municipality geometry and samples tiles based on the specified sampling rate. Only includes tiles that have a significant intersection with the valid/refined municipality area.
@@ -336,8 +335,9 @@ class GeoSessionProvider:
             sampling_rate (float): The sampling rate (0.0-1.0) for selecting tiles.
 
         Returns:
-            tuple[int, list]: A tuple containing:
+            tuple[int, float, list]: A tuple containing:
                 - The total number of valid tiles
+                - The exploitable surface (from the original tiling)
                 - A list of sampled tiles based on the sampling rate
         """
         try:
@@ -367,15 +367,23 @@ class GeoSessionProvider:
                     y += tile_size
                 x += tile_size
 
-            # ensure we have at least 1 tile if there are any tiles
+            # ensure we have at least
+            # a single sampled tile
             n = max(1, int(floor(len(tiles) * sampling_rate))) if sampling_rate > 0 else len(tiles)
             # randomly sample the tiles
             sampled_tiles = random.sample(tiles, min(n, len(tiles))) if tiles else []
+            # compute total exploitable
+            # surface from original tiling
+            # unprocessed area is in m² as
+            # the tile size as provided in
+            # the signature is assumes to
+            # be in meters
+            exploitable_surface = sum(map(lambda t: t.area, tiles)) / 1e4 # ha
 
-            return len(tiles), sampled_tiles
+            return len(tiles), exploitable_surface, sampled_tiles
         except Exception as e:
             print(f"Error computing tiles: {e}")
-            return 0, []
+            return 0, 0, []
 
     async def fetch_residents_count(self) -> None:
         """Asynchronously fetches the residents count for the municipality.
