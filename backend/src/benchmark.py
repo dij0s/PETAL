@@ -16,7 +16,7 @@ from provider.ModelProvider import ModelProvider
 from provider.GraphProvider import GraphProvider, State
 from pydantic import BaseModel, Field
 from modelling.PydanticStreamOutputParser import PydanticStreamOutputParser
-from modelling.structured_output import BenchmarkScore
+from modelling.structured_output import BenchmarkScore, RouterOutput
 
 parser = PydanticStreamOutputParser(pydantic_object=BenchmarkScore, diff=True)
 
@@ -210,12 +210,13 @@ class Benchmark:
         if not isinstance(response, BenchmarkScore):
             raise ValueError("Invalid response type")
 
-        self._save_score(response, request, last_ai_message, time) # type: ignore
+        self._save_score(response, state.router, request, last_ai_message, time) # type: ignore
 
-    def _save_score(self, score: BenchmarkScore, request: str, response: str, time: float):
+    def _save_score(self, score: BenchmarkScore, router: RouterOutput, request: str, response: str, time: float):
         output_path = self._OUTPUT_FILENAME
         record = {
             "request": request,
+            "router": router.model_dump(),
             "response": response,
             "score": score.model_dump(),
             "response_time": time,
