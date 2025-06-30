@@ -30,6 +30,9 @@ citizen_data*
 # Marimo context
 __marimo__
 
+# tmux session
+session.yaml
+
 # Logs
 logs
 *.log
