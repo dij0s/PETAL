@@ -142,7 +142,7 @@ const MapControls = ({
     expandedTimeoutRef.current = setTimeout(() => {
       setIsExpanded(true);
       expandedTimeoutRef.current = null;
-    }, 650) as unknown as null;
+    }, 750) as unknown as null;
   };
 
   const handleControlsMouseLeave = (timeout?: number) => {
