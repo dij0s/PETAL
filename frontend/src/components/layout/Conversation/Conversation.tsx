@@ -44,7 +44,7 @@ const Conversation = ({
     const wrapper = messagesWrapperRef.current;
     if (!wrapper) return true;
     // in px
-    const threshold = 50;
+    const threshold = 100;
     const { scrollTop, scrollHeight, clientHeight } = wrapper;
     return scrollHeight - scrollTop - clientHeight < threshold;
   };
