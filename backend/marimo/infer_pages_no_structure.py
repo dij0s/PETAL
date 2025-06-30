@@ -8,14 +8,9 @@ app = marimo.App(width="medium")
 def _(mo):
     mo.md(
         r"""
-    The following notebook will serve as base for handling and embedding PDF files and their multimodal content (text and images) for further use in RAG-application context.
+    The following notebook will serve as base for handling unstructured data that is a municipal file regarding its citizens.
 
-    The documents are policies, prescriptions and "design" documents related to the energy planning and transition, in Switzerland.
-
-    Sources:
-    https://cookbook.openai.com/examples/parse_pdf_docs_for_rag
-
-    Le traitement de documents PDF nécessite l'installation du programme ```poppler``` sur l'hôte (https://pypi.org/project/pdf2image/).
+    The different documents that compose it are mostly scanned as digitalization is an ongoing process for these entities.
     """
     )
     return
@@ -24,7 +19,10 @@ def _(mo):
 @app.cell
 def _():
     import marimo as mo
-    return (mo,)
+    from pydantic import BaseModel, Field
+    from typing import Optional
+    from functools import reduce
+    return BaseModel, Field, Optional, mo, reduce
 
 
 @app.cell
@@ -47,7 +45,7 @@ def _():
 
 @app.cell
 def _(np):
-    data = np.load("./citizen_data_export.npz", allow_pickle=True)
+    data = np.load("./citizen_data_energy_export.npz", allow_pickle=True)
     images_list = data["base64_images"]
     return (images_list,)
 
@@ -74,42 +72,62 @@ def _(
 
 
 @app.cell
-def _():
-    system_prompt = """
-    You will receive an image of a document page in French, originating from municipal citizen data (scans or digitalized documents).
-    Your task is to extract and deliver a **literal, complete, and detailed English translation** of all meaningful content on the page.
+def _(BaseModel, Field, Optional):
+    class CitizenData(BaseModel):
+        parcel_number: Optional[int] = Field(
+            default=None,
+            description="Unique numerical identifier of the land or property parcel as listed in administrative or cadastral records. Typically corresponds to the official 'parcel number' assigned by local authorities."
+        )
+        sre: Optional[float] = Field(
+            default=None,
+            description="Surface de référence énergétique (SRE) in square meters, representing the energy-relevant reference area of the building, used for calculating energy performance indicators."
+        )
+        consumption_heating: Optional[float] = Field(
+            default=None,
+            description="Annual energy consumption for heating purposes, typically expressed in kilowatt-hours (kWh) or per annum (kWh/a). Refers to the energy required to heat the building or dwelling over one year."
+        )
+        source_heating: Optional[str] = Field(
+            default=None,
+            description="Primary energy source used for heating. Common values include 'heat pump (PAC)', 'electricity', 'natural gas', 'fuel oil', 'wood', etc. Used to assess environmental and economic impact of heating."
+        )
+        power_pv: Optional[float] = Field(
+            default=None,
+            description="Installed peak power of photovoltaic (solar panel) system in kilowatts-peak (kWp) or kilowatt-crête (kWc), indicating the maximum electrical output under standard test conditions."
+        )
+    return (CitizenData,)
 
-    **CRITICAL ANONYMIZATION REQUIREMENTS - ABSOLUTE PRIORITY:**
-    - **MANDATORY: Replace ALL personal identifiers without exception** - names (first, last, maiden, nicknames), addresses (street, city, postal codes), phone numbers, email addresses, social security numbers, ID numbers, passport numbers, driver's license numbers, tax identification numbers, bank account details, medical record numbers, employee IDs, student IDs, membership numbers, license plates, and ANY other identifying information.
-    - **MANDATORY: Anonymize ALL dates** - birth dates, appointment dates, registration dates, expiration dates, etc. Replace with [DATE_REDACTED] or generic placeholders like [BIRTH_DATE], [REGISTRATION_DATE].
-    - **MANDATORY: Replace ALL signatures, initials, or handwritten personal marks** with [SIGNATURE_REDACTED].
-    - **MANDATORY: Replace company names, organization names, and institutional affiliations** with generic placeholders like [COMPANY_NAME], [ORGANIZATION], [INSTITUTION].
-    - **MANDATORY: Anonymize financial information** - account numbers, transaction amounts, salaries, debts - replace with [FINANCIAL_DATA_REDACTED].
-    - **MANDATORY: Redact ANY reference numbers, case numbers, file numbers, or tracking codes** that could be used to trace back to individuals.
-    - **MANDATORY: Replace geographical specifics** beyond general region/city type with [LOCATION_REDACTED].
-    - **MANDATORY: Use consistent placeholder formatting** - always use square brackets with descriptive labels like [PERSONAL_NAME], [HOME_ADDRESS], [PHONE_NUMBER], [EMAIL_ADDRESS], [ID_NUMBER].
 
-    **SECONDARY REQUIREMENTS:**
-    - Translate **all written text fully and literally** without omitting important details.
-    - Describe any charts, tables, or diagrams clearly, translating all labels and data into English while maintaining anonymization.
-    - Maintain logical structure and section order.
-    - Do NOT mention page numbers or formatting details.
-    - Ensure the output is exhaustive and suitable for machine indexing in a retrieval system.
+@app.cell
+def _(CitizenData, reduce):
+    json_schema = reduce(
+        lambda res, e: res + f'\n"{e[0]}": {e[1]},',
+        CitizenData().model_dump().items(),
+        "{"
+    ) + "\n}"
+    return (json_schema,)
 
-    **VERIFICATION CHECKLIST - Before finalizing output, confirm:**
-    ✓ No real names remain visible
-    ✓ No actual addresses are present
-    ✓ No genuine dates are displayed
-    ✓ No contact information is exposed
-    ✓ No identification numbers are shown
-    ✓ All personal data uses consistent [PLACEHOLDER] format
 
-    **REMEMBER: Privacy protection is the absolute top priority. When in doubt, REDACT.**
+@app.cell
+def _(CitizenData, json_schema):
+    system_prompt = f"""
+    You are a professional energy data retriever and you will be given documents such as building permits or energy assessment for buildings and houses from which you shall retrieve data which suits the following schema :
 
-    Output format:  
-    {Full anonymized, translated content of the page in English}
+    {CitizenData.model_json_schema()}
+
+    You must ONLY return valid JSON with the ALL the keys and fill in the values you found in the documents.
+    Here's an example output
+
+    {json_schema}
+
+    **IMPORTANT: If you cannot fill a value, simply set it to "None".**
     """
     return (system_prompt,)
+
+
+@app.cell
+def _(system_prompt):
+    system_prompt
+    return
 
 
 @app.cell
@@ -127,7 +145,7 @@ def _(model, process_vision_info, processor, system_prompt):
                         "type": "image",
                         "image": data_uri,
                     },
-                    {"type": "text", "text": "Describe, in detail, this image."},
+                    {"type": "text", "text": "Fill in the values from this image and return the JSON."},
                 ],
             }
         ]
@@ -145,23 +163,30 @@ def _(model, process_vision_info, processor, system_prompt):
         )
         inputs = inputs.to(model.device)
 
-        generated_ids = model.generate(**inputs, max_new_tokens=1024, do_sample=False) # do_sample=False equiv. temperature=0
+        generated_ids = model.generate(**inputs, max_new_tokens=200)
         generated_ids_trimmed = [
             out_ids[len(in_ids) :] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
         ]
-        output_text = processor.batch_decode(
-            generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
-        )
+        output = processor.batch_decode(
+            generated_ids_trimmed, skip_special_tokens=False, clean_up_tokenization_spaces=False
+        )[0]
 
-        return output_text
+        return output
     return (analyze_image,)
+
+
+@app.cell
+def _(analyze_image, images_list):
+    temp = images_list[-1]
+    analyze_image(temp)
+    return
 
 
 @app.cell
 def _(analyze_image, images_list, json):
     results = {}
 
-    checkpoint_path = "./citizen_data_anonimised.json"
+    checkpoint_path = "./citizen_data_energy.json"
 
     for index, data_uri in enumerate(images_list):
         image_id = f"page_{index:04d}"
