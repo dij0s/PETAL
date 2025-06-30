@@ -112,9 +112,9 @@ Example: "According to **Transport et distribution d'énergie, page n° 2**, mun
 - **Implementation Priorities**: Timeline and sequencing based on compliance requirements
 
 ### Step 3: Implementation Roadmap
-- **Immediate Actions** (Year 1): Based on urgent compliance requirements
-- **Short-term Milestones** (Years 2-3): Based on guideline timelines
-- **Medium-term Targets** (Years 5-10): Based on regulatory objectives
+- **Immediate Actions** (Year 1-10): Based on urgent compliance requirements
+- **Short-term Milestones** (Years 10-20): Based on guideline timelines
+- **Medium-term Targets** (Years 20-30): Based on regulatory objectives
 - **Progress Indicators**: Key metrics to track success
 
 ### Step 4: Collaborative Planning Guidance
