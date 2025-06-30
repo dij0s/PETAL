@@ -4,7 +4,9 @@ from typing import Optional, Any
 
 from langchain_core.prompts import PromptTemplate
 from langchain_core.messages import AIMessage, SystemMessage
+from langchain_core.runnables import RunnableConfig
 from langchain_core.tools.structured import StructuredTool
+from langchain_core.callbacks import adispatch_custom_event
 from langgraph.config import get_stream_writer
 
 from provider.ModelProvider import ModelProvider
@@ -33,7 +35,7 @@ system_prompt_tool_retrieval = PromptTemplate.from_template("""
     ### User Request: "{user_request}"
     """)
 
-async def geocontext_retriever(state: State):
+async def geocontext_retriever(state: State, *, config: RunnableConfig):
     """
     Function for retrieving and augmenting the conversation state with relevant geographic data.
 
@@ -76,6 +78,7 @@ async def geocontext_retriever(state: State):
         # filter out tools whose
         # data we already have
         tools = [tool for tool in tools if tool.name not in geocontext.context_tools.keys()]
+        await adispatch_custom_event("foo", ["bar"], config=config)
 
         # invoke necessary tools
         writer({"type": "info", "content": "Fetching data from retrieved tools..."})

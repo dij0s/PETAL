@@ -4,6 +4,7 @@ import json
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.state import CompiledStateGraph
 from langchain_core.messages import AIMessageChunk, HumanMessage
+from langchain_core.callbacks import AsyncCallbackHandler
 from langchain_ollama import OllamaEmbeddings
 
 from langgraph.checkpoint.memory import InMemorySaver
@@ -18,6 +19,19 @@ from agent.guidelines_retriever import guidelines_retriever
 from agent.generate_answer import generate_answer
 from agent.critic_answer import critic_answer
 from modelling.structured_output import State, CriticOutput
+
+class CustomCallback(AsyncCallbackHandler):
+    """
+    Custom callback that handles custom events and end of LLM generation.
+    """
+
+    async def on_custom_event(self, name: str, data: Any, *, run_id, tags: Optional[list[str]] = None, metadata: Optional[dict[str, Any]] = None, **kwargs: Any) -> None:
+        print("Received a custom event alkhjsdjlasjkldjkasdjlkasjlkdjkl")
+        return await super().on_custom_event(name, data, run_id=run_id, tags=tags, metadata=metadata, **kwargs)
+
+    async def on_llm_end(self, response, *, run_id, parent_run_id = None, tags: Optional[list[str]] = None, **kwargs: Any) -> None:
+        print("Callback, chat LLM end..")
+        return await super().on_llm_end(response, run_id=run_id, parent_run_id=parent_run_id, tags=tags, **kwargs)
 
 class GraphProvider:
     """
@@ -154,6 +168,7 @@ class GraphProvider:
         try:
             if isinstance(self._graph, CompiledStateGraph):
                 configuration: dict = {
+                    "callbacks": [CustomCallback()],
                     "configurable": {
                         "thread_id": thread_id,
                         "user_id": user_id,
