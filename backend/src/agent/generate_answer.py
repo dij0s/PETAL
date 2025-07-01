@@ -112,9 +112,9 @@ Example: "According to **Transport et distribution d'énergie, page n° 2**, mun
 - **Implementation Priorities**: Timeline and sequencing based on compliance requirements
 
 ### Step 3: Implementation Roadmap
-- **Immediate Actions** (Year 1-10): Based on urgent compliance requirements
-- **Short-term Milestones** (Years 10-20): Based on guideline timelines
-- **Medium-term Targets** (Years 20-30): Based on regulatory objectives
+- **Immediate Actions** ({roadmap_immediate}): Based on urgent compliance requirements
+- **Short-term Milestones** ({roadmap_short_term}): Based on guideline timelines
+- **Medium-term Targets** ({roadmap_medium_term}): Based on regulatory objectives
 - **Progress Indicators**: Key metrics to track success
 
 ### Step 4: Collaborative Planning Guidance
@@ -324,12 +324,17 @@ async def generate_answer(state: State, *, config: RunnableConfig, store: BaseSt
         f"- When I requested: {item.context}, I specifically meant: {item.memory}."
         for item in memories
     ])
+    current_year = datetime.now().year
+
     prompt_args = {
         "month_year": f"{datetime.now().strftime('%B %Y')}",
         "location": state.router.location,
         "conversation_type": state.router.conversation_type,
         "mode_instruction": mode_instructions[state.router.conversation_type],
         "categories": last_categories,
+        "roadmap_immediate": f"{current_year}-{current_year + 10}",
+        "roadmap_short_term": f"{current_year + 10}-{current_year + 20}",
+        "roadmap_medium_term": f"{current_year + 20}-{current_year + 30}",
         "related_tools_description": related_tools_description,
         "lang": full_language[state.lang].upper(),
         "memories_description": memories_description,

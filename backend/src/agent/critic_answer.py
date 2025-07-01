@@ -137,7 +137,7 @@ async def critic_answer(state: State, *, config: RunnableConfig, store: BaseStor
                 # bin score into single score
                 # and push to frontend
                 score = bin(previous_stats, current_stats)
-                writer({"type": "greenness", "content": score})
+                writer({"type": "greenness", "score": score})
     except Exception as e:
         print(f"Exception: {e}")
 
