@@ -149,9 +149,11 @@ async def update_stats(config: RunnableConfig, store: BaseStore, patch: StatsPat
             # exist for given user
             if current is None:
                 document = {
-                    "mean_token_usage": patch.token_usage or 0,
+                    "token_usage_mean": patch.token_usage or 0,
+                    "token_usage_M2": 0,
                     "chat_calls_count": 1 if patch.token_usage is not None else 0,
-                    "mean_tool_usage": patch.tool_usage or 0,
+                    "tool_usage_mean": patch.tool_usage or 0,
+                    "tool_usage_M2": 0,
                     "tool_calls_count": 1 if patch.tool_usage is not None else 0,
                     "timestamp": time.time()
                 }
@@ -164,28 +166,43 @@ async def update_stats(config: RunnableConfig, store: BaseStore, patch: StatsPat
             else:
                 if not isinstance(current, Stats):
                     raise ValueError("Invalid stats object")
-                # update records with
-                # current user stats
-                tokens = {
-                    "mean_token_usage": ((current.mean_token_usage * current.chat_calls_count) + patch.token_usage) / (current.chat_calls_count + 1),
-                    "chat_calls_count": current.chat_calls_count + 1
-                } if patch.token_usage is not None else {
-                    "mean_token_usage": current.mean_token_usage,
-                    "chat_calls_count": current.chat_calls_count
-                }
-                tools = {
-                    "mean_tool_usage": ((current.mean_tool_usage * current.tool_calls_count) + patch.tool_usage) / (current.tool_calls_count + 1),
-                    "tool_calls_count": current.tool_calls_count + 1
-                } if patch.tool_usage is not None else {
-                    "mean_tool_usage": current.mean_tool_usage,
-                    "tool_calls_count": current.tool_calls_count
-                }
+                # update record with current user
+                # stats as per Welford's online
+                # algorithm which provides a numerically
+                # stable algorithm with a recurrence
+                # relation to help enable us to compute
+                # the variance and sampled variance in
+                # a single pass
+                updated_stats = current.model_dump()
+                if patch.token_usage is not None:
+                    new_chat_calls_count = current.chat_calls_count + 1
+                    delta = patch.token_usage - current.token_usage_mean
+                    new_token_usage_mean = current.token_usage_mean + (delta / new_chat_calls_count)
+                    new_token_usage_M2 = current.token_usage_M2 + delta * (patch.token_usage - new_token_usage_mean)
 
+                    updated_stats = {
+                        **updated_stats,
+                        "token_usage_mean": new_token_usage_mean,
+                        "token_usage_M2": new_token_usage_M2,
+                        "chat_calls_count": new_chat_calls_count
+                    }
+                if patch.tool_usage is not None:
+                    new_tool_calls_count = current.tool_calls_count + 1
+                    delta = patch.tool_usage - current.tool_usage_mean
+                    new_tool_usage_mean = current.tool_usage_mean + (delta / new_tool_calls_count)
+                    new_tool_usage_M2 = current.tool_usage_M2 + delta * (patch.tool_usage - new_tool_usage_mean)
+
+                    updated_stats = {
+                        **updated_stats,
+                        "tool_usage_mean": new_tool_usage_mean,
+                        "tool_usage_M2": new_tool_usage_M2,
+                        "tool_calls_count": new_tool_calls_count
+                    }
                 document = {
-                    **tokens,
-                    **tools,
+                    **updated_stats,
                     "timestamp": time.time()
                 }
+                print(f"Here's the updated document: {document}")
                 await store.aput(
                     namespace,
                     user_id,

@@ -60,9 +60,11 @@ class Memory(BaseModel):
 
 class Stats(BaseModel):
     """User statistics schema definition"""
-    mean_token_usage: float
+    token_usage_mean: float
+    token_usage_M2: float
     chat_calls_count: int
-    mean_tool_usage: float
+    tool_usage_mean: float
+    tool_usage_M2: float
     tool_calls_count: int
     timestamp: float
 
