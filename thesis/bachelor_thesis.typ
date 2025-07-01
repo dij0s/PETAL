@@ -35,13 +35,62 @@
 // Let's get started folks!
 
 #cleardoublepage()
-#include "pages/abstract.typ"
+#heavy-title("Abstract")
+
+The abstract of a bachelor thesis should provide a concise summary of the entire work. It typically includes:
+
+- The context and motivation for the research.
+- The main objective or research question.
+- A brief description of the methodology or approach used.
+- The key results or findings.
+- The main conclusion or implications of the work.
+
+The abstract should be self-contained, clear, and usually does not exceed 250–300 words. It allows readers to quickly understand the purpose and outcomes of the thesis without reading the full document.
+
+The abstract *must* be written in both French and English.
+
+#lorem(150)
+
+#v(1fr)
+
+*Keywords* : #context inc.global-keywords.get().join(", ")
 
 #cleardoublepage()
-#include "pages/résumé.typ"
+#heavy-title("Résumé")
+
+Le résumé d’un mémoire de bachelor doit fournir un aperçu concis de l’ensemble du travail. Il inclut généralement :
+
+- Le contexte et la motivation de la recherche.
+- L’objectif principal ou la question de recherche.
+- Une brève description de la méthodologie ou de l’approche utilisée.
+- Les principaux résultats ou découvertes.
+- La conclusion principale ou les implications du travail.
+
+Le résumé doit être autonome, clair et ne pas dépasser habituellement 250 à 300 mots. Il permet aux lecteurs de comprendre rapidement le but et les résultats du mémoire sans lire l’intégralité du document.
+
+Le résumé doit être rédigé en français *et* en anglais.
+
+
+#lorem(150)
+
+#v(1fr)
+
+*Keywords* : #context inc.global-keywords.get().join(", ")
 
 #cleardoublepage()
-#include "pages/acknowledgements.typ"
+// Get the proper title for acknowledgements if not written in English
+#heavy-title(context i18n(inc.global-language.get(), "acknowledgements"))
+
+The *Acknowledgements* section of a bachelor thesis is where you express gratitude to those who supported you during your research and writing process. It is an *OPTIONAL* section. It may include:
+
+- Academic supervisors or advisors who provided guidance.
+- Professors or instructors who offered feedback or resources.
+- Family and friends for emotional or practical support.
+- Institutions or organizations that provided funding, facilities, or data.
+- Anyone else who contributed significantly to your work.
+
+Keep this section concise and sincere. It is typically placed after the abstract and before the main content of your thesis.
+
 
 #table-of-contents(depth: 2)
 
@@ -82,11 +131,11 @@ Scientists have monitored this matter and proposed various frameworks to address
 Municipalities in Switzerland are required to submit an energy planning document which outlines their future strategies to comply with those directives while also considering the characteristics of their energetical landscape.
 
 These different properties can be quantified and analyzed through the use of a very valuable resource: data.
-Data is emitted by various sources ; sensors, energy models or citizen records for e.g. all yield datapoints that help us assess different indicators we are willing to measure against our municipality. These indicators, _in fine_, help us evaluate our progress towards that goal.
+Data is emitted by various sources ; sensors, energy models or citizen records for e.g. all yield datapoints that help us assess different indicators we are willing to measure against our municipality. These indicators, _in fine_, help us evaluate our progress towards energy-related goals.
 
 Over the past two years, artificial intelligence (AI) has rapidly transformed our habits when interacting with information.
 
-Large language models (LLMs) allow users to interact with these systems in natural language facilitating the interface between humans and _machines_. They can provide insights into vast amounts of data at speed and scales which are beyond our capabilities.
+Large Language Models (LLMs) allow users to interact with these systems in natural language facilitating the interface between humans and _machines_. They can provide insights into vast amounts of data at speed and scales which are beyond our capabilities.
 
 This work tackles this exact problem that is the implementation of a solution which assists users into energy planning for a municipality.
 
@@ -108,9 +157,48 @@ The solution is designed to offer a user-friendly interface from which users can
 
 User behaviour is analyzed to takeaway user preferences which gradually adapt the answers to better meet the user expectations.
 
-#highlight[TODO: provide a brief overview of the structure of the thesis (plan), add reference to extra scope in methodology?]
+#highlight(
+  "TODO: provide a brief overview of the structure of the thesis (plan), add reference to extra scope in methodology?",
+)
+
+= State of the Art
+
+Large language models are highly effective tools for natural language processing and offer various opportunities to enhance our day-to-day tasks and workflows.
+Ever since they have been introduced to the public, they have been adopted across a wide range of fields and applications.
+
+#highlight("TODO: citer proprement")
+
+The AI Institude at ITMO University published in 2025 a paper titled _LLM Agents for Smart City Management: Enhancing Decision Support Through Multi-Agent AI Systems_. The study examines how the natural language processing strengths of LLMs, combined with the distributed problem-solving abilities of multi-agent systems, can enhance urban decision-making processes.
+
+The research focused on the testing of three hypotheses: (1) evaluating the capability of LLM agents to effectively route and process diverse urban queries against existing urban information systems, (2) the effectiveness of Retrieval-Augmented Generation (RAG) technology in improving response accuracy when working with local knowledge and regulations and (3) the impact of integrating LLM agents with existing urban information-systems - increasing efficiency and decreasing the decision making process time.
+
+Their proposed solution was tested against 150 question-answer pairs and used St. Petersburg's Digital Urban Platform as a testbed.
+The testing dataset was curated and built by a group of human experts such as specialists in urban data analysis, GIS specialists, and urban architects.
+
+They then evaluated different configurations of LLM agents and state-of-the-art models against two primary metrics: G-eval and Answer Relevancy (AR).
+The G-eval metric provides greater compliance with human requirements as it uses LLMs to evaluate answers from other LLMs based on custom user criteria. These criteria can for e.g. be provided as a list of rules specifying precise steps the LLM should take for evaluation, mirroring human reasoning process.
+The AR metric, on the other hand, assesses the relevance of the answer from the LLM when compared with the correct answer provided by the experts. This process also leverages LLMs as it first extracts the different statements from the answer and then compares those to the reference answer.
+
+In summary, the results show greater performance when integrating the RAG technology and urban information-systems to the solution (G-eval scores of 0.68-0.74) compared to standalone LLM responses (0.30-0.38).
+They also concluded that this research proved practical real-world city management application as it enables efficient processing of urban planning tasks while maintaining high relevance in responses and shortening task completion time from days to hours.
+
+The ITMO study presents a research-driven implementation of LLM agents focusing on decision support through integration with urban data platforms which curate and process urban data to provide insights and recommendations for urban planning and management.
+Rather than relying on these large-scale platforms, the present thesis explores the potential of leveraging publicly available data from federal and cantonal sources while also considering the interface with municipal archives and residents' files.
+This work strongly values the user experience with efforts in enhancing conversational interactions through preference-driven reporting and improving the clarity and quality of reported decisions.
+It neither serves as a continuation nor a re-implementation of the ITMO study, but rather represents an independent application of AI agents to a related use case specifically adapted to the context of a Bachelor's thesis and shaped by my practical implementation choices and problem-solving approach.
+Any solution designed and implemented around similar goals and data-related constraints, regardless of the specificities of the use case, may result in an architecture that is somewhat similar.
+
+As we forget about the use case and consider more generic research on the matter, we encounter  publications that rather focus on the optimization of various aspects of AI agents, such as their scalability, efficiency, and robustness. While this work tackles some of these challenges, it does not incorporate major research efforts into these areas.
+
+#highlight("TODO: citer aino différement?")
+Another AI-centric solution relevant to this use case is #link("https://www.aino.world/")[aino], described on their homepage as an _AI GIS Analyst for Urban planning teams_. Developed and marketed in the United States, it is a commercial business solution offering a platform where an AI analyzes sites and provides visual insights from simple questions. This solution inspired me into a few design and user experience improvements in my work as no implementation details are provided.
+
+These two points of view position this work within the fast-changing field of AI-driven solutions for urban planning and beyond.
 
 = Methodology <methodology>
+
+#highlight("TODO: faire des sous chapitres")
+
 #lorem(800)
 
 #lorem(800)
