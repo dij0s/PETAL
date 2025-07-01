@@ -1,8 +1,8 @@
 import pydantic
 from langchain_core.utils.pydantic import IS_PYDANTIC_V1
 
+from .structured_output import Stats
 from typing import TypeVar, Optional
-from modelling.structured_output import Stats
 
 from math import sqrt
 from functools import reduce

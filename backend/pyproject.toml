@@ -27,7 +27,8 @@ venvPath = "."
 venv = ".venv"
 
 [tool.pytest.ini_options]
-pythonpath = ["."]
+pythonpath = [".", "src"]
+markers = ["asyncio"]
 
 [tool.uv.sources]
 transformers = { git = "https://github.com/huggingface/transformers" }
