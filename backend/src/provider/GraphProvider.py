@@ -1,17 +1,12 @@
 import os
 import json
-from uuid import UUID
 
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.state import CompiledStateGraph
-from langchain_core.messages import AIMessage, AIMessageChunk, HumanMessage
-from langchain_core.runnables import RunnableConfig
-from langchain_core.callbacks import AsyncCallbackHandler
-from langchain_core.outputs import LLMResult
+from langchain_core.messages import AIMessageChunk, HumanMessage
 from langchain_ollama import OllamaEmbeddings
 
 from langgraph.checkpoint.memory import InMemorySaver
-from langgraph.store.base import BaseStore
 from langgraph.store.redis.aio import AsyncRedisStore
 
 from typing import AsyncGenerator, Optional, Callable, Any
@@ -22,46 +17,8 @@ from agent.geocontext_retriever import geocontext_retriever
 from agent.guidelines_retriever import guidelines_retriever
 from agent.generate_answer import generate_answer
 from agent.critic_answer import critic_answer
-from storage.user import update_stats
-from modelling.structured_output import State, CriticOutput, StatsPatch
-
-class CustomCallback(AsyncCallbackHandler):
-    def __init__(self, config: RunnableConfig, store: BaseStore) -> None:
-        """
-        Custom callback that handles custom events and end of LLM generation.
-        These implementations patch the current user's statistics with token usage and tool usage.
-
-        Args:
-            config (RunnableConfig): The configuration for the runnable, containing runtime options and metadata.
-            store (BaseStore): The storage backend used for persisting or retrieving data.
-
-        Returns:
-            None
-        """
-        self._config = config
-        self._store = store
-        super().__init__()
-
-    async def on_llm_end(self, response: LLMResult, *, run_id: UUID, parent_run_id: Optional[UUID] = None, tags: Optional[list[str]] = None, **kwargs: Any):
-        # patch user statistics
-        # with token usage
-        message: AIMessage = response.generations[0][0].message # type: ignore
-        total_tokens = message.response_metadata.get("prompt_eval_count", 0) + message.response_metadata.get("eval_count", 0)
-
-        patch: StatsPatch = StatsPatch(token_usage=total_tokens)
-        await update_stats(self._config, self._store, patch)
-
-        return await super().on_llm_end(response, run_id=run_id, parent_run_id=parent_run_id, tags=tags, **kwargs)
-
-    async def on_custom_event(self, name: str, data: Any, *, run_id: UUID, tags: Optional[list[str]] = None, metadata: Optional[dict[str, Any]] = None, **kwargs: Any):
-        # patch user statistics
-        # with tool usage
-        if (name == "tool_calls") and isinstance(data, int):
-            patch: StatsPatch = StatsPatch(tool_usage=data)
-            await update_stats(self._config, self._store, patch)
-
-        return await super().on_custom_event(name, data, run_id=run_id, tags=tags, metadata=metadata, **kwargs)
-
+from provider.callbacks import CustomCallback
+from modelling.structured_output import State, CriticOutput
 
 class GraphProvider:
     """

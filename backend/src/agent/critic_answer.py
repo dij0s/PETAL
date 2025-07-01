@@ -1,12 +1,18 @@
 from langchain_core.prompts import PromptTemplate
 from langchain_core.messages import SystemMessage, AIMessage, HumanMessage
+from langchain_core.runnables import RunnableConfig
 from langchain_core.exceptions import OutputParserException
+from langgraph.store.base import BaseStore
+from langchain_core.callbacks import AsyncCallbackManager
 from langgraph.config import get_stream_writer
 
 from provider.ModelProvider import ModelProvider
 from provider.GeoSessionProvider import GeoSessionProvider
 from provider.ToolProvider import ToolProvider
-from modelling.structured_output import State, CriticScore, CriticOutput
+from provider.callbacks import CustomCallback
+from storage.user import fetch_stats
+from modelling.utils import bin
+from modelling.structured_output import State, CriticScore, CriticOutput, Stats
 
 from functools import reduce
 
@@ -40,12 +46,14 @@ Only check for common interpretation errors:
 Please provide in output a single score between 0 and 1.
 """)
 
-async def critic_answer(state: State) -> CriticOutput:
+async def critic_answer(state: State, *, config: RunnableConfig, store: BaseStore) -> CriticOutput:
     """
     Evaluates and critiques the answer given to the user's request.
 
     Args:
-        state: The current conversation state
+        state (State): The current conversation state
+        config (RunnableConfig): The configuration for the runnable.
+        store (BaseStore): The long-term memory store.
 
     Returns:
         CriticOutput: The private state indicating if the prompt should be retried.
@@ -109,6 +117,29 @@ async def critic_answer(state: State) -> CriticOutput:
         print(f"Could not parse output into Pydantic definition: {e}")
         writer({"type": "retry", "content": "Not satisfied with the answer. Let's retry."})
         return CriticOutput(retry=True)
+
+    # bin and push greenness
+    # indicator from current
+    # statistics
+    try:
+        current_stats = await fetch_stats(config, store)
+        if current_stats is not None:
+            manager = config.get("callbacks")
+            if not isinstance(manager, AsyncCallbackManager):
+                raise ValueError("Invalid callback manager")
+
+            callback = next((handler for handler in manager.handlers if isinstance(handler, CustomCallback)), None)
+            if callback is None:
+                raise ValueError("No CustomCallback handler found")
+
+            previous_stats = callback.last_run_state
+            if previous_stats is not None:
+                # bin score into single score
+                # and push to frontend
+                score = bin(previous_stats, current_stats)
+                writer({"type": "greenness", "content": score})
+    except Exception as e:
+        print(f"Exception: {e}")
 
     if isinstance(response, CriticScore):
         # only retry if scores is low

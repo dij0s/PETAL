@@ -202,7 +202,6 @@ async def update_stats(config: RunnableConfig, store: BaseStore, patch: StatsPat
                     **updated_stats,
                     "timestamp": time.time()
                 }
-                print(f"Here's the updated document: {document}")
                 await store.aput(
                     namespace,
                     user_id,

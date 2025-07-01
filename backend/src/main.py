@@ -2,7 +2,6 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-import uuid
 import asyncio
 
 from provider.GraphProvider import GraphProvider
@@ -15,7 +14,7 @@ async def main():
         raise ValueError("REDIS_URL_MEMORIES environment variable must be set")
 
     THREAD_ID = "0"
-    USER_ID = str(uuid.uuid4())
+    USER_ID = "cli"
 
     def process_chunk(mode, chunk):
         if mode == "token":
