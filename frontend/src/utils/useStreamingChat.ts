@@ -18,6 +18,7 @@ interface StreamingState {
   mapLayers: string[];
   dataSources: [string, string, any][];
   mapFocusedMunicipality: number | null;
+  greennessScore: number;
   thinkingContent: string;
   isThinking: boolean;
   conversationType: "active" | "checkpointed" | "new";
@@ -38,6 +39,7 @@ export const useStreamingChat = (
   const [mapFocusedMunicipality, setMapFocusedMunicipality] = useState<
     number | null
   >(null);
+  const [greennessScore, setGreennessScore] = useState<number>(0);
   const [thinkingContent, setThinkingContent] = useState<string>("");
   const [isThinking, setIsThinking] = useState<boolean>(false);
   const [conversationType, setConversationType] = useState<
@@ -585,6 +587,12 @@ export const useStreamingChat = (
         pendingSourcesRef.current = data.sources;
       });
 
+      // handle greenness
+      es.addEventListener("greenness", (e) => {
+        const data = JSON.parse(e.data);
+        setGreennessScore(data.score);
+      });
+
       // handle retry
       es.addEventListener("retry", (e) => {
         const data = JSON.parse(e.data);
@@ -599,15 +607,15 @@ export const useStreamingChat = (
 
       eventSourceRef.current = es;
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
-      options,
-      scheduleTokenUpdate,
-      splitIntoWords,
-      parseContent,
-      isThinking,
-      applyPendingLayers,
-      conversationType,
       saveConversationState,
+      options.threadId,
+      options.userId,
+      options.language,
+      conversationType,
+      scheduleTokenUpdate,
+      isThinking,
     ],
   );
 
@@ -619,6 +627,7 @@ export const useStreamingChat = (
       mapLayers,
       dataSources,
       mapFocusedMunicipality,
+      greennessScore,
       thinkingContent,
       isThinking,
       conversationType,

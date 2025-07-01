@@ -5,6 +5,7 @@ import type { Message } from "../../../types/Message";
 import type { Checkpoint } from "../../../types/Checkpoint";
 import Chat from "../../ui/Chat";
 import Prompt from "../../ui/Prompt";
+import { indicatorFromNumber } from "../../../utils/feedbackPellet";
 import "./Conversation.css";
 
 interface ConversationProps {
@@ -13,6 +14,7 @@ interface ConversationProps {
   isStreaming: boolean;
   processingStatus: string;
   dataSources: [string, string, any][];
+  greennessScore: number;
   thinkingContent?: string;
   isThinking?: boolean;
   isInitialConversation?: boolean;
@@ -25,6 +27,7 @@ const Conversation = ({
   isStreaming,
   processingStatus,
   dataSources,
+  greennessScore,
   thinkingContent = "",
   isThinking = false,
   isInitialConversation = false,
@@ -189,6 +192,7 @@ const Conversation = ({
         </div>
       )}
       <Prompt
+        indicator={indicatorFromNumber(greennessScore)}
         promptInput={promptInput}
         setPromptInput={setPromptInput}
         onSend={handleSendPrompt}

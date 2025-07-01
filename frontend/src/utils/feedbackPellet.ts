@@ -1,5 +1,11 @@
 export type Indicator = "great" | "ok" | "bad";
 
+export function indicatorFromNumber(value: number): Indicator {
+  if (value === 1) return "great";
+  if (value === 0) return "ok";
+  return "bad";
+}
+
 export const pelletConfig: Record<
   Indicator,
   { color: string; translationKey: string }

@@ -82,6 +82,7 @@ textarea::placeholder {
     height: 15px;
     border: 1px solid var(--border-color);
     border-radius: 8px;
+    transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .prompt-feedback-label {

@@ -15,7 +15,7 @@ interface PromptProps {
 }
 
 const Prompt = ({
-  indicator = "great",
+  indicator = "ok",
   promptInput,
   setPromptInput,
   onSend,

@@ -67,6 +67,7 @@ function App() {
         isStreaming={streamingState.isStreaming}
         processingStatus={streamingState.processingStatus}
         dataSources={streamingState.dataSources}
+        greennessScore={streamingState.greennessScore}
         thinkingContent={streamingState.thinkingContent}
         isThinking={streamingState.isThinking}
         isInitialConversation={isInitialConversation}
