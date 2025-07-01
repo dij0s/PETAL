@@ -58,6 +58,19 @@ class Memory(BaseModel):
     context: str
     timestamp: float
 
+class Stats(BaseModel):
+    """User statistics schema definition"""
+    mean_token_usage: float
+    chat_calls_count: int
+    mean_tool_usage: float
+    tool_calls_count: int
+    timestamp: float
+
+class StatsPatch(BaseModel):
+    """Single run user statistics"""
+    token_usage: Optional[int] = None
+    tool_usage: Optional[int] = None
+
 class BenchmarkScore(BaseModel):
     data_interpretation: int = Field(description="Score from 1 to 5 indicating how accurately the response interprets and presents data.")
     guideline_application: int = Field(description="Score from 1 to 5 indicating how well the response applies cantonal guidelines to municipal planning.")

@@ -8,7 +8,7 @@ from provider.ModelProvider import ModelProvider
 from provider.GeoSessionProvider import GeoSessionProvider
 from provider.ToolProvider import ToolProvider
 from modelling.structured_output import State
-from storage.memories import fetch_memories
+from storage.user import fetch_memories
 
 from collections import defaultdict
 from functools import reduce

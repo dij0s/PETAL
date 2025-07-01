@@ -41,6 +41,7 @@ async def geocontext_retriever(state: State, *, config: RunnableConfig):
 
     Args:
         state: The current conversation state to which we add the retrieved geo-context.
+        config: The configuration for the runnable.
 
     Returns:
         dict: The updated conversation state with.
@@ -78,12 +79,11 @@ async def geocontext_retriever(state: State, *, config: RunnableConfig):
         # filter out tools whose
         # data we already have
         tools = [tool for tool in tools if tool.name not in geocontext.context_tools.keys()]
-        await adispatch_custom_event("foo", ["bar"], config=config)
 
         # invoke necessary tools
         writer({"type": "info", "content": "Fetching data from retrieved tools..."})
         try:
-            tool_data = await _invoke_tools(tools, are_tools_uniform, state.router)
+            tool_data = await _invoke_tools(tools, are_tools_uniform, state.router, config)
         except RuntimeError:
             # location is not a proper
             # municipalty, enquire more
@@ -105,7 +105,7 @@ async def geocontext_retriever(state: State, *, config: RunnableConfig):
         print(f"Exception: {e}")
         return state
 
-async def _invoke_tools(tools: list[StructuredTool], are_tools_uniform: bool, router_state: RouterOutput) -> dict[str, Any]:
+async def _invoke_tools(tools: list[StructuredTool], are_tools_uniform: bool, router_state: RouterOutput, config: RunnableConfig) -> dict[str, Any]:
     """
     Invokes a list of StructuredTool objects asynchronously and returns their results as a dictionary.
 
@@ -117,6 +117,7 @@ async def _invoke_tools(tools: list[StructuredTool], are_tools_uniform: bool, ro
         tools (list[StructuredTool]): The list of tools to be invoked.
         are_tools_uniform (bool): Indicates if the probability distribution of the tools is uniform.
         router_state (RouterOutput): The current router state containing location and query information.
+        config (RunnableConfig): The configuration for the runnable.
 
     Returns:
         dict[str, Any]: A dictionary containing the results from the invoked tools. If no tools are invoked,
@@ -144,7 +145,9 @@ async def _invoke_tools(tools: list[StructuredTool], are_tools_uniform: bool, ro
                     toolbox.get(tool.get("name"))
                     for tool in response.tool_calls # type: ignore
                 ]  # type: ignore
-
+        # dispatch custom event
+        # with count of tool calls
+        await adispatch_custom_event("tool_calls", len(tools), config=config)
         return await _ainvoke_tools(tools)
     else:
         return {}
