@@ -135,7 +135,7 @@ Data is emitted by various sources ; sensors, energy models or citizen records f
 
 Over the past two years, artificial intelligence (AI) has rapidly transformed our habits when interacting with information.
 
-Large language models (LLMs) allow users to interact with these systems in natural language facilitating the interface between humans and _machines_. They can provide insights into vast amounts of data at speed and scales which are beyond our capabilities.
+Large Language Models (LLMs) allow users to interact with these systems in natural language facilitating the interface between humans and _machines_. They can provide insights into vast amounts of data at speed and scales which are beyond our capabilities.
 
 This work tackles this exact problem that is the implementation of a solution which assists users into energy planning for a municipality.
 
@@ -160,6 +160,22 @@ User behaviour is analyzed to takeaway user preferences which gradually adapt th
 #highlight[TODO: provide a brief overview of the structure of the thesis (plan), add reference to extra scope in methodology?]
 
 = State of the Art
+
+As previously mentioned, large language models are highly effective tools for natural language processing and offer various opportunities to enhance our day-to-day tasks and workflows.
+Ever since they have been introduced to the public, they have been adopted across a wide range of fields and applications.
+
+#highlight[TODO: citer proprement]
+
+The AI Institude at ITMO University published in 2025 a paper titled _LLM Agents for Smart City Management: Enhancing Decision Support Through Multi-Agent AI Systems_. The study examines how the natural language processing strengths of LLMs, combined with the distributed problem-solving abilities of multi-agent systems, can enhance urban decision-making processes.
+
+The research focused on the testing of three hypothesis: (1) evaluating the capability of LLM agents to effectively route and process diverse urban queries against existing urban information systems, (2) the effectiveness of Retrieval-Augmented Generation (RAG) technology in improving response accuracy when working with local knowledge and regulations and (3) the impact of integrating LLM agents with existing urban information-systems - increasing efficiency and decreasing the decision making process time.
+
+Their proposed solution was tested against 150 question-answer pairs and used St. Petersburg's Digital Urban Platform as a testbed.
+The testing dataset was curated and built by a group of human experts such as specialists in urban data analysis, GIS specialists, and urban architects.
+
+They then evaluated different configurations of LLM agents and state-of-the-art models against two primary metrics: G-eval and Answer Relevancy (AR).
+The G-eval metric provides greater compliance with human requirements as it uses LLMs to evaluate answers from other LLMs based on custom user criteria. These criterias can for e.g. be provided as a list of rules specifying precise steps the LLM should take for evaluation, mirroring human reasoning process.
+The AR metric, on the other hand, assess the relevance of the answer from the LLM when compared with the correct answer provided by the experts. This process also leverages LLMs as it first extracts the different statements from the answer and then compares those to the reference answer.
 
 = Methodology <methodology>
 #lorem(800)
