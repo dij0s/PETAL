@@ -136,9 +136,9 @@ Municipalities in Switzerland are required to submit an energy planning document
 These different properties can be quantified and analyzed through the use of a very valuable resource: data.
 Data is emitted by various sources ; sensors, energy models or citizen records for e.g. all yield datapoints that help us assess different indicators we are willing to measure against our municipality. These indicators, _in fine_, help us evaluate our progress towards energy-related goals.
 
-Over the past two years, artificial intelligence (AI) has rapidly transformed our habits when interacting with information.
+Over the past two years, Artificial Intelligence (AI) has rapidly transformed our habits when interacting with information.
 
-Large Language Models (LLMs) allow users to interact with these systems in natural language facilitating the interface between humans and _machines_. They can provide insights into vast amounts of data at speed and scales which are beyond our capabilities.
+Large Language Models (LLM) allow users to interact with these systems in natural language facilitating the interface between humans and _machines_. They can provide insights into vast amounts of data at speed and scales which are beyond our capabilities.
 
 This work tackles this exact problem that is the implementation of a solution which assists users into energy planning for a municipality.
 
@@ -178,11 +178,13 @@ The research focused on the testing of three hypotheses: (1) evaluating the capa
 Their proposed solution was tested against 150 question-answer pairs and used St. Petersburg's Digital Urban Platform as a testbed.
 The testing dataset was curated and built by a group of human experts such as specialists in urban data analysis, GIS specialists, and urban architects.
 
-They then evaluated different configurations of LLM agents and state-of-the-art models against two primary metrics: G-eval and Answer Relevancy (AR).
+They then evaluated different configurations of LLM agents and state-of-the-art models against two primary metrics: G-eval and answer relevance.
 The G-eval metric provides greater compliance with human requirements as it uses LLMs to evaluate answers from other LLMs based on custom user criteria. These criteria can for e.g. be provided as a list of rules specifying precise steps the LLM should take for evaluation, mirroring human reasoning process.
-The AR metric, on the other hand, assesses the relevance of the answer from the LLM when compared with the correct answer provided by the experts. This process also leverages LLMs as it first extracts the different statements from the answer and then compares those to the reference answer.
+The answer relevance metric, on the other hand, assesses the relevance of the answer from the LLM when compared with the correct answer provided by the experts. This process also leverages LLMs as it first extracts the different statements from the answer and then compares those to the reference answer.
+Both metrics are bounded between 0 and 1, where a higher value indicates better performance.
 
-In summary, the results show greater performance when integrating the RAG technology and urban information-systems to the solution (G-eval scores of 0.68-0.74) compared to standalone LLM responses (0.30-0.38).
+In summary, the results show greater performance when integrating the RAG technology and urban information-systems to the solution (G-eval scores of 0.68-0.74) compared to standalone LLM responses (G-eval scores of 0.30-0.38).
+Relevance scores, on the other hand, remain high whatever the configuration as they are inherently designed to produce semantically relevant text.
 They also concluded that this research proved practical real-world city management application as it enables efficient processing of urban planning tasks while maintaining high relevance in responses and shortening task completion time from days to hours.
 
 The ITMO study presents a research-driven implementation of LLM agents focusing on decision support through integration with urban data platforms which curate and process urban data to provide insights and recommendations for urban planning and management.
@@ -215,9 +217,10 @@ These two points of view position this work within the fast-changing field of AI
 = Conclusion
 #lorem(1256)
 
-//#bibliography("bibliography.bib", full: true, style: "ieee", title)
 #pagebreak()
-#the-bibliography(bib-file: "bibliography.bib", full: true, style: "ieee")
+#heavy-title(i18n(doc_language, "bibliography-title"), mult: 1, top: 0.5em, bottom: 0.3em)
+// generate bib file RIS script (https://www.bruot.org/ris2bib/)
+#bibliography("bibliography.bib", full: true, style: "ieee", title: none)
 
 //////////////
 // Appendices
