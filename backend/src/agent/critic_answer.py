@@ -14,6 +14,7 @@ from storage.user import fetch_stats
 from modelling.utils import bin
 from modelling.structured_output import State, CriticOutput, Stats
 
+from typing import Callable
 from functools import reduce
 
 llm = (
@@ -119,12 +120,12 @@ async def critic_answer(state: State, *, config: RunnableConfig, store: BaseStor
         writer({"type": "retry", "content": "Not satisfied with the answer. Let's retry."})
         return CriticOutput(retry=True)
 
-    # bin and push greenness
-    # indicator from current
-    # statistics
     try:
         current_stats = await fetch_stats(config, store)
+        print(f"Those are the current stats: {current_stats}")
         if current_stats is not None:
+            # retrieve custom callback
+            # with runtime configuration
             manager = config.get("callbacks")
             if not isinstance(manager, AsyncCallbackManager):
                 raise ValueError("Invalid callback manager")
@@ -132,8 +133,11 @@ async def critic_answer(state: State, *, config: RunnableConfig, store: BaseStor
             callback = next((handler for handler in manager.handlers if isinstance(handler, CustomCallback)), None)
             if callback is None:
                 raise ValueError("No CustomCallback handler found")
-
+            # bin and push greenness
+            # indicator from current
+            # statistics
             previous_stats = callback.last_run_state
+            print(f"Those are the previous stats: {previous_stats}")
             if previous_stats is not None:
                 # bin score into single score
                 # and push to frontend
@@ -142,11 +146,21 @@ async def critic_answer(state: State, *, config: RunnableConfig, store: BaseStor
     except Exception as e:
         print(f"Exception: {e}")
 
-    if isinstance(response, CriticOutput):
-        print(f"This is the response we have got from the LLM: {response}")
-        if response.retry:
-            writer({"type": "retry", "content": "Not satisfied with the answer. Let's retry."})
-        return response
+    try:
+        # retrieve retry counter
+        # from running configuration
+        get_retry_counter = config.get("configurable", {}).get("get_retry_count")
+        if get_retry_counter is None:
+            raise ValueError("No retry counter in runtime configuration")
+
+        if isinstance(response, CriticOutput) and isinstance(get_retry_counter, Callable):
+            if response.retry and (get_retry_counter() > 0):
+                writer({"type": "retry", "content": "Not satisfied with the answer. Let's retry."})
+                return response
+            else:
+                return CriticOutput(retry=False)
+    except Exception as e:
+        print(f"Exception: {e}")
 
     writer({"type": "retry", "content": "Not satisfied with the answer. Let's retry."})
     return CriticOutput(retry=True)
