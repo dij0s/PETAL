@@ -41,6 +41,8 @@ services:
     entrypoint: ["/bin/bash", "/ollama-entrypoint.sh"]
   redis:
     image: redis:alpine
+    environment:
+      - SKIP_FIX_PERMS=1
     ports:
       - 6379:6379
     volumes:
