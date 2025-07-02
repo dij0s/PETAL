@@ -1,4 +1,4 @@
-#import "@preview/isc-hei-bthesis:0.5.0": *
+#import "@preview/isc-hei-bthesis:0.5.2": *
 
 #let doc_language = "en" // Valid values are en, fr
 
@@ -49,6 +49,8 @@ The abstract should be self-contained, clear, and usually does not exceed 250–
 
 The abstract *must* be written in both French and English.
 
+Please also insert your project git/github URL HERE if your project is not confidential.
+
 #lorem(150)
 
 #v(1fr)
@@ -70,6 +72,7 @@ Le résumé doit être autonome, clair et ne pas dépasser habituellement 250 à
 
 Le résumé doit être rédigé en français *et* en anglais.
 
+Veuillez également ajouter l'URL de votre git/github ici si le projet n'est pas confidential.
 
 #lorem(150)
 
