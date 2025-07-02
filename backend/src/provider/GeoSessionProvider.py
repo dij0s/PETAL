@@ -1,18 +1,15 @@
 import asyncio
 import aiohttp
+import json
+import re
+from numpy import floor, sqrt
+import random
+
+from typing import Optional, Any
 
 from shapely.geometry import shape, box
 from shapely.geometry.multipolygon import MultiPolygon
 from shapely.ops import unary_union
-
-from numpy import floor, sqrt
-import random
-from functools import reduce
-
-import json
-import re
-
-from typing import Optional, Any
 
 class GeoSessionProvider:
     """A singleton class that manages geographical geometry data for a municipality.
@@ -87,6 +84,12 @@ class GeoSessionProvider:
         asyncio.create_task(instance.initialize())
         return instance
 
+    def _set_all_events(self):
+        """Helper method to set all events in case of failure."""
+        self._ready_event.set()
+        self._sfso_ready_event.set()
+        self._residents_count_event.set()
+
     async def initialize(self) -> Optional[bool]:
         """
         Initializes the session with geographical data based on configuration.
@@ -99,37 +102,46 @@ class GeoSessionProvider:
         """
         async with self._lock:
             if not self._initialized:
+                # when a single method fails
+                # during the initialization
+                # the global flag is set to
+                # False and then evaluated
+                # inside the single events
+                # getters to raise
                 try:
+                    # fetch geometry first and
+                    # set SFSO event to ready if
+                    # successful
                     if not await self.fetch_geometry(self.municipality_name):
-                        # prevent hanging by setting
-                        # event to ready
-                        self._ready_event.set()
-                        self._sfso_ready_event.set()
-                        self._residents_count_event.set()
+                        self._set_all_events()
                         return False
-                    # process geometry to remove unvalid areas
+                    self._sfso_ready_event.set()
+
+                    # fetch and process geometry
                     if not await self.remove_unvalid_areas():
-                        self._ready_event.set()
-                        self._sfso_ready_event.set()
-                        self._residents_count_event.set()
+                        self._set_all_events()
                         return False
-                    # compute tiles from the refined geometry
-                    self.total_tiles, self.exploitable_surface, self.sampled_tiles = await self.compute_tiles(self.tile_size, self.sampling_rate)
-                    # retrieve population count
+
+                    # compute tiling on top of
+                    # processed municipal geometry
+                    self.total_tiles, self.exploitable_surface, self.sampled_tiles = await self.compute_tiles(
+                        self.tile_size, self.sampling_rate)
+
+                    # fetch residents count
                     if self._with_residents_count:
                         await self.fetch_residents_count()
+                    self._residents_count_event.set()
 
                     self._initialized = True
                     self._ready_event.set()
-
                     return True
-                except:
-                    self._ready_event.set()
-                    self._sfso_ready_event.set()
-                    self._residents_count_event.set()
+                except Exception as e:
+                    print(f"Exception: {e}")
+                    self._set_all_events()
                     return False
             else:
                 return None
+
 
     async def wait_until_ready(self) -> None:
         """Waits until the session is fully initialized.
@@ -154,8 +166,9 @@ class GeoSessionProvider:
             RuntimeError: If initialization failed.
         """
         await self._sfso_ready_event.wait()
-        if not self._initialized:
-            raise RuntimeError("Session initialization failed")
+        # ensure session is ready
+        # to avoid race conditions
+        await self.wait_until_ready()
 
     async def wait_until_residents_count_ready(self) -> None:
         """Wait until the residents count is available.
@@ -167,8 +180,9 @@ class GeoSessionProvider:
             RuntimeError: If initialization failed.
         """
         await self._residents_count_event.wait()
-        if not self._initialized:
-            raise RuntimeError("Session initialization failed")
+        # ensure session is ready
+        # to avoid race conditions
+        await self.wait_until_ready()
 
     async def fetch_geometry(self, municipality_name: str) -> bool:
         """Fetches the geometry data for a municipality.
@@ -248,7 +262,6 @@ class GeoSessionProvider:
                         # store resulting feature in instance
                         self.geometry = shape(geojson_feature)
                         self.municipality_sfso_number = feature_id
-                        self._sfso_ready_event.set()
 
                         return True
 
@@ -390,8 +403,11 @@ class GeoSessionProvider:
             print(f"Error computing tiles: {e}")
             return 0, 0, []
 
-    async def fetch_residents_count(self) -> None:
+    async def fetch_residents_count(self) -> bool:
         """Asynchronously fetches the residents count for the municipality.
+
+        Returns:
+            bool: True if the residents count was successfully fetched, False otherwise.
         """
 
         async def _fetch_residents(session, tile) -> float:
@@ -452,4 +468,4 @@ class GeoSessionProvider:
 
         # aggregate all partial results
         self.residents_count = int(sum(sampled_counts))
-        self._residents_count_event.set()
+        return True

@@ -80,11 +80,14 @@ async def geocontext_retriever(state: State, *, config: RunnableConfig):
         # data we already have
         tools = [tool for tool in tools if tool.name not in geocontext.context_tools.keys()]
 
-        # invoke necessary tools
         writer({"type": "info", "content": "Fetching data from retrieved tools..."})
         try:
+            # invoke necessary tools
+            # and update geocontext
             tool_data = await _invoke_tools(tools, are_tools_uniform, state.router, config)
-        except RuntimeError:
+            geocontext.context_tools = {**geocontext.context_tools, **tool_data}
+        except RuntimeError as e:
+            print(f"RuntimeError: {e}")
             # location is not a proper
             # municipalty, enquire more
             # clarification by unsetting
@@ -95,8 +98,9 @@ async def geocontext_retriever(state: State, *, config: RunnableConfig):
             return {
                 "router": updated_state
             }
-        # update context
-        geocontext.context_tools = {**geocontext.context_tools, **tool_data}
+        except Exception as e:
+            print(f"Exception: {e}")
+
         return {
             "messages": [AIMessage(content="Successfully retrieved data.")],
             "geocontext": geocontext,
@@ -120,8 +124,7 @@ async def _invoke_tools(tools: list[StructuredTool], are_tools_uniform: bool, ro
         config (RunnableConfig): The configuration for the runnable.
 
     Returns:
-        dict[str, Any]: A dictionary containing the results from the invoked tools. If no tools are invoked,
-                        returns an empty dictionary.
+        dict[str, Any]: A dictionary containing the results from the invoked tools. If no tools are invoked, returns an empty dictionary.
     """
     if len(tools) > 0:
         # prompt the llm to better
