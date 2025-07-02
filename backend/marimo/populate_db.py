@@ -6,17 +6,14 @@ app = marimo.App(width="medium")
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-    This notebook populates a Redis database with documents, which are embedded for further retrieval.
-    """
-    )
+    mo.md(r"""This notebook populates a Redis database with documents, which are embedded for further retrieval.""")
     return
+
 
 @app.cell
 def _():
     import marimo as mo
-    return
+    return (mo,)
 
 
 @app.cell
@@ -29,8 +26,7 @@ def _():
 
 @app.cell
 def _():
-    from langchain.text_splitter import RecursiveCharacterTextSplitter, MarkdownHeaderTextSplitter
-    from langchain_core.documents.base import Document
+    from langchain.text_splitter import MarkdownHeaderTextSplitter
     return (MarkdownHeaderTextSplitter,)
 
 
@@ -182,9 +178,9 @@ def _():
 
 
 @app.cell
-def _(pages):
-    set([d["document_filename"] for d in pages.values()])
-    return
+def _(MarkdownHeaderTextSplitter):
+    md_splitter = MarkdownHeaderTextSplitter(headers_to_split_on=[("###", "Header 3")], strip_headers=False)
+    return (md_splitter,)
 
 
 @app.cell
