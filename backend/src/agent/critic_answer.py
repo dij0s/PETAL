@@ -12,7 +12,7 @@ from provider.ToolProvider import ToolProvider
 from provider.callbacks import CustomCallback
 from storage.user import fetch_stats
 from modelling.utils import bin
-from modelling.structured_output import State, CriticScore, CriticOutput, Stats
+from modelling.structured_output import State, CriticOutput, Stats
 
 from functools import reduce
 
@@ -23,7 +23,7 @@ llm = (
             temperature=0.8,
             defaults="qwen3:1.7b",
         )
-).with_structured_output(CriticScore)
+).with_structured_output(CriticOutput)
 
 system_prompt = PromptTemplate.from_template("""
 Given that the municipality "{location}" has {residents_count} residents and an exploitable surface of {exploitable_surface} ha, we redacted the following report to answer the user request.
@@ -43,7 +43,8 @@ Only check for common interpretation errors:
 3. Annual vs instantaneous values
 4. Potential vs actual production mixing
 
-Please provide in output a single score between 0 and 1.
+Please provide a single boolean indicating if we should retry.
+If you think that the answer is satisfactory, return retry: True and else retry: False.
 """)
 
 async def critic_answer(state: State, *, config: RunnableConfig, store: BaseStore) -> CriticOutput:
@@ -141,14 +142,11 @@ async def critic_answer(state: State, *, config: RunnableConfig, store: BaseStor
     except Exception as e:
         print(f"Exception: {e}")
 
-    if isinstance(response, CriticScore):
-        # only retry if scores is low
-        # and there are clear issues
-        output = CriticOutput(retry=((response.score < 0.6) and (len(response.issues) > 0)))
-        if output.retry:
+    if isinstance(response, CriticOutput):
+        print(f"This is the response we have got from the LLM: {response}")
+        if response.retry:
             writer({"type": "retry", "content": "Not satisfied with the answer. Let's retry."})
-
-        return output
+        return response
 
     writer({"type": "retry", "content": "Not satisfied with the answer. Let's retry."})
     return CriticOutput(retry=True)

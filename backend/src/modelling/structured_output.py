@@ -45,10 +45,6 @@ class GeoContextOutput(BaseModel):
         default_factory=list
     )
 
-class CriticScore(BaseModel):
-    score: Annotated[float, Field(ge=0.0, le=1.0)] = Field(description="Score of the answer")
-    issues: list[str] = Field(default_factory=list, description="Specific issues regarding the answer")
-
 class CriticOutput(BaseModel):
     retry: bool = Field(description="Whether the prompt should be retried against the pipeline", default=False)
 
