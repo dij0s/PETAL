@@ -149,8 +149,13 @@ class GeoSessionProvider:
 
         Returns:
             None. Completes when the SFSO number is ready to use.
+
+        Raises:
+            RuntimeError: If initialization failed.
         """
         await self._sfso_ready_event.wait()
+        if not self._initialized:
+            raise RuntimeError("Session initialization failed")
 
     async def wait_until_residents_count_ready(self) -> None:
         """Wait until the residents count is available.
