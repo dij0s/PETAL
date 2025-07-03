@@ -12,9 +12,8 @@ from provider.ToolProvider import ToolProvider
 from provider.callbacks import CustomCallback
 from storage.user import update_stats
 from modelling.utils import bin
-from modelling.structured_output import State, CriticOutput, Stats, StatsPatch
+from modelling.structured_output import State, CriticOutput, StatsPatch
 
-from typing import Callable
 from functools import reduce
 
 llm = (
@@ -149,10 +148,17 @@ async def critic_answer(state: State, *, config: RunnableConfig, store: BaseStor
             print(f"And these are the new one: {new}")
             callback.set_last_run_stats(new)
             if new is not None:
-                # bin score into single score
-                # and push to frontend
+                # bin and push score
+                # and other statistics
                 score = bin(old, new)
-                writer({"type": "greenness", "score": score})
+                writer(
+                    {
+                        "type": "statistics",
+                        "greenness": score,
+                        "mean": new.token_usage_mean,
+                        "std": new.std() if new.chat_calls_count >= 2 else 0
+                    }
+                )
 
             if (callback.get_retry_counter is None) or (callback.reset_retry_counter is None):
                 raise ValueError("No retry handlers in runtime configuration")

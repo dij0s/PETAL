@@ -6,6 +6,8 @@ from langgraph.graph import add_messages
 from typing import Optional, Any, Annotated
 from pydantic import BaseModel, Field
 
+from math import sqrt
+
 class RouterOutput(BaseModel):
     """Router output used to route user queries to appropriate agents and retrieve basic context."""
 
@@ -60,6 +62,12 @@ class Stats(BaseModel):
     token_usage_M2: float
     chat_calls_count: int
     timestamp: float
+
+    def std(self) -> float:
+        if self.chat_calls_count < 2:
+            return 0
+        else:
+            return sqrt(self.token_usage_M2 / (self.chat_calls_count - 1))
 
 class StatsPatch(BaseModel):
     """Single run user statistics"""

@@ -228,7 +228,6 @@ class GraphProvider:
                 # hence on very first run
                 if self.last_run_stats is None:
                     self.last_run_stats = await fetch_stats(configuration, self._store) # type: ignore
-                print(f"Retrieving the past run stats: {self.last_run_stats}")
                 # prepare the input state
                 # depending on the initial
                 # state for rehydratation

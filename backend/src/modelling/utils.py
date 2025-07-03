@@ -3,7 +3,6 @@ from langchain_core.utils.pydantic import IS_PYDANTIC_V1
 
 from .structured_output import Stats, StatsPatch
 
-from math import sqrt
 from functools import reduce
 import time
 from typing import TypeVar, Optional
@@ -104,7 +103,7 @@ def bin(old: Optional[Stats], new: Stats) -> int:
     zscore_tokens = 0
     # std computed per Welford definition
     if old.chat_calls_count >= 2:
-        std = sqrt(old.token_usage_M2 / (old.chat_calls_count - 1))
+        std = old.std()
         if std > 0:
             zscore_tokens = (new.token_usage_mean - old.token_usage_mean) / std
         else:
@@ -116,13 +115,9 @@ def bin(old: Optional[Stats], new: Stats) -> int:
     # in units of standard dev.
     # implies we can evaluate
     # against a simple scalar
-    # the zscores are aggregated
-    # as they yield the total
-    # total deviance from the
-    # distributions
-    if zscore_tokens < -0.1:
+    if zscore_tokens < -1:
         return 1
-    elif zscore_tokens > 0.2:
+    elif zscore_tokens > 1:
         return -1
     else:
         return 0
