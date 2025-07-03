@@ -7,6 +7,8 @@ import "./Prompt.css";
 
 interface PromptProps {
   indicator?: Indicator;
+  meanConsumption: string | null;
+  lastConsumption: string | null;
   promptInput: string;
   setPromptInput: (value: string) => void;
   onSend: (prompt: string) => void;
@@ -16,6 +18,8 @@ interface PromptProps {
 
 const Prompt = ({
   indicator = "ok",
+  meanConsumption = null,
+  lastConsumption = null,
   promptInput,
   setPromptInput,
   onSend,
@@ -48,7 +52,14 @@ const Prompt = ({
               className="prompt-feedback-pastel"
               style={{ backgroundColor: color }}
             ></div>
-            <span className="prompt-feedback-label">{t(translationKey)}</span>
+            {meanConsumption && lastConsumption && (
+              <span className="prompt-feedback-label">
+                {t(translationKey, {
+                  mean: meanConsumption,
+                  last: lastConsumption,
+                })}
+              </span>
+            )}
           </div>
           <div
             className="prompt-action-wrapper"

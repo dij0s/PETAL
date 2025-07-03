@@ -5,7 +5,10 @@ import type { Message } from "../../../types/Message";
 import type { Checkpoint } from "../../../types/Checkpoint";
 import Chat from "../../ui/Chat";
 import Prompt from "../../ui/Prompt";
-import { indicatorFromNumber } from "../../../utils/feedbackPellet";
+import {
+  indicatorFromNumber,
+  labelFromTokens,
+} from "../../../utils/feedbackPellet";
 import "./Conversation.css";
 
 interface ConversationProps {
@@ -15,6 +18,8 @@ interface ConversationProps {
   processingStatus: string;
   dataSources: [string, string, any][];
   greennessScore: number;
+  meanTokensUsage: number | null;
+  lastTokensUsage: number | null;
   thinkingContent?: string;
   isThinking?: boolean;
   isInitialConversation?: boolean;
@@ -28,6 +33,8 @@ const Conversation = ({
   processingStatus,
   dataSources,
   greennessScore,
+  meanTokensUsage = null,
+  lastTokensUsage = null,
   thinkingContent = "",
   isThinking = false,
   isInitialConversation = false,
@@ -193,6 +200,8 @@ const Conversation = ({
       )}
       <Prompt
         indicator={indicatorFromNumber(greennessScore)}
+        meanConsumption={labelFromTokens(meanTokensUsage)}
+        lastConsumption={labelFromTokens(lastTokensUsage)}
         promptInput={promptInput}
         setPromptInput={setPromptInput}
         onSend={handleSendPrompt}

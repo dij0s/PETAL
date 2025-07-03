@@ -1,9 +1,16 @@
+import { ledLightBulbFromTokens } from "./consumptionHeuristic";
+
 export type Indicator = "great" | "ok" | "bad";
 
 export function indicatorFromNumber(value: number): Indicator {
   if (value === 1) return "great";
   if (value === 0) return "ok";
   return "bad";
+}
+
+export function labelFromTokens(value: number | null): string | null {
+  if (value === null) return null;
+  else return ledLightBulbFromTokens(value).toString();
 }
 
 export const pelletConfig: Record<

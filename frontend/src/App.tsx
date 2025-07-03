@@ -68,6 +68,8 @@ function App() {
         processingStatus={streamingState.processingStatus}
         dataSources={streamingState.dataSources}
         greennessScore={streamingState.greennessScore}
+        meanTokensUsage={streamingState.meanTokensUsage}
+        lastTokensUsage={streamingState.lastTokensUsage}
         thinkingContent={streamingState.thinkingContent}
         isThinking={streamingState.isThinking}
         isInitialConversation={isInitialConversation}

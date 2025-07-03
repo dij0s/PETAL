@@ -156,6 +156,7 @@ async def critic_answer(state: State, *, config: RunnableConfig, store: BaseStor
                         "type": "statistics",
                         "greenness": score,
                         "mean": new.token_usage_mean,
+                        "last": patch.token_usage,
                     }
                 )
 

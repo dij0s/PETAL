@@ -19,6 +19,8 @@ interface StreamingState {
   dataSources: [string, string, any][];
   mapFocusedMunicipality: number | null;
   greennessScore: number;
+  meanTokensUsage: number | null;
+  lastTokensUsage: number | null;
   thinkingContent: string;
   isThinking: boolean;
   conversationType: "active" | "checkpointed" | "new";
@@ -39,7 +41,9 @@ export const useStreamingChat = (
   const [mapFocusedMunicipality, setMapFocusedMunicipality] = useState<
     number | null
   >(null);
-  const [greennessScore, setGreennessScore] = useState<number>(0);
+  const [greennessScore, setGreennessScore] = useState<number>(1);
+  const [meanTokensUsage, setMeanTokensUsage] = useState<number | null>(null);
+  const [lastTokensUsage, setLastTokensUsage] = useState<number | null>(null);
   const [thinkingContent, setThinkingContent] = useState<string>("");
   const [isThinking, setIsThinking] = useState<boolean>(false);
   const [conversationType, setConversationType] = useState<
@@ -588,9 +592,11 @@ export const useStreamingChat = (
       });
 
       // handle greenness
-      es.addEventListener("greenness", (e) => {
+      es.addEventListener("statistics", (e) => {
         const data = JSON.parse(e.data);
-        setGreennessScore(data.score);
+        setGreennessScore(data.greenness);
+        setMeanTokensUsage(data.mean);
+        setLastTokensUsage(data.last);
       });
 
       // handle retry
@@ -628,6 +634,8 @@ export const useStreamingChat = (
       dataSources,
       mapFocusedMunicipality,
       greennessScore,
+      meanTokensUsage,
+      lastTokensUsage,
       thinkingContent,
       isThinking,
       conversationType,
