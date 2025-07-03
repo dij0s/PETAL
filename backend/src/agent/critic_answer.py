@@ -153,23 +153,17 @@ async def critic_answer(state: State, *, config: RunnableConfig, store: BaseStor
                 # and push to frontend
                 score = bin(old, new)
                 writer({"type": "greenness", "score": score})
-    except Exception as e:
-        print(f"Exception: {e}")
 
-    try:
-        # retrieve retry handlers
-        # from configuration
-        get_retry_counter, reset_retry_counter = config.get("configurable", {}).get("retry_handlers") # type: ignore
-        if (get_retry_counter is None) or (reset_retry_counter is None):
-            raise ValueError("No retry counter in runtime configuration")
+            if (callback.get_retry_counter is None) or (callback.reset_retry_counter is None):
+                raise ValueError("No retry handlers in runtime configuration")
 
-        if isinstance(response, CriticOutput) and isinstance(get_retry_counter, Callable):
-            if response.retry and (get_retry_counter() > 0):
-                writer({"type": "retry", "content": "Not satisfied with the answer. Let's retry."})
-                return response
-            else:
-                reset_retry_counter()
-                return CriticOutput(retry=False)
+            if isinstance(response, CriticOutput):
+                if response.retry and (callback.get_retry_counter() > 0):
+                    writer({"type": "retry", "content": "Not satisfied with the answer. Let's retry."})
+                    return response
+                else:
+                    callback.reset_retry_counter()
+                    return CriticOutput(retry=False)
     except Exception as e:
         print(f"Exception: {e}")
 

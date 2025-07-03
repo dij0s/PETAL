@@ -36,6 +36,13 @@ class CustomCallback(AsyncCallbackHandler):
                 .get("configurable", {})
                 .get("last_run_handlers")
         ) # type: ignore
+        # retrieve retry handlers
+        # from configuration
+        self.get_retry_counter, self.reset_retry_counter = (
+            config
+                .get("configurable", {})
+                .get("retry_handlers")
+        ) # type: ignore
         super().__init__()
 
     async def on_llm_end(self, response: LLMResult, *, run_id: UUID, parent_run_id: Optional[UUID] = None, tags: Optional[list[str]] = None, **kwargs: Any):
@@ -51,8 +58,6 @@ class CustomCallback(AsyncCallbackHandler):
         if (self.get_current_run_patch is not None) and (self.set_current_run_patch is not None):
             current = self.get_current_run_patch()
             if isinstance(current, StatsPatch):
-                print(f"This is the current run patch: {current}")
                 self.set_current_run_patch(current.reduce(patch))
-                print(f"This is the new run patch: {self.get_current_run_patch()}")
 
         return await super().on_llm_end(response, run_id=run_id, parent_run_id=parent_run_id, tags=tags, **kwargs)
