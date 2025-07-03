@@ -156,7 +156,6 @@ async def critic_answer(state: State, *, config: RunnableConfig, store: BaseStor
                         "type": "statistics",
                         "greenness": score,
                         "mean": new.token_usage_mean,
-                        "std": new.std() if new.chat_calls_count >= 2 else 0
                     }
                 )
 
