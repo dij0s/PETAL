@@ -41,7 +41,8 @@ class GraphProvider:
         self._retry_count: int = self._max_retries
 
     def _get_retry_count(self) -> int:
-        """Helper function that returns the current retry count and decrements it.
+        """
+        Helper function that returns the current retry count and decrements it.
 
         Returns:
             int: The current retry count.
@@ -53,9 +54,19 @@ class GraphProvider:
         self._retry_count -= 1
         return current
 
+    def _reset_retry_count(self) -> None:
+        """
+        Helper function that reset the retry count.
+
+        Returns:
+            None
+        """
+        self._retry_count = self._max_retries
+
     @classmethod
     def build(cls, redis_conn_string: str) -> "GraphProvider":
-        """Provides an instance of GraphProvider.
+        """
+        Provides an instance of GraphProvider.
 
         Args:
             redis_conn_string (str): The Redis long-term memory store connection string.
@@ -174,7 +185,7 @@ class GraphProvider:
                     "configurable": {
                         "thread_id": thread_id,
                         "user_id": user_id,
-                        "get_retry_count": self._get_retry_count,
+                        "retry_handlers": (self._get_retry_count, self._reset_retry_count),
                     }
                 }
                 configuration: dict = {

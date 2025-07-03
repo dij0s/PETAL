@@ -20,7 +20,7 @@ from functools import reduce
 llm = (
     ModelProvider
         .from_env_variable(
-            env_variable="OLLAMA_MODEL_LLM_ANSWERING",
+            env_variable="OLLAMA_MODEL_LLM_ROUTING",
             temperature=0.8,
             defaults="qwen3:1.7b",
         )
@@ -34,18 +34,18 @@ This is the data we have at our disposal:
 ### Datapoints for "{location}"
 {datapoints_description}
 
-And this is our answer to the user request "{user_request}":
+### Guidelines for "{location}"
+{guidelines}
 
+And this is our answer to the user request "{user_request}":
 {llm_answer}
 
-Only check for common interpretation errors:
-1. Unit confusion (GWh vs MWh vs kWh)
-2. Per-capita vs total confusion
-3. Annual vs instantaneous values
-4. Potential vs actual production mixing
+Check for common interpretation errors:
+1. **Mathematical Accuracy**: Are all calculations correct? Check arithmetic carefully
+2. **Data Type Logic**: Are energy types properly distinguished and not inappropriately aggregated?
+3. **Units & Precision**: Are units preserved, consistent, and meaningful?
 
-Please provide a single boolean indicating if we should retry.
-If you think that the answer is satisfactory, return retry: True and else retry: False.
+If the answer is correct, complete and does not contain strong interpretation errors, return retry: False. Otherwise, return retry: True.
 """)
 
 async def critic_answer(state: State, *, config: RunnableConfig, store: BaseStore) -> CriticOutput:
@@ -93,6 +93,10 @@ async def critic_answer(state: State, *, config: RunnableConfig, store: BaseStor
         ).items(),
         []
     )
+    guidelines = [
+        content
+        for content, _ in state.geocontext.context_constraints
+    ]
 
     try:
         await provider.wait_until_residents_count_ready()
@@ -102,6 +106,7 @@ async def critic_answer(state: State, *, config: RunnableConfig, store: BaseStor
                 residents_count=provider.residents_count,
                 exploitable_surface=f"{provider.exploitable_surface:.2f}",
                 datapoints_description=datapoints_description,
+                guidelines=guidelines,
                 user_request=last_human_message,
                 llm_answer=last_ai_message,
             ))
@@ -147,10 +152,10 @@ async def critic_answer(state: State, *, config: RunnableConfig, store: BaseStor
         print(f"Exception: {e}")
 
     try:
-        # retrieve retry counter
-        # from running configuration
-        get_retry_counter = config.get("configurable", {}).get("get_retry_count")
-        if get_retry_counter is None:
+        # retrieve retry handlers
+        # from configuration
+        get_retry_counter, reset_retry_counter = config.get("configurable", {}).get("retry_handlers") # type: ignore
+        if (get_retry_counter is None) or (reset_retry_counter is None):
             raise ValueError("No retry counter in runtime configuration")
 
         if isinstance(response, CriticOutput) and isinstance(get_retry_counter, Callable):
@@ -158,6 +163,7 @@ async def critic_answer(state: State, *, config: RunnableConfig, store: BaseStor
                 writer({"type": "retry", "content": "Not satisfied with the answer. Let's retry."})
                 return response
             else:
+                reset_retry_counter()
                 return CriticOutput(retry=False)
     except Exception as e:
         print(f"Exception: {e}")
