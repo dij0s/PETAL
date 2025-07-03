@@ -10,9 +10,9 @@ from provider.ModelProvider import ModelProvider
 from provider.GeoSessionProvider import GeoSessionProvider
 from provider.ToolProvider import ToolProvider
 from provider.callbacks import CustomCallback
-from storage.user import fetch_stats
+from storage.user import update_stats
 from modelling.utils import bin
-from modelling.structured_output import State, CriticOutput, Stats
+from modelling.structured_output import State, CriticOutput, Stats, StatsPatch
 
 from typing import Callable
 from functools import reduce
@@ -126,27 +126,32 @@ async def critic_answer(state: State, *, config: RunnableConfig, store: BaseStor
         return CriticOutput(retry=True)
 
     try:
-        current_stats = await fetch_stats(config, store)
-        print(f"Those are the current stats: {current_stats}")
-        if current_stats is not None:
-            # retrieve custom callback
-            # with runtime configuration
-            manager = config.get("callbacks")
-            if not isinstance(manager, AsyncCallbackManager):
-                raise ValueError("Invalid callback manager")
+        # retrieve custom callback
+        # with runtime configuration
+        manager = config.get("callbacks")
+        if not isinstance(manager, AsyncCallbackManager):
+            raise ValueError("Invalid callback manager")
 
-            callback = next((handler for handler in manager.handlers if isinstance(handler, CustomCallback)), None)
-            if callback is None:
-                raise ValueError("No CustomCallback handler found")
-            # bin and push greenness
-            # indicator from current
-            # statistics
-            previous_stats = callback.last_run_state
-            print(f"Those are the previous stats: {previous_stats}")
-            if previous_stats is not None:
+        callback = next((handler for handler in manager.handlers if isinstance(handler, CustomCallback)), None)
+        if callback is None:
+            raise ValueError("No CustomCallback handler found")
+        # retrieve current run
+        # stats patch and previous
+        # stats for user
+        patch = callback.get_current_run_patch()
+        if (patch is not None) and isinstance(patch, StatsPatch):
+            old = callback.get_last_run_stats()
+            print(f"Those are the previous running stats: {old}")
+            # update and store running
+            # accumulation of user stats
+            # into both database and runtime
+            new = await update_stats(config, store, old, patch)
+            print(f"And these are the new one: {new}")
+            callback.set_last_run_stats(new)
+            if new is not None:
                 # bin score into single score
                 # and push to frontend
-                score = bin(previous_stats, current_stats)
+                score = bin(old, new)
                 writer({"type": "greenness", "score": score})
     except Exception as e:
         print(f"Exception: {e}")

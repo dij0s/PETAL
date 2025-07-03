@@ -2,13 +2,12 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.store.base import BaseStore
-from langchain_core.callbacks import adispatch_custom_event
 from langgraph.config import get_stream_writer
 
 from provider.ModelProvider import ModelProvider
 from modelling.PydanticStreamOutputParser import PydanticStreamOutputParser
 from modelling.structured_output import State, GeoContextOutput, RouterOutput
-from storage.user import fetch_stats, update_memories
+from storage.user import update_memories, fetch_stats
 
 from typing import Any
 
@@ -95,11 +94,6 @@ async def intent_router(state: State, *, config: RunnableConfig, store: BaseStor
         dict: The updated conversation state with the 'router' field set to the latest RouterOutput.
     """
     writer = get_stream_writer()
-    # dispatch custom event
-    # to memoize past run
-    # statistics
-    stats = await fetch_stats(config, store)
-    await adispatch_custom_event("memoize", stats, config=config)
     # retrieve messages for prompt
     human_messages: list[str] = [msg.content for msg in reversed(state.messages) if isinstance(msg, HumanMessage)] # type: ignore
     last_human_message: str = human_messages[0] if human_messages else ""

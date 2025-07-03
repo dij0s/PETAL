@@ -1,11 +1,12 @@
 import pydantic
 from langchain_core.utils.pydantic import IS_PYDANTIC_V1
 
-from .structured_output import Stats
-from typing import TypeVar, Optional
+from .structured_output import Stats, StatsPatch
 
 from math import sqrt
 from functools import reduce
+import time
+from typing import TypeVar, Optional
 
 if IS_PYDANTIC_V1:
     PydanticBaseModel = pydantic.BaseModel
@@ -36,7 +37,53 @@ def reduce_missing_attributes(pydantic_object: TBaseModel) -> Optional[str]:
     else:
         return '\n'.join(reduced_attributes)
 
-def bin(old: Stats, new: Stats) -> int:
+def welford_single_pass_accumulator(old: Optional[Stats], patch: StatsPatch) -> Stats:
+    """
+    Accumulates statistics using Welford's single-pass algorithm.
+
+    Args:
+        old (Optional[Stats]): The previous accumulated statistics.
+        new (StatsPatch): The statistics patch to incorporate.
+
+    Returns:
+        Stats: The updated statistics after incorporating the new values.
+    """
+    # initialize stats or
+    # update them if they
+    # exist for given user
+    if old is None:
+        return Stats(
+            token_usage_mean = patch.token_usage or 0,
+            token_usage_M2 = 0,
+            chat_calls_count = 1 if patch.token_usage is not None else 0,
+            timestamp = time.time()
+        )
+    else:
+        # update record with current user
+        # stats as per Welford's online
+        # algorithm which provides a numerically
+        # stable algorithm with a recurrence
+        # relation to help enable us to compute
+        # the variance and sampled variance in
+        # a single pass
+        if patch.token_usage is not None:
+            new_chat_calls_count = old.chat_calls_count + 1
+            delta = patch.token_usage - old.token_usage_mean
+            new_token_usage_mean = old.token_usage_mean + (delta / new_chat_calls_count)
+            new_token_usage_M2 = old.token_usage_M2 + delta * (patch.token_usage - new_token_usage_mean)
+
+            return Stats(
+                **{
+                    "token_usage_mean": new_token_usage_mean,
+                    "token_usage_M2": new_token_usage_M2,
+                    "chat_calls_count": new_chat_calls_count,
+                    "timestamp": time.time()
+                }
+            )
+        else:
+            return old
+
+def bin(old: Optional[Stats], new: Stats) -> int:
     """
     Bins the given stats into a single integer value representing the overall "greenness" score.
 
@@ -45,17 +92,16 @@ def bin(old: Stats, new: Stats) -> int:
      1  ->  good
 
     Args:
-        old (Stats): The previous stats.
+        old (Optional[Stats]): The previous stats.
         new (Stats): The new stats to bin.
 
     Returns:
         int: The binned value.
     """
-    if (old.chat_calls_count < 2) and (old.tool_calls_count < 2):
+    if (old is None) or (old.chat_calls_count < 2):
         return 0
 
     zscore_tokens = 0
-    zscore_tools = 0
     # std computed per Welford definition
     if old.chat_calls_count >= 2:
         std = sqrt(old.token_usage_M2 / (old.chat_calls_count - 1))
@@ -63,13 +109,6 @@ def bin(old: Stats, new: Stats) -> int:
             zscore_tokens = (new.token_usage_mean - old.token_usage_mean) / std
         else:
             zscore_tokens = 0
-
-    if old.tool_calls_count >= 2:
-        std = sqrt(old.tool_usage_M2 / (old.tool_calls_count - 1))
-        if std > 0:
-            zscore_tools = (new.tool_usage_mean - old.tool_usage_mean) / std
-        else:
-            zscore_tools = 0
 
     # zscore value being the
     # distance between the raw
@@ -81,10 +120,9 @@ def bin(old: Stats, new: Stats) -> int:
     # as they yield the total
     # total deviance from the
     # distributions
-    total_zscore = zscore_tokens + zscore_tools
-    if total_zscore < -0.1:
+    if zscore_tokens < -0.1:
         return 1
-    elif total_zscore > 0.2:
+    elif zscore_tokens > 0.2:
         return -1
     else:
         return 0

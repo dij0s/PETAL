@@ -59,15 +59,14 @@ class Stats(BaseModel):
     token_usage_mean: float
     token_usage_M2: float
     chat_calls_count: int
-    tool_usage_mean: float
-    tool_usage_M2: float
-    tool_calls_count: int
     timestamp: float
 
 class StatsPatch(BaseModel):
     """Single run user statistics"""
     token_usage: Optional[int] = None
-    tool_usage: Optional[int] = None
+
+    def reduce(self, other: "StatsPatch") -> "StatsPatch":
+        return StatsPatch(token_usage=(self.token_usage or 0) + (other.token_usage or 0))
 
 class BenchmarkScore(BaseModel):
     data_interpretation: int = Field(description="Score from 1 to 5 indicating how accurately the response interprets and presents data.")

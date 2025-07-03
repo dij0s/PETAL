@@ -14,7 +14,7 @@ async def main():
         raise ValueError("REDIS_URL_MEMORIES environment variable must be set")
 
     THREAD_ID = "0"
-    USER_ID = "cli"
+    USER_ID = "osd@cli"
 
     def process_chunk(mode, chunk):
         if mode == "token":

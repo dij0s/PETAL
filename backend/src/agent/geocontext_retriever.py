@@ -6,7 +6,6 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.messages import AIMessage, SystemMessage
 from langchain_core.runnables import RunnableConfig
 from langchain_core.tools.structured import StructuredTool
-from langchain_core.callbacks import adispatch_custom_event
 from langgraph.config import get_stream_writer
 
 from provider.ModelProvider import ModelProvider
@@ -148,9 +147,6 @@ async def _invoke_tools(tools: list[StructuredTool], are_tools_uniform: bool, ro
                     toolbox.get(tool.get("name"))
                     for tool in response.tool_calls # type: ignore
                 ]  # type: ignore
-        # dispatch custom event
-        # with count of tool calls
-        await adispatch_custom_event("tool_calls", len(tools), config=config)
         return await _ainvoke_tools(tools)
     else:
         return {}

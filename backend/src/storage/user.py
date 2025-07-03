@@ -10,6 +10,7 @@ from sentence_transformers import CrossEncoder
 
 from typing import Optional
 from modelling.structured_output import Memory, Stats, StatsPatch
+from modelling.utils import welford_single_pass_accumulator
 
 _reranking_model = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
 
@@ -120,102 +121,39 @@ async def fetch_memories(config: RunnableConfig, store: BaseStore, query: str) -
         print(f"Exception: {e}")
         return []
 
-async def update_stats(config: RunnableConfig, store: BaseStore, patch: StatsPatch) -> None:
+async def update_stats(config: RunnableConfig, store: BaseStore, old: Optional[Stats], patch: StatsPatch) -> Optional[Stats]:
     """
     Updates the user's statistics in the long-term memory store.
 
     Args:
         config (RunnableConfig): The configuration for the runnable.
         store (BaseStore): The long-term memory store.
+        old (Optional[Stats]): The current user statistics.
         patch (StatsPatch): The patch to apply to the user's statistics.
 
     Returns:
-        None
+        Optional[Stats]: The updated user statistics if successful, None otherwise.
     """
 
-    async def helper() -> None:
-        """
-        This function actually updates the user's statistics.
-        """
-        try:
-            user_id = config["configurable"].get("user_id") # type: ignore
-            if user_id is None:
-                raise Exception("Could not retrieve user_id from runtime configuration.")
+    try:
+        user_id = config["configurable"].get("user_id") # type: ignore
+        if user_id is None:
+            raise Exception("Could not retrieve user_id from runtime configuration.")
 
-            namespace = ("stats",)
-            current = await fetch_stats(config, store)
-            # initialize stats or
-            # update them if they
-            # exist for given user
-            if current is None:
-                document = {
-                    "token_usage_mean": patch.token_usage or 0,
-                    "token_usage_M2": 0,
-                    "chat_calls_count": 1 if patch.token_usage is not None else 0,
-                    "tool_usage_mean": patch.tool_usage or 0,
-                    "tool_usage_M2": 0,
-                    "tool_calls_count": 1 if patch.tool_usage is not None else 0,
-                    "timestamp": time.time()
-                }
-                # documents key is user_id
-                await store.aput(
-                    namespace,
-                    user_id,
-                    document
-                )
-            else:
-                if not isinstance(current, Stats):
-                    raise ValueError("Invalid stats object")
-                # update record with current user
-                # stats as per Welford's online
-                # algorithm which provides a numerically
-                # stable algorithm with a recurrence
-                # relation to help enable us to compute
-                # the variance and sampled variance in
-                # a single pass
-                updated_stats = current.model_dump()
-                if patch.token_usage is not None:
-                    new_chat_calls_count = current.chat_calls_count + 1
-                    delta = patch.token_usage - current.token_usage_mean
-                    new_token_usage_mean = current.token_usage_mean + (delta / new_chat_calls_count)
-                    new_token_usage_M2 = current.token_usage_M2 + delta * (patch.token_usage - new_token_usage_mean)
+        namespace = ("stats",)
 
-                    updated_stats = {
-                        **updated_stats,
-                        "token_usage_mean": new_token_usage_mean,
-                        "token_usage_M2": new_token_usage_M2,
-                        "chat_calls_count": new_chat_calls_count
-                    }
-                if patch.tool_usage is not None:
-                    new_tool_calls_count = current.tool_calls_count + 1
-                    delta = patch.tool_usage - current.tool_usage_mean
-                    new_tool_usage_mean = current.tool_usage_mean + (delta / new_tool_calls_count)
-                    new_tool_usage_M2 = current.tool_usage_M2 + delta * (patch.tool_usage - new_tool_usage_mean)
+        new = welford_single_pass_accumulator(old, patch)
+        # documents key is user_id
+        await store.aput(
+            namespace,
+            user_id,
+            new.model_dump()
+        )
+        return new
+    except Exception as e:
+        print(f"Exception: {e}")
 
-                    updated_stats = {
-                        **updated_stats,
-                        "tool_usage_mean": new_tool_usage_mean,
-                        "tool_usage_M2": new_tool_usage_M2,
-                        "tool_calls_count": new_tool_calls_count
-                    }
-                document = {
-                    **updated_stats,
-                    "timestamp": time.time()
-                }
-                await store.aput(
-                    namespace,
-                    user_id,
-                    document
-                )
-        except Exception as e:
-            print(f"Exception: {e}")
-
-    # start update task
-    # in the background
-    # to avoid blocking
-    # the caller
-    asyncio.create_task(helper())
-    return
+    return None
 
 async def fetch_stats(config: RunnableConfig, store: BaseStore) -> Optional[Stats]:
     """
@@ -238,8 +176,7 @@ async def fetch_stats(config: RunnableConfig, store: BaseStore) -> Optional[Stat
         item = await store.aget(namespace, user_id)
         if item is not None:
             return Stats(**item.value)
-        else:
-            return None
     except Exception as e:
         print(f"Exception: {e}")
-        return None
+
+    return None
