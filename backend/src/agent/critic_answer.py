@@ -137,16 +137,15 @@ async def critic_answer(state: State, *, config: RunnableConfig, store: BaseStor
         # retrieve current run
         # stats patch and previous
         # stats for user
-        patch = callback.get_current_run_patch()
+        patch = callback.current_run_patch
         if (patch is not None) and isinstance(patch, StatsPatch):
-            old = callback.get_last_run_stats()
+            old = callback.last_run_stats
             print(f"Those are the previous running stats: {old}")
             # update and store running
             # accumulation of user stats
             # into both database and runtime
             new = await update_stats(config, store, old, patch)
             print(f"And these are the new one: {new}")
-            callback.set_last_run_stats(new)
             if new is not None:
                 # bin and push score
                 # and other statistics
@@ -160,11 +159,10 @@ async def critic_answer(state: State, *, config: RunnableConfig, store: BaseStor
                     }
                 )
 
-            if (callback.get_retry_counter is None) or (callback.reset_retry_counter is None):
-                raise ValueError("No retry handlers in runtime configuration")
-
             if isinstance(response, CriticOutput):
-                if response.retry and (callback.get_retry_counter() > 0):
+                if response.retry and (callback.retry_count > 0):
+                    # decrement retry count
+                    callback.retry_count -= 1
                     writer({"type": "retry", "content": "Not satisfied with the answer. Let's retry."})
                     return response
                 else:

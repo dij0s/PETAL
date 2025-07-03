@@ -26,6 +26,23 @@ class GeoSessionProvider:
 
     _instances: dict[str, Any] = {}
     _lock = asyncio.Lock()
+    _initialized: bool
+    _ready_event: asyncio.Event
+    _sfso_ready_event: asyncio.Event
+    _residents_count_event: asyncio.Event
+
+    municipality_name: str
+    tile_size: float
+    sampling_rate: float
+    _with_residents_count: bool
+
+    geometry: Any
+    municipality_sfso_number: Any
+    refined_geometry: Any
+    total_tiles: int
+    exploitable_surface: float
+    sampled_tiles: list
+    residents_count: int
 
     def __new__(cls, municipality_name: str, tile_size: float, sampling_rate: float, with_residents_count: bool = False) -> "GeoSessionProvider":
         """Creates or returns a singleton instance based on the configuration parameters.

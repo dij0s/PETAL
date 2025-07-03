@@ -7,7 +7,7 @@ from langgraph.config import get_stream_writer
 from provider.ModelProvider import ModelProvider
 from modelling.PydanticStreamOutputParser import PydanticStreamOutputParser
 from modelling.structured_output import State, GeoContextOutput, RouterOutput
-from storage.user import update_memories, fetch_stats
+from storage.user import update_memories
 
 from typing import Any
 

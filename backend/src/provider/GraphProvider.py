@@ -18,8 +18,7 @@ from agent.guidelines_retriever import guidelines_retriever
 from agent.generate_answer import generate_answer
 from agent.critic_answer import critic_answer
 from provider.callbacks import CustomCallback
-from modelling.structured_output import State, CriticOutput, Stats, StatsPatch
-from storage.user import fetch_stats
+from modelling.structured_output import State, CriticOutput
 
 class GraphProvider:
     """
@@ -38,59 +37,6 @@ class GraphProvider:
         # for user memories
         self._store: Optional[AsyncRedisStore] = None
         self._graph: Optional[CompiledStateGraph] = None
-        # runtime benchmarking
-        self.last_run_stats: Optional[Stats] = None
-        self.current_run_patch: StatsPatch = StatsPatch(token_usage=0)
-        # critic agent retry logic
-        self._max_retries: int = 2
-        self._retry_count: int = self._max_retries
-
-    def _get_last_run_stats(self) -> Optional[Stats]:
-        """
-        Returns the statistics from the last run.
-        """
-        return self.last_run_stats
-
-    def _set_last_run_stats(self, stats: Stats) -> None:
-        """
-        Sets the statistics for the last run.
-        """
-        self.last_run_stats = stats
-
-    def _get_current_run_patch(self) -> StatsPatch:
-        """
-        Returns the current run patch.
-        """
-        return self.current_run_patch
-
-    def _set_current_run_patch(self, patch: StatsPatch) -> None:
-        """
-        Sets the current run patch.
-        """
-        self.current_run_patch = patch
-
-    def _get_retry_count(self) -> int:
-        """
-        Helper function that returns the current retry count and decrements it.
-
-        Returns:
-            int: The current retry count.
-        """
-        if self._retry_count < 0:
-            self._retry_count = self._max_retries
-
-        current = self._retry_count
-        self._retry_count -= 1
-        return current
-
-    def _reset_retry_count(self) -> None:
-        """
-        Helper function that reset the retry count.
-
-        Returns:
-            None
-        """
-        self._retry_count = self._max_retries
 
     @classmethod
     def build(cls, redis_conn_string: str) -> "GraphProvider":
@@ -214,20 +160,12 @@ class GraphProvider:
                     "configurable": {
                         "thread_id": thread_id,
                         "user_id": user_id,
-                        "retry_handlers": (self._get_retry_count, self._reset_retry_count),
-                        "last_run_handlers": (self._get_last_run_stats, self._set_last_run_stats),
-                        "current_run_handlers": (self._get_current_run_patch, self._set_current_run_patch)
                     }
                 }
                 configuration: dict = {
                     **configurable,
-                    "callbacks": [CustomCallback(configurable, self._store)] # type: ignore
+                    "callbacks": [await CustomCallback.create(configurable, self._store)] # type: ignore
                 }
-                # retrieve user statistics
-                # from database if not done
-                # hence on very first run
-                if self.last_run_stats is None:
-                    self.last_run_stats = await fetch_stats(configuration, self._store) # type: ignore
                 # prepare the input state
                 # depending on the initial
                 # state for rehydratation

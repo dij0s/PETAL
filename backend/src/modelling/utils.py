@@ -115,9 +115,9 @@ def bin(old: Optional[Stats], new: Stats) -> int:
     # in units of standard dev.
     # implies we can evaluate
     # against a simple scalar
-    if zscore_tokens < -1:
+    if zscore_tokens < -0.5:
         return 1
-    elif zscore_tokens > 1:
+    elif zscore_tokens > 0.5:
         return -1
     else:
         return 0
