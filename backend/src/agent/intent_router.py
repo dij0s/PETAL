@@ -23,6 +23,7 @@ Your task is to extract and update metadata from user queries to maintain conver
 {format_description_llm}
 
 ## Key Instructions for aggregated_query:
+- **ALWAYS update aggregated_query** with the location that is provided.
 - **ALWAYS update aggregated_query** with the current user's request
 - If this is a new topic/question: Create a fresh, comprehensive query
 - If this is a follow-up/clarification: Merge the previous context with the new information
