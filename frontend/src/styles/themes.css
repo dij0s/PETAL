@@ -21,6 +21,8 @@
     --background-color-action-85-opacity: rgba(32, 32, 32, 0.85);
     --background-color-action-60-opacity: rgba(32, 32, 32, 0.6);
     --background-color-action-30-opacity: rgba(32, 32, 32, 0.3);
+    --box-shadow-color-inactive: rgba(0, 0, 0, 0.15);
+    --box-shadow-color-active: rgba(0, 0, 0, 0.35);
 
     /* shared variables */
     --background-color-chat-human: #122f29;
@@ -53,4 +55,6 @@
     --background-color-action-85-opacity: rgba(249, 249, 249, 0.85);
     --background-color-action-60-opacity: rgba(249, 249, 249, 0.6);
     --background-color-action-30-opacity: rgba(249, 249, 249, 0.3);
+    --box-shadow-color-inactive: rgba(255, 255, 255, 0.15);
+    --box-shadow-color-active: rgba(255, 255, 255, 0.35);
 }
