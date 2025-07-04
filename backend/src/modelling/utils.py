@@ -108,16 +108,16 @@ def bin(old: Optional[Stats], new: Stats) -> int:
             zscore_tokens = (new.token_usage_mean - old.token_usage_mean) / std
         else:
             zscore_tokens = 0
-
+    print(f"This is the zscore: {zscore_tokens}")
     # zscore value being the
     # distance between the raw
     # score and the pop. mean
     # in units of standard dev.
     # implies we can evaluate
     # against a simple scalar
-    if zscore_tokens < -0.5:
+    if zscore_tokens < -0.02:
         return 1
-    elif zscore_tokens > 0.5:
+    elif zscore_tokens > 0:
         return -1
     else:
         return 0

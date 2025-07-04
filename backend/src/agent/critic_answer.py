@@ -138,18 +138,18 @@ async def critic_answer(state: State, *, config: RunnableConfig, store: BaseStor
         # stats patch and previous
         # stats for user
         patch = callback.current_run_patch
+        print(f"This is the current run patch: {patch}")
         if (patch is not None) and isinstance(patch, StatsPatch):
             old = callback.last_run_stats
-            print(f"Those are the previous running stats: {old}")
             # update and store running
             # accumulation of user stats
             # into both database and runtime
             new = await update_stats(config, store, old, patch)
-            print(f"And these are the new one: {new}")
             if new is not None:
                 # bin and push score
                 # and other statistics
                 score = bin(old, new)
+                print(f"These are the updated statistics: {new}")
                 writer(
                     {
                         "type": "statistics",

@@ -53,9 +53,13 @@ const Prompt = ({
               style={{ backgroundColor: color }}
             ></div>
             {meanConsumption && lastConsumption && (
-              <span className="prompt-feedback-label">
-                {t(translationKey, {
+              <span
+                className="prompt-feedback-label"
+                title={t("indicator_message_tooltip", {
                   mean: meanConsumption,
+                })}
+              >
+                {t(translationKey, {
                   last: lastConsumption,
                 })}
               </span>

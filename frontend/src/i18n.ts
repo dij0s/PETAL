@@ -39,11 +39,13 @@ i18n.use(initReactI18next).init({
         ],
         prompt_placeholder: "Type your message here...",
         indicator_message_great:
-          "Impressive! This run powered a 10W LED for just {{last}}min. (avg: {{mean}}min.).",
+          "This run kept a 10W LED on for {{last}} minutes. Impressive!",
         indicator_message_ok:
-          "Not bad! A 10W LED ran {{last}}min. this run (avg: {{mean}}min.). Can you go lower?",
+          "This run kept a 10W LED on for {{last}} minutes. Not too shabby, can you go lower?",
         indicator_message_bad:
-          "Try to do better: this run kept a 10W LED on for {{last}}min. (avg: {{mean}}min.).",
+          "This run kept a 10W LED on for {{last}} minutes. Please make an effort!",
+        indicator_message_tooltip:
+          "On average, your prompts would keep a 10W LED on for {{mean}} minutes.",
       },
     },
     fr: {
@@ -63,11 +65,13 @@ i18n.use(initReactI18next).init({
           "Quel est l'impact d'une augmentation de 20 % de l'adoption des véhicules électriques.",
         ],
         indicator_message_great:
-          "Bravo ! Cette exécution a alimenté une LED 10W pendant seulement {{last}}min. (moyenne : {{mean}}min.).",
+          "Cette exécution a permis à une LED de 10W de rester allumée pendant {{last}} minutes. Impressionnant !",
         indicator_message_ok:
-          "Pas mal ! Une LED 10W a tourné {{last}}min. cette fois (moyenne : {{mean}}min.). Pouvez-vous faire moins ?",
+          "Cette exécution a permis à une LED de 10W de rester allumée pendant {{last}} minutes. Pas mal, tu peux faire mieux ?",
         indicator_message_bad:
-          "Essayez de faire mieux : cette exécution a alimenté une LED 10W pendant {{last}}min. (moyenne : {{mean}}min.).",
+          "Cette exécution a permis à une LED de 10W de rester allumée pendant {{last}} minutes. Fais un effort !",
+        indicator_message_tooltip:
+          "En moyenne, vos messages permettraient à une LED de 10W de rester allumée pendant {{mean}} minutes.",
       },
     },
     de: {
@@ -87,11 +91,13 @@ i18n.use(initReactI18next).init({
           "Simulieren Sie die Auswirkungen von 20 % mehr E-Autos auf das Netz.",
         ],
         indicator_message_great:
-          "Impressive! Dieser Lauf betrieb eine 10W-LED nur {{last}}Min. (Durchschnitt: {{mean}}Min.).",
+          "Dieser Durchlauf hielt eine 10W-LED für {{last}} Minuten an. Beeindruckend!",
         indicator_message_ok:
-          "Nicht schlecht! Eine 10W-LED lief {{last}}Min. diesmal (Durchschnitt: {{mean}}Min.). Geht es kürzer?",
+          "Dieser Durchlauf hielt eine 10W-LED für {{last}} Minuten an. Nicht schlecht, kannst du noch weniger erreichen?",
         indicator_message_bad:
-          "Versuchen Sie es besser: Dieser Lauf hielt eine 10W-LED {{last}}Min. an (Durchschnitt: {{mean}}Min.).",
+          "Dieser Durchlauf hielt eine 10W-LED für {{last}} Minuten an. Bitte gib dir mehr Mühe!",
+        indicator_message_tooltip:
+          "Im Durchschnitt würden deine Eingaben eine 10W-LED für {{mean}} Minuten anlassen.",
       },
     },
   },

@@ -4,13 +4,20 @@
     right: 20px;
     width: 45%;
     color: var(--text-color);
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    clip-path: inset(-10px -10px 0px -10px);
     transition:
         height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-        top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        top 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1) 0.15s;
 }
 
 .data-sources-wrapper[data-expanded="true"] {
     top: -236px;
+    box-shadow:
+        0 -2px 10px 0 rgba(255, 255, 255, 0.35),
+        0 2px 10px 0 rgba(255, 255, 255, 0.35);
 }
 
 .data-sources-action {
@@ -21,10 +28,19 @@
     height: 35px;
     background-color: var(--background-color);
     box-sizing: border-box;
+    box-shadow:
+        0 -1px 5px 0 rgba(255, 255, 255, 0.15),
+        0 1px 5px 0 rgba(255, 255, 255, 0.15);
+    clip-path: inset(-10px -10px 0px -10px);
     border: 1px solid var(--border-color);
     border-bottom: none;
     border-top-left-radius: 10px;
     border-top-right-radius: 10px;
+    transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1) 0.1s;
+}
+
+.data-sources-wrapper[data-expanded="true"] > .data-sources-action {
+    box-shadow: none;
 }
 
 .data-sources-action:hover {
