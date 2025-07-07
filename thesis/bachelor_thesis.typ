@@ -202,11 +202,81 @@ These two points of view position this work within the fast-changing field of AI
 
 = Methodology <methodology>
 
-#highlight("TODO: faire des sous chapitres")
+The following chapter provides an overview of the methodology that has been adopted in this work and describes the approach taken to design, implement and further evaluate the proposed solution.
+A clear emphasis is put onto the key decisions that have shaped the solution throughout its development as this chapter aims to offer full transparency and reproducibility which enables readers to understand the rationale and structure behind it.
 
-#lorem(800)
+== Requirements
 
-#lorem(800)
+Identifying and describing the primary requirements lays the groundwork for the design of the solution.
+The main requirements were established and further refined as the project progressed to meet the expectations and project goals throughout ongoing discussions with the supervisors.
+Those are categorized into functional and non-functional requirements. Functional requirements focus on user requirements and product features whereas non-functional requirements focus on user expectations and product properties.
+
+The first step is to understand the problem that is solved. Energy planning typically involves:
+- Identifying available energy resources#footnote[The resources and needs are assessed within the geographical boundaries of the municipality, only.].
+- Characterizing the needs.
+- Assessing different measures and their impacts ; sobriety (reducing energy consumption), efficiency (more efficient technologies) and production of renewable energy sources.
+
+Hence, assisting users in energy planning requires a solution that can gather relevant data sources, analyze and present the current energy landscape of the municipality and provide actionable recommendations tailored to the context of the municipality.
+Besides that, it had been requested that the user interface has a map showcasing the assessed datapoints within the municipality as well as for the AI to be able to _remember_ the user's preferences and past interactions to have the answer better fit what the user expects.
+
+These initial requirements established the basis for the project. As the solution was evaluated with supervisors on a weekly basis, additional requirements emerged gradually shaping the solution to enhance the overall solution and meet the needs of energy planning.
+
+#highlight("TODO: ajouter des autres requirements?")
+
+These requirements are summarized in the #ref(<requirements_table>, form: "normal", supplement: it => lower(it.caption.body))) below:
+
+#show table.cell.where(y: 0): strong
+#set table(stroke: (x, y) => if y == 0 {
+  (bottom: 0.7pt + black)
+})
+
+#figure(
+  table(
+    columns: 3,
+    table.header([Requirement], [Type], [Description]),
+    [Gather relevant data sources],
+    [Functional],
+    [The solution must collect and integrate data from various sources relevant to the municipality's energy landscape.],
+
+    [Analyze and present energy landscape],
+    [Functional],
+    [The system should process and visualize the current energy situation of the municipality, enabling users to understand available resources and needs.],
+
+    [Provide actionable recommendations],
+    [Functional],
+    [The solution must generate tailored recommendations for energy planning, considering the specific context and characteristics of the municipality.],
+
+    [Interactive map interface],
+    [Functional],
+    [The user interface should include a map displaying assessed datapoints within the municipality for better spatial understanding.],
+
+    [Conversational interface],
+    [Functional],
+    [The system should provide a natural language interface allowing users to interact with the AI through conversational queries.],
+
+    [Preference memory],
+    [Functional],
+    [The AI should remember user preferences and past interactions to adapt responses and improve user experience over time.],
+
+    [Multi-AI orchestration],
+    [Functional],
+    [The system should coordinate multiple specialized AIs through an orchestration layer to provide comprehensive energy planning assistance.],
+
+    [Usability and accessibility],
+    [Non-functional],
+    [The interface should be intuitive and accessible for users with varying technical expertise.],
+
+    [Data privacy and security],
+    [Non-functional],
+    [The solution must ensure the privacy and security of any non-public data, especially considering future integration of additional datasources.],
+
+    [Extensibility and adaptability],
+    [Non-functional],
+    [The architecture should allow for the addition of new features and datasources as requirements evolve.],
+  ),
+  caption: "Requirements table",
+) <requirements_table>
+
 
 = Results
 #lorem(950)
