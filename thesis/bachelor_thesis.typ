@@ -175,6 +175,9 @@ The AI Institude at ITMO University published in 2025 a paper titled _LLM Agents
 
 The research focused on the testing of three hypotheses: (1) evaluating the capability of LLM agents to effectively route and process diverse urban queries against existing urban information systems, (2) the effectiveness of Retrieval-Augmented Generation (RAG) technology in improving response accuracy when working with local knowledge and regulations and (3) the impact of integrating LLM agents with existing urban information-systems - increasing efficiency and decreasing the decision making process time.
 
+LLM agents (sometimes called AI agents) are software systems that use AI to pursue goals and complete tasks on behalf of users. They show reasoning, planning, and memory and have a level of autonomy to make decisions, learn, and adapt as per #link("https://cloud.google.com/discover/what-are-ai-agents?hl=en")[cloud.google.com].
+#highlight("mieux citer??")
+
 Their proposed solution was tested against 150 question-answer pairs and used St. Petersburg's Digital Urban Platform as a testbed.
 The testing dataset was curated and built by a group of human experts such as specialists in urban data analysis, GIS specialists, and urban architects.
 
@@ -216,14 +219,15 @@ The first step is to understand the problem that is solved. Energy planning typi
 - Characterizing the needs.
 - Assessing different measures and their impacts ; sobriety (reducing energy consumption), efficiency (more efficient technologies) and production of renewable energy sources.
 
-Hence, assisting users in energy planning requires a solution that can gather relevant data sources, analyze and present the current energy landscape of the municipality and provide actionable recommendations tailored to the context of the municipality.
+Hence, assisting users in energy planning requires a solution that can gather relevant data sources, analyze and present the current energy landscape of the municipality and provide actionable recommendations tailored to the context of the municipality while ensuring compliance with the legislation and guidelines that apply to said municipality.
+
 Besides that, it had been requested that the user interface has a map showcasing the assessed datapoints within the municipality as well as for the AI to be able to _remember_ the user's preferences and past interactions to have the answer better fit what the user expects.
 
 These initial requirements established the basis for the project. As the solution was evaluated with supervisors on a weekly basis, additional requirements emerged gradually shaping the solution to enhance the overall solution and meet the needs of energy planning.
 
-#highlight("TODO: ajouter des autres requirements?")
+#highlight("TODO: revoir la dernière phrase, ajouter des autres requirements ?")
 
-These requirements are summarized in the #ref(<requirements_table>, form: "normal", supplement: it => lower(it.caption.body))) below:
+These requirements are summarized in the #ref(<requirements_table>, form: "normal", supplement: it => lower(it.supplement.text)) below:
 
 #show table.cell.where(y: 0): strong
 #set table(stroke: (x, y) => if y == 0 {
@@ -280,7 +284,21 @@ These requirements are summarized in the #ref(<requirements_table>, form: "norma
 #pagebreak()
 == System Design
 
+#highlight("Parler de tech stack, définition des données ?")
 
+A modular, scalable and adaptable architecture was designed to ensure that the solution can adapt to evolving requirements and facilitate future enhancements. The system is organized into distinct components which are all responsible for a specific set of functionalities and ensure clear separation of concerns and ease of maintenance.
+
+#figure(image("figs/system_design_global.svg", height: 5cm), caption: "Global system design")<global_system_design>
+
+The global architecture in its most simplified form is presented in the #ref(<global_system_design>, supplement: it => lower(it.supplement.text)) above. The system is broken down into three different layers: the frontend, the backend, and the external services.
+
+The frontend layer manages user interaction and presentation of data, providing an intuitive interface for users to communicate with the system. The backend layer is responsible for business logic, orchestrating AI agents, processing data and handling requests from the frontend. The external services layer provides access to third-party Application Programming Interfaces (APIs) and external data providers, an API being a set of protocols and tools that allows different software components to communicate with each other, enabling the system to retrieve or send data to external platforms and services.
+
+Each layer is composed of modular components that interact through well-defined interfaces, ensuring flexibility and ease of maintenance. When the user prompts the system from the web interface, the query is routed to the AI agent in the backend. The AI agent will make use of two datasources: a local database (in the backend) and third-party APIs (in the external services layer).
+
+The cantonal guidelines are a set of regulations and policies that govern different aspects of energy planning. They come in two different
+
+By leveraging these documents, the solution can extract relevant information and ensure compliance with legal requirements and the law.
 
 = Results
 #lorem(950)
