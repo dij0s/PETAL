@@ -130,13 +130,15 @@ Over the past few decades, society has been sensitized and slowly became more aw
 Climate change and other environmental issues arise as a result of human-driven activities.
 
 Scientists have monitored this matter and proposed various frameworks to address and mitigate these problems. In Switzerland, these different frameworks are implemented in the legislation and guidelines (at federal and canton levels) to steer the country towards a more sustainable future.
+Municipalities may introduce in their regulations energy requirements that are more constraining than those set by the cantonal law.
+#highlight("TODO: citer loi teams jessen?")
 
 Municipalities in Switzerland are required to submit an energy planning document which outlines their future strategies to comply with those directives while also considering the characteristics of their energetical landscape.
 
 These different properties can be quantified and analyzed through the use of a very valuable resource: data.
 Data is emitted by various sources ; sensors, energy models or citizen records for e.g. all yield datapoints that help us assess different indicators we are willing to measure against our municipality. These indicators, _in fine_, help us evaluate our progress towards energy-related goals.
 
-Over the past two years, Artificial Intelligence (AI) has rapidly transformed our habits when interacting with information.
+Over the past few years, Artificial Intelligence (AI) has rapidly transformed our habits when interacting with information.
 
 Large Language Models (LLM) allow users to interact with these systems in natural language facilitating the interface between humans and _machines_. They can provide insights into vast amounts of data at speed and scales which are beyond our capabilities.
 
@@ -227,7 +229,7 @@ These initial requirements established the basis for the project. As the solutio
 
 #highlight("TODO: revoir la dernière phrase, ajouter des autres requirements ?")
 
-These requirements are summarized in the #ref(<requirements_table>, form: "normal", supplement: it => lower(it.supplement.text)) below:
+These requirements are summarized in the #ref(<requirements_table>) below:
 
 #show table.cell.where(y: 0): strong
 #set table(stroke: (x, y) => if y == 0 {
@@ -281,6 +283,8 @@ These requirements are summarized in the #ref(<requirements_table>, form: "norma
   caption: "Requirements table",
 ) <requirements_table>
 
+#highlight("TODO: ajouter nice to have multilingue, persistance, ...")
+
 #pagebreak()
 == System Design
 
@@ -290,15 +294,41 @@ A modular, scalable and adaptable architecture was designed to ensure that the s
 
 #figure(image("figs/system_design_global.svg", height: 5cm), caption: "Global system design")<global_system_design>
 
-The global architecture in its most simplified form is presented in the #ref(<global_system_design>, supplement: it => lower(it.supplement.text)) above. The system is broken down into three different layers: the frontend, the backend, and the external services.
+The global architecture in its most simplified form is presented in the #ref(<global_system_design>) above. The system is broken down into three different layers: the frontend, the backend, and the external services.
 
-The frontend layer manages user interaction and presentation of data, providing an intuitive interface for users to communicate with the system. The backend layer is responsible for business logic, orchestrating AI agents, processing data and handling requests from the frontend. The external services layer provides access to third-party Application Programming Interfaces (APIs) and external data providers, an API being a set of protocols and tools that allows different software components to communicate with each other, enabling the system to retrieve or send data to external platforms and services.
+The frontend layer manages user interaction and presentation of data, providing an intuitive interface for users to communicate with the system. The backend layer is responsible for business logic, orchestrating AI agents, processing data and handling requests from the frontend. The external services layer provides access to third-party Application Programming Interfaces (APIs) -a set of protocols and tools that allows different software components to communicate with each other- and external data providers, enabling the system to retrieve or send data to external platforms and services.
 
 Each layer is composed of modular components that interact through well-defined interfaces, ensuring flexibility and ease of maintenance. When the user prompts the system from the web interface, the query is routed to the AI agent in the backend. The AI agent will make use of two datasources: a local database (in the backend) and third-party APIs (in the external services layer).
 
-The cantonal guidelines are a set of regulations and policies that govern different aspects of energy planning. They come in two different
+Energy planning guidelines all come in a single Portable Document Format (PDF) and are available in french or german. They are broken down into multiple sources:
 
-By leveraging these documents, the solution can extract relevant information and ensure compliance with legal requirements and the law.
+The primary document called _Vision 2060 et objectifs 2035_ has been adopted in 2019 and sets intermediate targets for 2035 that take into account the natural resources of Valais/Wallis, current knowledge, as well as federal energy and climate policies with the ultimate goal of achieving a 100% renewable and indigenous energy supply. Moreover, the _Plan directeur 2019_ adopted by the federal council on the 1st of May 2019, states the strategy for the canton's territorial development in the form of 49 information sheets, distributed across the five areas of activity: Agriculture, forest, landscape and nature; Tourism and leisure; Urbanization; Mobility and transport infrastructure; Supply and other infrastructure. Finally, the legal framework is defined by two key legislative documents. Notably, the _RS 705.1 - Loi sur les constructions (LC)_ establishes the regulations for construction activities, while the _RS 730.1 - Loi sur l'énergie (LcEne)_ defines the objectives and requirements for sustainable energy supply.
+#highlight("TODO: citer autrement?")
+
+These documents are specifically designed and structured to convey information to the public. They are organized into sections, subsections or paragraphs which reference figures, tables, plots, past paragraphs and so on. Visual structure does not necessarily imply a logical flow of information or semantic structure. A document can look organized but still lack a proper machine readable structure.
+In practice, it is neither realistic nor scalable to expect a human to manually extract all the key information needed for energy planning from such complex documents. Therefore, it becomes essential to delegate this task to the computer, enabling automated extraction and processing of documents.
+
+When data lack clear structure, it becomes difficult to extract information using algorithms or systematic procedures. However, advances in Multimodal Large Language Models (MLLMs) offer a solution as these models are designed to process and understand information presented in various modalities such as text, images, audio, and video. Paired with existing methods that are able to extract raw text from these documents, it has become easier to extract precise information from visually organized and heterogeneous documents by understanding not only the way information is displayed but also its underlying semantic meaning.
+
+As such, a systematic approach is applied when extracting information from these documents:
+- Raw text is extracted from the documents on a per-page basis.
+- Each and every page is rendered into an image.
+- Rendered pages and associated text are processed using MLLMs to deliver a translated interpretation and summary of the information contained within the page.
+
+The extracted information is formatted in markdown, utilizing headings to structure the summary. It is then broken down into smaller chunks, each chunk being a "chapter" derived from the markdown content. Since only individual chunks are considered in subsequent steps, there is no need to perform an analysis across neighboring pages to ensure that the information is retrieved from its full context.
+
+Finally, the extracted information is encoded into a vector representation -an embedding- and stored in the local database along with its associated chunks and metadata. An embedding is a mathematical representation of data in a high-dimensional vector space where semantically similar information are mapped to nearby points. This enables the system to embed text queries and efficiently retrieve semantically relevant information when compared with the stored embeddings.
+
+#highlight("TODO: cite plus tard que Retrieve multiple chunks recreate the context")
+#highlight("TODO: reformuler et enlever les formulations 'we' ?")
+#highlight("TODO: citer modèle utilisé MLLM et embeddings ?")
+#highlight("TODO: citer comment traiter données communales")
+#highlight("TODO: citer prompt")
+#highlight("TODO: inclure prompts dans bibliographie")
+
+To support extensibility, the architecture allows for the integration of new data sources, AI agents, or user interface features with minimal disruption to existing components. Security and privacy considerations are embedded throughout the design, particularly in the handling of sensitive or non-public data.
+
+This modular approach not only supports current project requirements but also positions the system for future growth and adaptation as new technologies and user needs emerge.
 
 = Results
 #lorem(950)
