@@ -343,6 +343,7 @@ This modular approach not only supports current project requirements but also po
 #heavy-title(i18n(doc_language, "bibliography-title"), mult: 1, top: 0.5em, bottom: 0.3em)
 // generate bib file RIS script (https://www.bruot.org/ris2bib/)
 #bibliography("bibliography.bib", full: true, style: "ieee", title: none)
+// #bibliography(("bibliography.bib", "technical_reference.bib"), full: true, style: "ieee", title: none)
 
 //////////////
 // Appendices

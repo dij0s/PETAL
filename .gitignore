@@ -33,6 +33,11 @@ __marimo__
 # tmux configuration
 session.yaml
 
+# thesis files
+thesis/*.pdf
+!thesis/bachelor_thesis.pdf
+!thesis/exec_summary.pdf
+
 # Logs
 logs
 *.log
