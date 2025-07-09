@@ -20,6 +20,8 @@ For a comprehensive and detailed description of the project, including the ratio
 
 [Desmons Florian](mailto:florian.desmons@hevs.ch), Co-supervisor, HES-SO Valais-Wallis Lecturer, Informatique et systèmes de communication
 
+[Cédric Travelletti](mailto:cedric.travelletti@hevs.ch), Assisted the technical aspects, HES-SO Valais-Wallis Lecturer, Informatique et systèmes de communication
+
 ## Objectives
 
 This work is organized into several objectives:
@@ -70,6 +72,8 @@ It is organized around multiple agents, each responsible for a specific task or 
 - **Geographic Context Agent**: Responsible for sourcing relevant information, this agent selects and retrieves the most pertinent data points in response to the user's question. This can include specific datasets, geographic information, or applicable guidelines and legislation from municipal, cantonal, or federal sources. Its goal is to ensure that all necessary and probative information is available for informed decision-making.
 
 - **Answer Generation Agent**: Once the relevant context and data have been gathered, this agent synthesizes the information into a coherent response. It ensures that the answer not only addresses the user's query but also adheres to the established principles and rules of energy planning, providing guidance that is both accurate and compliant with key regulations.
+
+- **Answer Critic Agent**: After the answer is streamed to the user, it is evaluated against a set of predefined criteria focused on common interpretation errors. If the answer isn't correct, complete or free from significant interpretation errors, the whole pipeline is restarted.
 
 ### Running the project
 
