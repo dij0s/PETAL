@@ -16,7 +16,7 @@ from provider.ModelProvider import ModelProvider
 from provider.GraphProvider import GraphProvider, State
 from pydantic import BaseModel, Field
 from modelling.PydanticStreamOutputParser import PydanticStreamOutputParser
-from modelling.structured_output import BenchmarkScore
+from modelling.structured_output import BenchmarkScore, RouterOutput
 
 parser = PydanticStreamOutputParser(pydantic_object=BenchmarkScore, diff=True)
 
@@ -59,6 +59,8 @@ class Benchmark:
 
         self.THREAD_ID = "1000"
         self.USER_ID = "999"
+
+        self._init_benchmark()
 
         self._system_prompt = PromptTemplate.from_template("""
         You are an expert evaluator for municipal energy planning AI systems. You must be CRITICAL and SKEPTICAL - good formatting and professional language do not equal good energy planning advice.
@@ -208,36 +210,49 @@ class Benchmark:
         if not isinstance(response, BenchmarkScore):
             raise ValueError("Invalid response type")
 
-        self._save_score(response, request, last_ai_message, time) # type: ignore
+        self._save_score(response, state.router, request, last_ai_message, time) # type: ignore
 
-    def _save_score(self, score: BenchmarkScore, request: str, response: str, time: float):
+    def _save_score(self, score: BenchmarkScore, router: RouterOutput, request: str, response: str, time: float):
         output_path = self._OUTPUT_FILENAME
         record = {
             "request": request,
+            "router": router.model_dump(),
             "response": response,
             "score": score.model_dump(),
-            "time": time
+            "response_time": time,
         }
 
         try:
-            if os.path.exists(output_path):
-                with open(output_path, "r+", encoding="utf-8") as f:
-                    try:
-                        f.seek(0)
-                        data = json.load(f)
-                        if not isinstance(data, list):
-                            data = []
-                    except Exception:
-                        data = []
-                    data.append(record)
-                    f.seek(0)
-                    json.dump(data, f, ensure_ascii=False, indent=2)
-                    f.truncate()
-            else:
-                with open(output_path, "w", encoding="utf-8") as f:
-                    json.dump([record], f, ensure_ascii=False, indent=2)
+            with open(output_path, "r+", encoding="utf-8") as f:
+                data = json.load(f)
+                if "results" not in data or not isinstance(data["results"], list):
+                    data["results"] = []
+                data["results"].append(record)
+                f.seek(0)
+                json.dump(data, f, ensure_ascii=False, indent=2)
+                f.truncate()
         except Exception as e:
             print(f"Error saving benchmark record: {e}")
+
+    def _init_benchmark(self):
+        output_path = self._OUTPUT_FILENAME
+        metadata = {
+            "datetime": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.localtime()),
+            "environment": {
+                "OLLAMA_HOST": os.getenv("OLLAMA_HOST"),
+                **{
+                    k: v
+                    for k, v in os.environ.items()
+                    if k.startswith("OLLAMA_MODEL_LLM")
+                },
+            }
+        }
+        # setup benchmark structure
+        with open(output_path, "w", encoding="utf-8") as f:
+            json.dump({
+                "metadata": metadata,
+                "results": []
+            }, f, ensure_ascii=False, indent=2)
 
     async def start(self):
         """
@@ -276,6 +291,7 @@ async def main():
     """Benchmark requests from the CLI."""
     parser = argparse.ArgumentParser(description="Benchmark requests from the CLI.")
     parser.add_argument('--output', '-o', type=str, required=True, help='Output filename')
+    parser.add_argument('--iterations', '-i', type=int, required=True, help='Number of iterations')
     # user must provide either
     # a single prompt or a file
     # containing prompts
@@ -286,19 +302,23 @@ async def main():
 
     args = parser.parse_args()
 
-    benchmark = Benchmark(args.output)
-    benchmark_task = asyncio.create_task(benchmark.start())
+    for index in range(args.iterations):
+        filename, ext = os.path.splitext(args.output)
+        benchmark = Benchmark(f"{filename}_{index:02d}.{ext}")
+        benchmark_task = asyncio.create_task(benchmark.start())
 
-    try:
-        prompts = [args.prompt] if args.prompt else _parse_file(args.file)
-        for prompt in prompts:
-            await benchmark.prompt(prompt)
-        # await benchmark finish
-        await benchmark.await_completion()
-    except Exception as e:
-        print(e)
-    finally:
-        benchmark_task.cancel()
+        try:
+            prompts = [args.prompt] if args.prompt else _parse_file(args.file)
+            for prompt in prompts:
+                await benchmark.prompt(prompt)
+            # await benchmark finish
+            await benchmark.await_completion()
+        except Exception as e:
+            print(e)
+        finally:
+            benchmark_task.cancel()
+
+        await asyncio.sleep(60)
 
 if __name__ == "__main__":
     asyncio.run(main())

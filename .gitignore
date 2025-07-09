@@ -28,6 +28,9 @@ documents_with_visual_analysis.json
 # Marimo context
 __marimo__
 
+# tmux configuration
+session.yaml
+
 # Logs
 logs
 *.log
