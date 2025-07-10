@@ -266,6 +266,7 @@ class Benchmark:
                 try:
                     # consume request
                     request, on_end = await self._queue.get()
+                    print(f"Prompting: '{request}'")
 
                     self._is_running = True
                     start = time.time()
@@ -290,8 +291,8 @@ def _parse_file(filepath: str) -> list[str]:
 async def main():
     """Benchmark requests from the CLI."""
     parser = argparse.ArgumentParser(description="Benchmark requests from the CLI.")
-    parser.add_argument('--output', '-o', type=str, required=True, help='Output filename')
-    parser.add_argument('--iterations', '-i', type=int, required=True, help='Number of iterations')
+    parser.add_argument('--iterations', '-i', type=int, required=False, default=1, help='Number of iterations')
+    parser.add_argument('--template', '-t', type=str, required=True, help='Output filename template. The iteration number is suffixed to the filename.')
     # user must provide either
     # a single prompt or a file
     # containing prompts
@@ -299,12 +300,13 @@ async def main():
     group.add_argument('--prompt', '-p', type=str, help='Single prompt to benchmark')
     group.add_argument('--file', '-f', type=str, help='File containing prompts (one per line)')
 
-
     args = parser.parse_args()
+    for index in range(0, args.iterations):
+        filename, ext = os.path.splitext(args.template)
+        benchmark_filename = f"{filename}_{index:02d}{ext}"
+        print(f"Starting benchmark, output filename: {benchmark_filename}")
 
-    for index in range(args.iterations):
-        filename, ext = os.path.splitext(args.output)
-        benchmark = Benchmark(f"{filename}_{index:02d}.{ext}")
+        benchmark = Benchmark(benchmark_filename)
         benchmark_task = asyncio.create_task(benchmark.start())
 
         try:
@@ -313,11 +315,14 @@ async def main():
                 await benchmark.prompt(prompt)
             # await benchmark finish
             await benchmark.await_completion()
+            print(f"Finished benchmark.")
         except Exception as e:
             print(e)
         finally:
+            print(f"Cancelled benchmark.")
             benchmark_task.cancel()
 
+        print(f"Benchmarking iteration {index+1:02d}/{args.iteration+1:02d}")
         await asyncio.sleep(60)
 
 if __name__ == "__main__":
