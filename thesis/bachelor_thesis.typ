@@ -125,6 +125,8 @@ This structure may vary depending on the field of study, but these elements are 
 
 = Introduction
 
+#highlight("TODO: diviser en sections? contexte, problématique...")
+
 Over the past few decades, society has been sensitized and slowly became more aware of significant problems that we are likely to face in the coming years.
 
 Climate change and other environmental issues arise as a result of human-driven activities.
@@ -287,23 +289,37 @@ These requirements are summarized in the #ref(<requirements_table>) below:
 
 #pagebreak()
 == System Design
+#highlight("Renommer implémentation ?")
 
 #highlight("Parler de tech stack, définition des données ?")
 
 A modular, scalable and adaptable architecture was designed to ensure that the solution can adapt to evolving requirements and facilitate future enhancements. The system is organized into distinct components which are all responsible for a specific set of functionalities and ensure clear separation of concerns and ease of maintenance.
 
+The following chapter covers both the design and the implementation aspects of the solution.
+
 #figure(image("figs/system_design_global.svg", height: 5cm), caption: "Global system design")<global_system_design>
 #highlight("TODO: mettre des numéros sur la figure?? mettre des légendes ?")
+#highlight("TODO: ajouter un label aux flèches?")
 
-The global architecture in its most simplified form is presented in the #ref(<global_system_design>) above. The system is broken down into three different layers:
+The global architecture in its most simplified form is presented in the #ref(<global_system_design>) above. The system is broken down into three distinct layers:
 - The frontend layer manages user interaction and presentation of data, providing an intuitive interface for users to communicate with the system.
 - The backend layer is responsible for business logic, orchestrating AI agents, processing data, managing a database and handling requests from the frontend.
 - The external services layer provides access to third-party Application Programming Interfaces (APIs), a set of protocols and tools that allows different software components to communicate with each other, enabling the system to retrieve data from external platforms and services.
 
-The layers are made up of various components. The basic dataflow between these components is as follows:
-1. The user, through the website, prompts the AI agent.
-2. The AI agent processes the query and retrieves data from the local database and third-party APIs.
-3. The AI agent streams the response to the user, on the website.
+The layers are made up of various components. The basic dataflow between them is presented in the #ref(<global_dataflow>) below:
+#figure(
+  table(
+    columns: 3,
+    table.header([From], [To], [Data]),
+    [User (Website)], [AI Agent], [Prompt/query],
+    [AI Agent (Backend)], [Local Database], [Data retrieval request],
+    [AI Agent (Backend)], [Third-party APIs], [API data request],
+    [Local Database], [AI Agent (Backend)], [Relevant data],
+    [Third-party APIs], [AI Agent (Backend)], [API response data],
+    [AI Agent (Backend)], [User (Website)], [Streamed response],
+  ),
+  caption: "Global system dataflow",
+) <global_dataflow>
 
 The nature and type of data that is exchanged between the AI agent and both the local database and third-party APIs will be later discussed.
 
@@ -311,10 +327,67 @@ Having established a high-level understanding of the system's architecture, the 
 
 === AI agent
 
-// définition d'un agent
-// overview architecture
+In recent months, AI agents have gained traction with the rapid advancement of AI technologies and the increasing demand for personalized and intelligent services.
+As a result, the term "AI agent" has become a buzzword, with product designers frequently applying the label to a wide range of technologies.
+
+Most definitions agree that the key behaviour that distinguishes AI agents from other solutions is their degree of autonomy as they are able to operate and make decisions independently to achieve a set goal.
+The complete solution whose sole task is urban energy planning aligns with this definition, as do each of its individual components. Therefore, the term "AI agent" will be used to describe both the entire system and its subsystems.
+
+Human conversations rely on context and prior knowledge and so does the system's architecture. To deliver a conversational experience, it is essential that the architecture is built to effectively preserve and re-use this context throughout the discussion.
+One might suggest that the straightforward approach to maintaining conversational context is to include all previous exchanges with the user. However, this method can be very inefficient and comes at great cost.
+
+LLMs rely on a self-attention mechanism to identify and concentrate on the most relevant parts of the input sequence. Each token, the basic unit of text (word, single character, group of words...) that is processed by the model, is assigned a weight reflecting its importance. This allows the model to prioritize relevant information and ignore irrelevant details.
+
+Hence, when the entire conversation history is provided to the model, important tokens may get lost in the larger context and potentially lead to incorrect responses (attention diffusion).
+
+Considering this, a more efficient approach is proposed, relying on a single key assumption: each conversation focuses exclusively on energy planning for one municipality at a time.
+Accordingly, the conversational context is modeled as a single object that is updated at every turn. It is defined in the codeblock #ref(<conversational_state>) :
+
+#let destructured_state = read("code/destructured_state.py")
+#figure(
+  code()[
+    #raw(destructured_state, lang: "python")
+  ],
+  caption: "Conversation state",
+) <conversational_state>
+
+#highlight("TODO: mettre les sous-objets, router, ...?")
+#highlight("TODO: citer pydantic, runtime, tralala???")
+
+The different agents leverage Reasoning Language Models (RLMs), a type of LLM designed to tackle problems by breaking them into logical steps, mimicking human reasoning.
+Compared to standard language models, they are particularly valuable for tasks that require logical deduction and planning but come with notable drawbacks as they are typically more computationally intensive, leading to higher operational costs and increasing latency in response times.
+#highlight("TODO: citer correctement acronyme")
+
+By constraining the conversational state and narrowing the scope of each agent, it is possible to reduce the computational load and latency by simply swapping out these large reasoning models by smaller, better-suited models.
+Doing so, it becomes possible to select reasoning models that are better suited to specific tasks while reducing the computational costs.
+
+#figure(image("figs/ai_agent_system_design.svg", height: 7.5cm), caption: "AI agent architecture")<ai_agent_design>
+
+The architecture in the #ref(<ai_agent_design>) above is modeled after a Finite State Machine (FSM), where each node represents an agent and each edge represents a transition that is either always executed (solid) or conditionally executed (dashed). The dynamic flow of control between agents is guided by the evolving conversational state. It is finite, per definition, as the state takes value in a discrete set.
+#highlight("TODO: citer acronyme correctement?")
+
+On the implementation-side, LangGraph#footnote("https://www.langchain.com/langgraph"), an open-source Python framework, is used to implement the AI agent architecture. Unlike linear pipelines, LangGraph uses a graph abstraction by default, which is particularly well-suited for this state machine architecture.
+This graph-based structure brings determinism to the system’s behavior as the flow between agents is defined by the architecture itself, rather than being dynamically determined by agent-to-agent conversations as in frameworks like Microsoft's AutoGen#footnote("https://www.microsoft.com/en-us/research/project/autogen/"). Another framework that had been considered was PydanticAI#footnote("https://ai.pydantic.dev/") which offers a structured, type-safe approach to building agent systems by leveraging Pydantic models for inter-agent communication and behaviour definitions. However, it lacks the built-in support for complex state transitions.
+
+All of the available multi-agent AI frameworks are relatively novel and in constant evolution. LangGraph benefits from being built on top of the already renowned LangChain ecosystem which adds to its reliability and ease of integration with other technologies.
+Pydantic’s type safety will still be implemented within the project to enhance data validation and error handling.
+
+#highlight("TODO: mettre la techstack dans un chapitre différent??")
+
+The main responsibility of each agent is as follows:
+- _intent router_: responsible for routing the user's query to the appropriate agents and accumulating query context.
+- _clarify query_: responsible for clarifying the user's query if it is ambiguous or incomplete.
+- _geocontext retriever_: responsible for retrieving the geospatial data relevant to the analysis.
+- _guidelines retriever_: responsible for retrieving the relevant energy planning guidelines relevant to the analysis.
+- _strategy planner_: responsible for planning the energy strategy based on the retrieved data and guidelines.
+- _critic answer_: responsible for providing feedback on the proposed energy planning strategy and possibly restarting the whole process.
+
+With the overall solution defined, the following sections examine each agent and their details.
+#highlight("TODO: plus en détails mgl")
 
 ==== Intent Router
+// décrire schéma entrée sortie
+// explication détails
 ==== Clarification
 ==== Geocontext Retriever
 ==== Guidelines Retriever
@@ -370,6 +443,7 @@ Finally, the extracted information is encoded into a vector representation -an e
 #heavy-title(i18n(doc_language, "bibliography-title"), mult: 1, top: 0.5em, bottom: 0.3em)
 // generate bib file RIS script (https://www.bruot.org/ris2bib/)
 #bibliography("bibliography.bib", full: true, style: "ieee", title: none)
+#highlight("TODO: mettre une deuxième bib. technique uniquement!!")
 // #bibliography(("bibliography.bib", "technical_reference.bib"), full: true, style: "ieee", title: none)
 
 //////////////
@@ -392,33 +466,3 @@ Finally, the extracted information is encoded into a vector representation -an e
 
 // Table of listings
 #table-of-figures()
-
-// Code inclusion
-#pagebreak()
-#code-samples()
-
-#let code_sample = read("code/sample.scala")
-
-#figure(
-  code()[
-    #raw(code_sample, lang: "scala")
-  ],
-  caption: "Code included from the file example.scala",
-)
-
-#figure(
-  code()[
-    #raw(read("code/sort.py"), lang: "python")
-  ],
-  caption: "Second code included from the file example.scala",
-)
-
-#figure(
-  code()[
-    #raw(code_sample, lang: "scala")
-  ],
-  caption: "Second code included from the file example.scala",
-)
-
-
-// This is the end, folks!
