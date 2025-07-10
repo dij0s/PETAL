@@ -293,11 +293,31 @@ These requirements are summarized in the #ref(<requirements_table>) below:
 A modular, scalable and adaptable architecture was designed to ensure that the solution can adapt to evolving requirements and facilitate future enhancements. The system is organized into distinct components which are all responsible for a specific set of functionalities and ensure clear separation of concerns and ease of maintenance.
 
 #figure(image("figs/system_design_global.svg", height: 5cm), caption: "Global system design")<global_system_design>
+#highlight("TODO: mettre des numéros sur la figure?? mettre des légendes ?")
 
-The global architecture in its most simplified form is presented in the #ref(<global_system_design>) above. The system is broken down into three different layers: the frontend, the backend, and the external services.
+The global architecture in its most simplified form is presented in the #ref(<global_system_design>) above. The system is broken down into three different layers:
+- The frontend layer manages user interaction and presentation of data, providing an intuitive interface for users to communicate with the system.
+- The backend layer is responsible for business logic, orchestrating AI agents, processing data, managing a database and handling requests from the frontend.
+- The external services layer provides access to third-party Application Programming Interfaces (APIs), a set of protocols and tools that allows different software components to communicate with each other, enabling the system to retrieve data from external platforms and services.
 
-The frontend layer manages user interaction and presentation of data, providing an intuitive interface for users to communicate with the system. The backend layer is responsible for business logic, orchestrating AI agents, processing data and handling requests from the frontend. The external services layer provides access to third-party Application Programming Interfaces (APIs) -a set of protocols and tools that allows different software components to communicate with each other- and external data providers, enabling the system to retrieve or send data to external platforms and services.
+The layers are made up of various components. The basic dataflow between these components is as follows:
+1. The user, through the website, prompts the AI agent.
+2. The AI agent processes the query and retrieves data from the local database and third-party APIs.
+3. The AI agent streams the response to the user, on the website.
 
+The nature and type of data that is exchanged between the AI agent and both the local database and third-party APIs will be later discussed.
+
+Having established a high-level understanding of the system's architecture, the following sections delve into the internal details of each component, starting with the heart of the solution: the AI agent.
+
+=== AI agent
+
+// définition d'un agent
+// overview architecture
+
+==== Intent Router
+==== Clarification
+==== Geocontext Retriever
+==== Guidelines Retriever
 Each layer is composed of modular components that interact through well-defined interfaces, ensuring flexibility and ease of maintenance. When the user prompts the system from the web interface, the query is routed to the AI agent in the backend. The AI agent will make use of two datasources: a local database (in the backend) and third-party APIs (in the external services layer).
 
 Energy planning guidelines all come in a single Portable Document Format (PDF) and are available in french or german. They are broken down into multiple sources:
@@ -326,9 +346,16 @@ Finally, the extracted information is encoded into a vector representation -an e
 #highlight("TODO: citer prompt")
 #highlight("TODO: inclure prompts dans bibliographie")
 
-To support extensibility, the architecture allows for the integration of new data sources, AI agents, or user interface features with minimal disruption to existing components. Security and privacy considerations are embedded throughout the design, particularly in the handling of sensitive or non-public data.
+==== Strategy Planner
+==== Critic
 
-This modular approach not only supports current project requirements but also positions the system for future growth and adaptation as new technologies and user needs emerge.
+=== Web Interface
+
+// overview
+// streaming et map (présentation)
+// spécificités (persistance, heuristique consommation...)
+
+=== Limitations
 
 = Results
 #lorem(950)
