@@ -305,7 +305,7 @@ The global architecture in its most simplified form is presented in the #ref(<gl
 - The frontend layer manages user interaction and presentation of data, providing an intuitive interface for users to communicate with the system.
 - The backend layer is responsible for business logic, orchestrating AI agents, processing data, managing a database and handling requests from the frontend.
 - The external services layer provides access to third-party Application Programming Interfaces (APIs), a set of protocols and tools that allows different software components to communicate with each other, enabling the system to retrieve data from external platforms and services.
-
+#highlight("TODO: spécifier que database est redis ??")
 The layers are made up of various components. The basic dataflow between them is presented in the #ref(<global_dataflow>) below:
 #figure(
   table(
@@ -362,6 +362,7 @@ By constraining the conversational state and narrowing the scope of each agent, 
 Doing so, it becomes possible to select reasoning models that are better suited to specific tasks while reducing the computational costs.
 
 #figure(image("figs/ai_agent_system_design.svg", height: 7.5cm), caption: "AI agent architecture")<ai_agent_design>
+#highlight("TODO: remplacer par un schéma de FSM classique??")
 
 The architecture in the #ref(<ai_agent_design>) above is modeled after a Finite State Machine (FSM), where each node represents an agent and each edge represents a transition that is either always executed (solid) or conditionally executed (dashed). The dynamic flow of control between agents is guided by the evolving conversational state. It is finite, per definition, as the state takes value in a discrete set.
 #highlight("TODO: citer acronyme correctement?")
@@ -369,26 +370,64 @@ The architecture in the #ref(<ai_agent_design>) above is modeled after a Finite 
 On the implementation-side, LangGraph#footnote("https://www.langchain.com/langgraph"), an open-source Python framework, is used to implement the AI agent architecture. Unlike linear pipelines, LangGraph uses a graph abstraction by default, which is particularly well-suited for this state machine architecture.
 This graph-based structure brings determinism to the system’s behavior as the flow between agents is defined by the architecture itself, rather than being dynamically determined by agent-to-agent conversations as in frameworks like Microsoft's AutoGen#footnote("https://www.microsoft.com/en-us/research/project/autogen/"). Another framework that had been considered was PydanticAI#footnote("https://ai.pydantic.dev/") which offers a structured, type-safe approach to building agent systems by leveraging Pydantic models for inter-agent communication and behaviour definitions. However, it lacks the built-in support for complex state transitions.
 
-All of the available multi-agent AI frameworks are relatively novel and in constant evolution. LangGraph benefits from being built on top of the already renowned LangChain ecosystem which adds to its reliability and ease of integration with other technologies.
+All of the available multi-agent AI frameworks are relatively novel and in constant evolution. LangGraph benefits from being built on top of the already renowned LangChain#footnote("https://www.langchain.com/") ecosystem which adds to its reliability and ease of integration with other technologies.
 Pydantic’s type safety will still be implemented within the project to enhance data validation and error handling.
 
 #highlight("TODO: mettre la techstack dans un chapitre différent??")
 
 The main responsibility of each agent is as follows:
-- _intent router_: responsible for routing the user's query to the appropriate agents and accumulating query context.
-- _clarify query_: responsible for clarifying the user's query if it is ambiguous or incomplete.
-- _geocontext retriever_: responsible for retrieving the geospatial data relevant to the analysis.
-- _guidelines retriever_: responsible for retrieving the relevant energy planning guidelines relevant to the analysis.
-- _strategy planner_: responsible for planning the energy strategy based on the retrieved data and guidelines.
-- _critic answer_: responsible for providing feedback on the proposed energy planning strategy and possibly restarting the whole process.
+- The *intent router* routes the user's query to the appropriate agents and accumulates query context.
+- The *clarify query* clarifies the user's query if it is ambiguous or incomplete.
+- The *geocontext retriever* retrieves the geospatial data relevant to the analysis.
+- The *guidelines retriever* retrieves the relevant energy planning guidelines relevant to the analysis.
+- The *strategy planner* plans the energy strategy based on the retrieved data and guidelines.
+- The *critic answer* evaluates the proposed energy planning strategy and possibly restarts the whole process.
 
-With the overall solution defined, the following sections examine each agent and their details.
+With the overall solution defined, the following sections dig in the details of each agent and their implementation.
 #highlight("TODO: plus en détails mgl")
 
 ==== Intent Router
+
+The intent router is a crucial component of the solution. It is the entrypoint of the system and orchestrates the different agents.
+
+Upon receiving a user prompt, the agent analyzes the query to extract its underlying intent. This involves identifying these elements:
+- The intent: specifies whether the query is "factual" (for e.g. requesting data) or "actionable" (seeking planning guidance, recommendations, or strategic advice).
+- The location: the municipality name mentioned in the user request, if available.
+- The aggregated query: a summary that combines all available context from the current conversation and the previous query into a single one.
+- The conversation type: identifies the conversational context ; "new_analysis" (fresh query), "correction_request" (user questions the accuracy of a previous response) or 'follow_up' (user requests additional detail or expansion on the same topic).
+- The need for clarification: defines whether more information is needed to understand what the user wants (e.g., missing location, unclear intent, or vague request).
+- The needs for memoization: specifies if the user provided explicit preferences, corrections to assumptions, or scope refinements that should be remembered for future queries (for e.g. focusing to a single metric when retrieving XYZ data.
+
+Implementation-wise, the output of the language model is constrained to a single Pydantic data schema, _RouterOutput_.
+While these models typically generate natural language responses, these complex multi-agent systems benefit from a structured format output that can easily be further processed.
+This is possible thanks to OpenAI#footnote("https://openai.com/"), introducing the support for structured outputs in late 2024, a feature that has since been adopted by many providers.
+#highlight("TODO: inclure prompt system")
+
+All these fields except the aggregated query take value in a finite set of options (considering the _location_ field is either a valid location or none.).
+Consequently, it is very easy to plan and orchestrate the following actions.
+
+Since the application must offer a conversational experience, the previous _RouterOutput_ is accumulated on every turn.
+Past fields are only updated if they differ from the new ones. As such, context and knowledge is properly accumulated over time.
+Once the municipality is provided, for example, it is not needed anymore as the query is assumed to concern the same municipality.
+
+On top of that, the system must integrate the user's preferences and corrections to assumptions, ensuring that answers suit the user's needs.
+When memoization is required, the system stores both the current query (the _correctee_) and the previous query (the _corrected_) in a .
+#highlight("parler au dessus coûte cher de faire un appel LLM")
+
+If fields are missing or the need for clarification is explicitly requested per the model output, the query is directed to the clarification node (#ref(<ai_agent_design>), arrow (2)) which assists the user in providing the necessary information.
+
+// clarification
+// memoize
+// reset location change
+
+// routing
+
+// how do we check non valid municipality??
+
 // décrire schéma entrée sortie
+// structured output
 // explication détails
-==== Clarification
+==== Clarify Query
 ==== Geocontext Retriever
 ==== Guidelines Retriever
 Each layer is composed of modular components that interact through well-defined interfaces, ensuring flexibility and ease of maintenance. When the user prompts the system from the web interface, the query is routed to the AI agent in the backend. The AI agent will make use of two datasources: a local database (in the backend) and third-party APIs (in the external services layer).
