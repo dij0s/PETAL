@@ -322,7 +322,7 @@ async def main():
             print(f"Cancelled benchmark.")
             benchmark_task.cancel()
 
-        print(f"Benchmarking iteration {index+1:02d}/{args.iteration+1:02d}")
+        print(f"Benchmarking iteration {index+1:02d}/{args.iterations+1:02d}")
         await asyncio.sleep(60)
 
 if __name__ == "__main__":
