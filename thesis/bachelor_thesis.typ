@@ -219,10 +219,10 @@ The main requirements were established and further refined as the project progre
 Those are categorized into functional and non-functional requirements. Functional requirements focus on user requirements and product features whereas non-functional requirements focus on user expectations and product properties.
 
 The first step is to understand the problem that is solved. Energy planning typically involves:
-- Identifying available energy resources#footnote[The resources and needs are assessed within the geographical boundaries of the municipality, only.].
+- Identifying available energy resources#footnote[The resources and needs are assessed within the geographical boundaries of the municipality, only.], infrastructure and untapped potential.
 - Characterizing the needs.
 - Assessing different measures and their impacts ; sobriety (reducing energy consumption), efficiency (more efficient technologies) and production of renewable energy sources.
-
+#highlight("TODO: décrire dans ce chapitre les données et autres à disposition?")
 Hence, assisting users in energy planning requires a solution that can gather relevant data sources, analyze and present the current energy landscape of the municipality and provide actionable recommendations tailored to the context of the municipality while ensuring compliance with the legislation and guidelines that apply to said municipality.
 
 Besides that, it had been requested that the user interface has a map showcasing the assessed datapoints within the municipality as well as for the AI to be able to _remember_ the user's preferences and past interactions to have the answer better fit what the user expects.
@@ -379,8 +379,8 @@ Pydantic’s type safety will still be implemented within the project to enhance
 The main responsibility of each agent is as follows:
 - The *Intent Router* routes the user's query to the appropriate agents and accumulates query context.
 - The *Clarify Query* clarifies the user's query if it is ambiguous or incomplete.
-- The *Geocontext Retriever* retrieves the geospatial data relevant to the analysis.
-- The *Guidelines Retriever* retrieves the relevant energy planning guidelines relevant to the analysis.
+- The *Geocontext Retriever* retrieves the geospatial data relevant to the request.
+- The *Guidelines Retriever* retrieves the relevant energy planning guidelines relevant to the query.
 - The *Strategy Planner* plans the energy strategy based on the retrieved data and guidelines.
 - The *Critic Answer* evaluates the proposed energy planning strategy and possibly restarts the whole process.
 
@@ -434,7 +434,7 @@ A solution is proposed in the section #ref(<geocontext_retriever>, supplement: i
 Finally, the query is routed according to the #ref(<ai_agent_design>):
 - If clarification is needed (either because the need for clarification is explicitly requested, or fields are missing), the request is sent to the clarify query agent (2).
 - If the conversation type is a correction request, the query is sent to the geocontext retriever agent (4).
-- If the intent is said to be actionable, the request is sent to both the geocontext retriever and the guidelines retriever agents (4,5).
+- If the intent is said to be actionable, the request is sent to both the geocontext retriever and the guidelines retriever agents (4) and (5).
 - Otherwise, the query is sent to the geocontext retriever agent (4).
 
 With the aim of the user's query now clearly defined, the next step is to address any ambiguities or missing information with the clarification agent.
@@ -453,6 +453,58 @@ With no _structural_ ambiguity left in the user's query, the intent router agent
 #highlight("TODO: filer le prompt")
 
 ==== Geocontext Retriever <geocontext_retriever>
+
+Energy planning as defined in the solution requires assessing the energy resources, infrastructure, potential and needs within the municipality. The geocontext retriever is responsible for this task.
+
+Before profiling the municipality, it is essential to define the different public datasources that are available.
+Throughout its federal and cantonal institutions, Switzerland provides a wide range of public data such as GeoAdmin#footnote("geo.admin.ch"), the geographic information platform of the Confederation and offers direct access to geospatial data and maps.
+
+The data originates from various offices commissioned by the Confederation:
+- Swiss Federal Office of Energy (SFOE)
+- Federal Office for Spatial Development (ARE)
+- Federal Office of Topography (swisstopo)
+- Federal Office for Agriculture (FOAG)
+- Federal Office for the Environment (FOEN)
+
+The GeoAdmin API#footnote("https://api3.geo.admin.ch/index.html") provides a standardized interface for querying and manipulating geospatial data and relies on fair usage policies (20 requests per minute on a 24/7 average).
+The datasets are also available for download.
+
+The choice has been made to use the GeoAdmin API instead of downloading and maintaining local datasets as it ensures that the data is always up to date and removes the need for additional setup and maintenance of a dedicated geospatial database, a task that is particularly time-consuming in such a short time frame.
+
+In a real-world scenario, exploiting data locally allows for preprocessing and aggregation which significantly reduces latency during user interactions.
+Different mechanisms such as caching or distributed computing would allow for greater scalability of the solution.
+
+Datasets are often labeled as layers, as the data is organized according to the geospatial paradigm. Data is discretized into points, meshes, polygons and other spatial representations, all defined as a feature. Those features are independent geometries located in the space, without inherent relationships.
+Thus, identifying relevant features within a municipality implies searching them inside its geographic boundaries, since no relation lies between these entities.
+
+Although the GeoAdmin API enables searching for features in a given area, it is subject to a maximum number of 50 features retrieved per request.
+Consequently, identifying them requires breaking down the search area into smaller sub-areas and querying each sub-area separately.
+
+This has been made possible by first clipping settlements and centres of larger cities onto the municipality's geometry, optimizing the search area, and applying a spatial tiling on top. Different layers obviously require different tiling sizes, depending on the number and resolution of features.
+The #ref(<dataset_table>) presents the data sources incorporated in the solution:
+
+#figure(
+  table(
+    columns: 3,
+    table.header([Requirement], [Type], [Description]),
+    [Gather relevant data sources],
+    [Functional],
+    [The solution must collect and integrate data from various sources relevant to the municipality's energy landscape.],
+
+    [Analyze and present energy landscape],
+    [Functional],
+    [The system should process and visualize the current energy situation of the municipality, enabling users to understand available resources and needs.],
+  ),
+  caption: "Datasets",
+) <dataset_table>
+
+#highlight("TODO: mettre un schéma du tiling?")
+#highlight("TODO: dire requêtes API concurrent")
+#highlight("TODO: dire requêtes API concurrent")
+#highlight("TODO: parler spécifique map et système coordonnées?")
+
+// tools
+// geosession
 // location valide ou non, throw
 ==== Guidelines Retriever
 Each layer is composed of modular components that interact through well-defined interfaces, ensuring flexibility and ease of maintenance. When the user prompts the system from the web interface, the query is routed to the AI agent in the backend. The AI agent will make use of two datasources: a local database (in the backend) and third-party APIs (in the external services layer).
@@ -493,6 +545,8 @@ Finally, the extracted information is encoded into a vector representation -an e
 // spécificités (persistance, heuristique consommation...)
 
 === Limitations
+
+// qualité des données
 
 = Results
 #lorem(950)
