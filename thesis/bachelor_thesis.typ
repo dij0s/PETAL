@@ -377,17 +377,17 @@ Pydantic’s type safety will still be implemented within the project to enhance
 #highlight("TODO: mettre la techstack dans un chapitre différent??")
 
 The main responsibility of each agent is as follows:
-- The *intent router* routes the user's query to the appropriate agents and accumulates query context.
-- The *clarify query* clarifies the user's query if it is ambiguous or incomplete.
-- The *geocontext retriever* retrieves the geospatial data relevant to the analysis.
-- The *guidelines retriever* retrieves the relevant energy planning guidelines relevant to the analysis.
-- The *strategy planner* plans the energy strategy based on the retrieved data and guidelines.
-- The *critic answer* evaluates the proposed energy planning strategy and possibly restarts the whole process.
+- The *Intent Router* routes the user's query to the appropriate agents and accumulates query context.
+- The *Clarify Query* clarifies the user's query if it is ambiguous or incomplete.
+- The *Geocontext Retriever* retrieves the geospatial data relevant to the analysis.
+- The *Guidelines Retriever* retrieves the relevant energy planning guidelines relevant to the analysis.
+- The *Strategy Planner* plans the energy strategy based on the retrieved data and guidelines.
+- The *Critic Answer* evaluates the proposed energy planning strategy and possibly restarts the whole process.
 
 With the overall solution defined, the following sections dig in the details of each agent and their implementation.
 #highlight("TODO: plus en détails mgl")
 
-==== Intent Router
+==== Intent Router <intent_router>
 
 The intent router is a crucial component of the solution. It is the entrypoint of the system and orchestrates the different agents.
 
@@ -437,11 +437,20 @@ Finally, the query is routed according to the #ref(<ai_agent_design>):
 - If the intent is said to be actionable, the request is sent to both the geocontext retriever and the guidelines retriever agents (4,5).
 - Otherwise, the query is sent to the geocontext retriever agent (4).
 
-With the aim of the user's query now clearly defined, the next step is to address any ambiguities or missing information with the *clarify query* agent.
+With the aim of the user's query now clearly defined, the next step is to address any ambiguities or missing information with the clarification agent.
 
 ==== Clarify Query
 
+Clarifying and resolving vagueness in the user's query is essential to better understand the fundamental intent and provide an aligned response.
 
+With the output of the intent router agent properly defined, the two cases which lead to the need for clarification are either an explicit request for clarification due to ambiguity or missing information.
+
+Those two cases are both handled at once as a language model is prompted with the user's query and missing fields to generate and stream a response inquiring for further information or clarification (#ref(<ai_agent_design>), transition 3).
+In the following turn, the newly provided information is merged with the previously deduced intent as designed and presented in the section #ref(<intent_router>, supplement: it => it.body).
+
+With no _structural_ ambiguity left in the user's query, the intent router agent can now proceed to route the query to the *Geocontext Retriever* and *Guidelines Retriever* agents.
+
+#highlight("TODO: filer le prompt")
 
 ==== Geocontext Retriever <geocontext_retriever>
 // location valide ou non, throw
