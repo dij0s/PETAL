@@ -351,6 +351,7 @@ Accordingly, the conversational context is modeled as a single object that is up
   caption: "Conversation state",
 ) <conversational_state>
 
+#highlight("TODO: mettre au format UML??")
 #highlight("TODO: mettre les sous-objets, router, ...?")
 #highlight("TODO: citer pydantic, runtime, tralala???")
 
@@ -396,39 +397,54 @@ Upon receiving a user prompt, the agent analyzes the query to extract its underl
 - The aggregated query: a summary that combines all available context from the current conversation and the previous query into a single one.
 - The conversation type: identifies the conversational context ; "new_analysis" (fresh query), "correction_request" (user questions the accuracy of a previous response) or 'follow_up' (user requests additional detail or expansion on the same topic).
 - The need for clarification: defines whether more information is needed to understand what the user wants (e.g., missing location, unclear intent, or vague request).
-- The needs for memoization: specifies if the user provided explicit preferences, corrections to assumptions, or scope refinements that should be remembered for future queries (for e.g. focusing to a single metric when retrieving XYZ data.
+- The needs for memoization: specifies if the user provided explicit preferences, corrections to assumptions, or scope refinements that should be remembered for future queries (for e.g. the format used to summarize the retrieved data or only considering a single aspect from certain datapoints).
 
 Implementation-wise, the output of the language model is constrained to a single Pydantic data schema, _RouterOutput_.
-While these models typically generate natural language responses, these complex multi-agent systems benefit from a structured format output that can easily be further processed.
+While these models typically generate natural language responses, these complex multi-agent systems benefit from a structured output format that can easily be further processed.
 This is possible thanks to OpenAI#footnote("https://openai.com/"), introducing the support for structured outputs in late 2024, a feature that has since been adopted by many providers.
 #highlight("TODO: inclure prompt system")
 
-All these fields except the aggregated query take value in a finite set of options (considering the _location_ field is either a valid location or none.).
+All these fields except the aggregated query take value in a finite set of options (considering the _location_ field is either set or unset.).
 Consequently, it is very easy to plan and orchestrate the following actions.
 
 Since the application must offer a conversational experience, the previous _RouterOutput_ is accumulated on every turn.
 Past fields are only updated if they differ from the new ones. As such, context and knowledge is properly accumulated over time.
-Once the municipality is provided, for example, it is not needed anymore as the query is assumed to concern the same municipality.
+Once the municipality is provided, for example, it is not needed anymore as the request is assumed to concern the same municipality.
 
-On top of that, the system must integrate the user's preferences and corrections to assumptions, ensuring that answers suit the user's needs.
-When memoization is required, the system stores both the current query (the _correctee_) and the previous query (the _corrected_) in a .
-#highlight("parler au dessus coûte cher de faire un appel LLM")
+On the other hand, when a request treats a different municipality, both the _context_tools_ and _context_constraints_ defined in #ref(<conversational_state>) are reset. This way, the data associated with the previously discussed municipality is cleared.
+To ensure correct implementation, whenever a request concerns a different municipality, both the _context_tools_ and _context_constraints_ defined in #ref(<conversational_state>) are reset. This means the geospatial data and guidelines previously associated with the conversation are cleared.
 
-If fields are missing or the need for clarification is explicitly requested per the model output, the query is directed to the clarification node (#ref(<ai_agent_design>), arrow (2)) which assists the user in providing the necessary information.
+On top of that, user-provided feedback and corrections shape the system's behavior allowing it to adapt to the user's preferences.
+When there is a need for memoization, the system stores both the previous query (the _corrected_) and the current query (the _correctee_) in the user's namespace, in the database.
 
-// clarification
-// memoize
-// reset location change
+#highlight("TODO: parler que store parallèle ??")
+#highlight("TODO: parler quelque part d'async??")
+#highlight("TODO: schéma avec flux entiers, database, ...")
+#highlight("TODO: décire que local database redis...")
+#highlight("TODO: mettre au format UML??")
+#highlight("TODO: parler au dessus coûte cher de faire un appel LLM")
 
-// routing
+An assumption still lies in the nature of the field _location_ as it is assumed to either be set or unset. A set location does not necessarily imply that it is a valid municipality, inscribed in the published Swiss official commune register#footnote("https://www.bfs.admin.ch/bfs/en/home/basics/swiss-official-commune-register.html").
+A solution is proposed in the section #ref(<geocontext_retriever>, supplement: it => it.body).
 
-// how do we check non valid municipality??
+#highlight(
+  "TODO: dire que utiliser un dictionnaire difficile car mises à jour fréquentes par exemple ici ou plus bas ??",
+)
 
-// décrire schéma entrée sortie
-// structured output
-// explication détails
+Finally, the query is routed according to the #ref(<ai_agent_design>):
+- If clarification is needed (either because the need for clarification is explicitly requested, or fields are missing), the request is sent to the clarify query agent (2).
+- If the conversation type is a correction request, the query is sent to the geocontext retriever agent (4).
+- If the intent is said to be actionable, the request is sent to both the geocontext retriever and the guidelines retriever agents (4,5).
+- Otherwise, the query is sent to the geocontext retriever agent (4).
+
+With the aim of the user's query now clearly defined, the next step is to address any ambiguities or missing information with the *clarify query* agent.
+
 ==== Clarify Query
-==== Geocontext Retriever
+
+
+
+==== Geocontext Retriever <geocontext_retriever>
+// location valide ou non, throw
 ==== Guidelines Retriever
 Each layer is composed of modular components that interact through well-defined interfaces, ensuring flexibility and ease of maintenance. When the user prompts the system from the web interface, the query is routed to the AI agent in the backend. The AI agent will make use of two datasources: a local database (in the backend) and third-party APIs (in the external services layer).
 
