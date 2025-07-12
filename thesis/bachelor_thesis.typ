@@ -457,8 +457,8 @@ With no _structural_ ambiguity left in the user's query, the intent router agent
 
 Energy planning as defined in the solution requires assessing the energy resources, infrastructure, potential and needs within the municipality. The geocontext retriever is responsible for this task.
 
-Before profiling the municipality, it is essential to define the different public datasources that are available.
-Throughout its federal and cantonal institutions, Switzerland provides a wide range of public data such as GeoAdmin#footnote("geo.admin.ch"), the geographic information platform of the Confederation and offers direct access to geospatial data and maps.
+Before profiling the municipality, it is essential to identify the different public datasources that are available.
+Throughout its federal and cantonal institutions, Switzerland provides a wide range of public data such as GeoAdmin#footnote("geo.admin.ch"), the geographic information platform of the Confederation which offers direct access to geospatial data and maps.
 
 The data originates from various offices commissioned by the Confederation:
 - Swiss Federal Office of Energy (SFOE)
@@ -470,10 +470,11 @@ The data originates from various offices commissioned by the Confederation:
 The GeoAdmin API#footnote("https://api3.geo.admin.ch/index.html") provides a standardized interface for querying and manipulating geospatial data and relies on fair usage policies (20 requests per minute on a 24/7 average).
 The datasets are also available for download.
 
-The choice has been made to use the GeoAdmin API instead of downloading and maintaining local datasets as it ensures that the data is always up to date and removes the need for additional setup and maintenance of a dedicated geospatial database, a task that is particularly time-consuming in such a short time frame.
+The choice has been made to use the GeoAdmin API instead of downloading and maintaining local datasets as it ensures (1) that the data is always up to date and (2) removes the need for additional setup and maintenance of a dedicated geospatial database, a task that is particularly time-consuming in such a short time frame.
 
 In a real-world scenario, exploiting data locally allows for preprocessing and aggregation which significantly reduces latency during user interactions.
-Different mechanisms such as caching or distributed computing would allow for greater scalability of the solution.
+Mechanisms such as caching and geospatial indexing would be useful for greater scalability of the solution.
+#highlight("TODO: enlever indexing avant la suite?")
 
 Datasets are often labeled as layers, as the data is organized according to the geospatial paradigm. Data is discretized into points, meshes, polygons and other spatial representations, all defined as a feature. Those features are independent geometries located in the space, without inherent relationships.
 Thus, identifying relevant features within a municipality implies searching them inside its geographic boundaries, since no relation lies between these entities.
@@ -481,15 +482,16 @@ Thus, identifying relevant features within a municipality implies searching them
 Although the GeoAdmin API enables searching for features in a given area, it is subject to a maximum number of 50 features retrieved per request.
 Consequently, identifying them requires breaking down the search area into smaller sub-areas and querying each sub-area separately.
 
-This has been made possible by first clipping settlements and centres of larger cities onto the municipality's geometry, optimizing the search area, and applying a spatial tiling on top. Different layers obviously require different tiling sizes, depending on the number and resolution of features.
+This has been implemented by first clipping settlements and centres of larger cities onto the municipality's geometry, optimizing the search area, and applying a spatial tiling on top. Different layers obviously require different tiling sizes, depending on the number and resolution of features.
 
 The #ref(<datasets_table>) presents the data sources incorporated in the solution:
 
+#set table(fill: (x, y) => if calc.odd(y) and x != 0 { rgb("EAF2F5") })
 #figure(
   rotate(-90deg, reflow: true, table(
     columns: 5,
     table.header([Category], [Layer ID], [Description], [Unit], [Discretization]),
-    [Needs],
+    [*Needs*],
     [ch.bfe.fernwaerme-nachfrage_industrie],
     [Heat and cooling demand from industry],
     [MWh/year],
@@ -501,23 +503,15 @@ The #ref(<datasets_table>) presents the data sources incorporated in the solutio
     [MWh/year],
     [100m x 100m],
 
-    [],
-    [ch.bafu.klima-co2_ausstoss_gebaeude],
-    [Greenhouse gas emissions from buildings],
-    [kg per m² of energy reference area],
-    [Per building],
+    [], [ch.bafu.klima-co2_ausstoss_gebaeude], [Greenhouse gas emissions from buildings], [kg/m²], [Per building],
 
-    [Potential],
+    [*Potential*],
     [ch.bfe.kleinwasserkraftpotentiale],
     [Potential of small hydropower plants],
-    [kW per meter of watercourse length],
+    [kW/m],
     [Per watercourse],
 
-    [],
-    [ch.bfe.waermepotential-gewaesser],
-    [Potential heat use of water bodies],
-    [GWh/year for heating and cooling, respectively],
-    [Per water body],
+    [], [ch.bfe.waermepotential-gewaesser], [Potential heat use of water bodies], [GWh/year], [Per water body],
 
     [],
     [ch.bfe.solarenergie-eignung-daecher],
@@ -527,35 +521,29 @@ The #ref(<datasets_table>) presents the data sources incorporated in the solutio
 
     [], [ch.bfe.solarenergie-eignung-fassaden], [Solar energy: suitability of façade], [kWh/year], [Per façade],
 
-    [],
-    [ch.bfe.biomasse-nicht-verholzt],
-    [Biomass potential],
-    [TJ for woody and non-woody, respectively],
-    [Per municipality],
+    [], [ch.bfe.biomasse-nicht-verholzt], [Biomass potential], [TJ], [Per municipality],
 
     [], [ch.bfe.fernwaerme-angebot], [Potential heat recovery from WWTPs], [MWh/year], [Per plant],
 
-    [Infrastructure], [ch.bfe.statistik-wasserkraftanlagen], [Hydropower plants: statistics], [GWh/year], [Per plant],
+    [*Infrastructure*], [ch.bfe.statistik-wasserkraftanlagen], [Hydropower plants: statistics], [GWh/year], [Per plant],
 
     [], [ch.bfe.windenergieanlagen], [Wind energy plants], [GWh/year], [Per turbine],
 
     [], [ch.bfe.biogasanlagen], [Biogas plants], [kWh/year], [Per plant],
-    [],
-    [ch.bfe.kehrichtverbrennungsanlagen],
-    [Waste incineration plants],
-    [MWh/year for electricity and heat production, respectively],
-    [Per plant],
+    [], [ch.bfe.kehrichtverbrennungsanlagen], [Waste incineration plants], [MWh/year], [Per plant],
 
     [], [ch.bfe.elektrizitaetsproduktionsanlagen], [Electricity production plants], [kW], [Per plant],
 
     [], [ch.bfe.thermische-netze], [Thermal networks], [MWh/year], [Per network],
 
-    [], [ch.swisstopo.swissboundaries3d-gemeinde-flaeche.fill], [Municipalities], [-], [Per municipality],
+    // [], [ch.swisstopo.swissboundaries3d-gemeinde-flaeche.fill], [Municipalities], [-], [Per municipality],
 
-    [], [ch.swisstopo.vec200-landcover], [Swiss land cover], [-], [Per surface],
+    // [], [ch.swisstopo.vec200-landcover], [Swiss land cover], [-], [Per surface],
   )),
   caption: "Public datasets",
 ) <datasets_table>
+
+#highlight("TODO: bouger label figure au dessus?")
 
 // catégoriser selon tool provider
 // aggrégation données, estimation statistique..
