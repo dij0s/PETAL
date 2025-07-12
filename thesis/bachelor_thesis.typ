@@ -384,9 +384,11 @@ The main responsibility of each agent is as follows:
 - The *Guidelines Retriever* retrieves the relevant energy planning guidelines relevant to the query.
 - The *Strategy Planner* plans the energy strategy based on the retrieved data and guidelines.
 - The *Critic Answer* evaluates the proposed energy planning strategy and possibly restarts the whole process.
+#highlight("TODO: plus en détails ?")
 
 With the overall solution defined, the following sections dig in the details of each agent and their implementation.
-#highlight("TODO: plus en détails mgl")
+
+#highlight("TODO: parler tech stack et choix ollama?")
 
 ==== Intent Router <intent_router>
 
@@ -597,7 +599,7 @@ This approach reduces the overall computational cost while increasing the qualit
 #highlight("TODO: faire un schéma détaillé du processus de l'agent?")
 
 With the appropriate tools chosen, the system can effectively retrieve the data. It is simply added to the _context_tools_ field in the conversational state (#ref(<conversational_state>)).
-Geospatial information is accumulated over the conversation turns, allowing for context-aware recommendations and planning in the further agents. It is only reset when switching to a new municipality as it becomes invalid.
+Geospatial information is accumulated over the conversation turns, allowing for context-aware planning and consistent, spatially informed decisions. It is only reset when switching to a new municipality as it becomes invalid.
 
 In the section #ref(<intent_router>, supplement: it => it.body), the validity of the location is not confirmed. This is directly implemented in the different tools above and routing of this agent (#ref(<ai_agent_design>)):
 - If the location is non-valid, retrieving data raises an error and the request is routed to the clarify query agent.
@@ -656,8 +658,10 @@ Finally, the extracted information is encoded into a vector representation -an e
 // spécificités (persistance, heuristique consommation...)
 
 === Limitations
+#highlight("TODO: en faire un chapitre par composant au dessus ou en dehors de la partie méthodologie?")
 
 // qualité des données
+// fuzzy search
 
 = Results
 
