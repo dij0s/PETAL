@@ -368,9 +368,10 @@ Doing so, it becomes possible to select reasoning models that are better suited 
 
 The architecture in the #ref(<ai_agent_design>) above is modeled after a Finite State Machine (FSM), where each node represents an agent and each edge represents a transition that is either always executed (solid) or conditionally executed (dashed). The dynamic flow of control between agents is guided by the evolving conversational state. It is finite, per definition, as the state takes value in a discrete set.
 #highlight("TODO: citer acronyme correctement?")
+#highlight("TODO: enlever notion finite state machine?")
 
 On the implementation-side, LangGraph#footnote("https://www.langchain.com/langgraph"), an open-source Python framework, is used to implement the AI agent architecture. Unlike linear pipelines, LangGraph uses a graph abstraction by default, which is particularly well-suited for this state machine architecture.
-This graph-based structure brings determinism to the system’s behavior as the flow between agents is defined by the architecture itself, rather than being dynamically determined by agent-to-agent conversations as in frameworks like Microsoft's AutoGen#footnote("https://www.microsoft.com/en-us/research/project/autogen/"). Another framework that had been considered was PydanticAI#footnote("https://ai.pydantic.dev/") which offers a structured, type-safe approach to building agent systems by leveraging Pydantic models for inter-agent communication and behaviour definitions. However, it lacks the built-in support for complex state transitions.
+This graph-based structure brings determinism to the system’s behaviour as the flow between agents is defined by the architecture itself, rather than being dynamically determined by agent-to-agent conversations as in frameworks like Microsoft's AutoGen#footnote("https://www.microsoft.com/en-us/research/project/autogen/"). Another framework that had been considered was PydanticAI#footnote("https://ai.pydantic.dev/") which offers a structured, type-safe approach to building agent systems by leveraging Pydantic models for inter-agent communication and behaviour definitions. However, it lacks the built-in support for complex state transitions.
 
 All of the available multi-agent AI frameworks are relatively novel and in constant evolution. LangGraph benefits from being built on top of the already renowned LangChain#footnote("https://www.langchain.com/") ecosystem which adds to its reliability and ease of integration with other technologies.
 Pydantic’s type safety will still be implemented within the project to enhance data validation and error handling.
@@ -417,7 +418,7 @@ Once the municipality is provided, for example, it is not needed anymore as the 
 On the other hand, when a request treats a different municipality, both the _context_tools_ and _context_constraints_ defined in #ref(<conversational_state>) are reset. This way, the data associated with the previously discussed municipality is cleared.
 To ensure correct implementation, whenever a request concerns a different municipality, both the _context_tools_ and _context_constraints_ defined in #ref(<conversational_state>) are reset. This means the geospatial data and guidelines previously associated with the conversation are cleared.
 
-On top of that, user-provided feedback and corrections shape the system's behavior allowing it to adapt to the user's preferences.
+On top of that, user-provided feedback and corrections shape the system's behaviour allowing it to adapt to the user's preferences.
 When there is a need for memoization, the system stores both the previous query (the _corrected_) and the current query (the _correctee_) in the user's namespace, in the database.
 
 #highlight("TODO: parler que store parallèle ??")
@@ -606,43 +607,67 @@ In the section #ref(<intent_router>, supplement: it => it.body), the validity of
 - Otherwise, the query is sent to the strategy planner agent (6).
 #highlight("TODO: manque flèche vers clarification")
 
+Once the relevant data is gathered, the next stage is for the strategy planner agent to analyze this information to conduct proper planning.
 
-With the necessary data collected, the further stage implies analyzing them with the strategy planner agent to conduct proper planning.
-
+#highlight("TODO: citer external services database")
 #highlight("TODO: mettre un schéma du tiling?")
 #highlight("TODO: dire requêtes API concurrent")
 #highlight("TODO: parler spécifique map et système coordonnées?")
 #highlight("TODO: ajouter tool energy needs, heuristique et détailler planification énergétique?")
 
 ==== Guidelines Retriever
-Each layer is composed of modular components that interact through well-defined interfaces, ensuring flexibility and ease of maintenance. When the user prompts the system from the web interface, the query is routed to the AI agent in the backend. The AI agent will make use of two datasources: a local database (in the backend) and third-party APIs (in the external services layer).
 
-Energy planning guidelines all come in a single Portable Document Format (PDF) and are available in french or german. They are broken down into multiple sources:
+The sole difference between enumerating the data, as collected in the geocontext retriever, and proper energy planning lies in the measures that are taken in response to identified issues. Those measures are conditioned by guidelines, broken down into multiple sources:
 
-The primary document called _Vision 2060 et objectifs 2035_ has been adopted in 2019 and sets intermediate targets for 2035 that take into account the natural resources of Valais/Wallis, current knowledge, as well as federal energy and climate policies with the ultimate goal of achieving a 100% renewable and indigenous energy supply. Moreover, the _Plan directeur 2019_ adopted by the federal council on the 1st of May 2019, states the strategy for the canton's territorial development in the form of 49 information sheets, distributed across the five areas of activity: Agriculture, forest, landscape and nature; Tourism and leisure; Urbanization; Mobility and transport infrastructure; Supply and other infrastructure. Finally, the legal framework is defined by two key legislative documents. Notably, the _RS 705.1 - Loi sur les constructions (LC)_ establishes the regulations for construction activities, while the _RS 730.1 - Loi sur l'énergie (LcEne)_ defines the objectives and requirements for sustainable energy supply.
-#highlight("TODO: citer autrement?")
+The primary document called _Vision 2060 et objectifs 2035_ has been adopted in 2019 and sets intermediate targets for 2035 that take into account the energetical landscape of Valais/Wallis, current knowledge, as well as federal energy and climate policies with the ultimate goal of achieving a 100% renewable and indigenous energy supply in 2060.
 
-These documents are specifically designed and structured to convey information to the public. They are organized into sections, subsections or paragraphs which reference figures, tables, plots, past paragraphs and so on. Visual structure does not necessarily imply a logical flow of information or semantic structure. A document can look organized but still lack a proper machine readable structure.
+Moreover, the _Plan directeur 2019_ adopted by the federal council on the 1st of May 2019, states the strategy for the canton's territorial development in the form of 49 information sheets, distributed across the five activity sectors: _Agriculture, forest, landscape and nature_ (1), _Tourism and leisure_ (2), _Urbanization_ (3), _Mobility and transport infrastructure_ (4) and _Supply and other infrastructure_ (5).
+
+Finally, the legal framework is defined by two key legislative documents. Notably, the _RS 705.1 - Loi sur les constructions (LC)_ establishes the regulations for construction activities, while the _RS 730.1 - Loi sur l'énergie (LcEne)_ defines the objectives and requirements for sustainable energy supply.
+#highlight("TODO: citer autrement -> bib?")
+
+These documents are specifically designed and structured to convey information to the public and come in a single Portable Document Format (PDF) and are available in both french and german. They are organized into sections, subsections or paragraphs which reference figures, tables, plots, past paragraphs and so on.
+
+Visual structure does not necessarily imply a logical flow of information. A document can look and feel organized but still lack a proper machine readable structure.
 In practice, it is neither realistic nor scalable to expect a human to manually extract all the key information needed for energy planning from such complex documents. Therefore, it becomes essential to delegate this task to the computer, enabling automated extraction and processing of documents.
 
-When data lack clear structure, it becomes difficult to extract information using algorithms or systematic procedures. However, advances in Multimodal Large Language Models (MLLMs) offer a solution as these models are designed to process and understand information presented in various modalities such as text, images, audio, and video. Paired with existing methods that are able to extract raw text from these documents, it has become easier to extract precise information from visually organized and heterogeneous documents by understanding not only the way information is displayed but also its underlying semantic meaning.
+When data lacks clear structure, it becomes difficult to extract information using algorithms or systematic procedures. However, advances in Multimodal Large Language Models (MLLMs) offer a solution as these models are designed to process and understand information presented in various modalities such as text, images, audio, and video. Paired with existing methods that are able to extract raw text from these documents, it has become easier to extract precise information from visually organized and heterogeneous documents by understanding not only the way information is displayed but also its underlying semantic meaning.
 
 As such, a systematic approach is applied when extracting information from these documents:
 - Raw text is extracted from the documents on a per-page basis.
-- Each and every page is rendered into an image.
-- Rendered pages and associated text are processed using MLLMs to deliver a translated interpretation and summary of the information contained within the page.
+- Each page is rendered into an image.
+- Each rendered page and associated text are processed using MLLMs to retrieve key insights and interpret the information within the page.
+#highlight("TODO: citer prompt")
 
 The extracted information is formatted in markdown, utilizing headings to structure the summary. It is then broken down into smaller chunks, each chunk being a "chapter" derived from the markdown content. Since only individual chunks are considered in subsequent steps, there is no need to perform an analysis across neighboring pages to ensure that the information is retrieved from its full context.
 
-Finally, the extracted information is encoded into a vector representation -an embedding- and stored in the local database along with its associated chunks and metadata. An embedding is a mathematical representation of data in a high-dimensional vector space where semantically similar information are mapped to nearby points. This enables the system to embed text queries and efficiently retrieve semantically relevant information when compared with the stored embeddings.
+Finally, the extracted information from each page is encoded into an embedding and stored in the local database, along with its associated chunks and metadata.
 
-// scaling et difficulté guidelines
+With clear guidelines extracted from documents in any format, it is necessary to identify those that are relevant to the user's query. Since those are already embedded, the related guidelines are simply those that are closest to the embedded request, as described in the #ref(<geocontext_retriever>, supplement: it => it.body) section is applied.
+#highlight("TODO: revoir déf?")
 
+An issue still lies in how the guidelines themselves are _designed_. While the objectives and figures outlined inside these documents concern the entire canton, this solution is only scoped to municipalities.
+Therefore, these quantitative targets must be scaled down to reflect the municipality’s specific context and expectations.
+#highlight("TODO: mettre un exemple?")
+
+Identifying these key figures which need rescaling is not a simple task as broader context is required to assess that.
+In order to achieve this, a language model is prompted with the task of identifying key figures that need rescaling.
+#highlight("TODO: citer prompt")
+
+Finally, they are multiplied by a factor corresponding to the ratio of the municipality's number of residents to the total population of the canton.
+While this is a straightforward way to scale targets, proper rescaling should take into account the economic activity, energy landscape and industrial presence in the municipality to ensure a more accurate adjustment.
+
+The adjusted guidelines are accumulated onto the _context_constraints_ field in the conversational state (#ref(<conversational_state>)).
+Similarly to the geospatial information described in the #ref(<geocontext_retriever>, supplement: it => it.body) section, the processed guidelines are accumulated in the state as the conversation goes on and only cleared when switching to a new municipality.
+
+With the relevant guidelines retrieved and rescaled, the query is routed to the strategy planner agent (#ref(<ai_agent_design>), transition 6) which will use them as clear constraints.
+
+#highlight("TODO: mettre un premier chapitre preprocessing?")
 #highlight("TODO: cite plus tard que Retrieve multiple chunks recreate the context")
 #highlight("TODO: reformuler et enlever les formulations 'we' ?")
+#highlight("TODO: dire que je traduis en anglais ou pas, pff")
 #highlight("TODO: citer modèle utilisé MLLM et embeddings ?")
 #highlight("TODO: citer comment traiter données communales")
-#highlight("TODO: citer prompt")
 #highlight("TODO: inclure prompts dans bibliographie")
 
 ==== Strategy Planner
@@ -660,6 +685,7 @@ Finally, the extracted information is encoded into a vector representation -an e
 === Limitations
 #highlight("TODO: en faire un chapitre par composant au dessus ou en dehors de la partie méthodologie?")
 
+// données privées ?
 // qualité des données
 // fuzzy search
 
@@ -670,6 +696,8 @@ Finally, the extracted information is encoded into a vector representation -an e
 = Conclusion
 // amélioration graphe
 // MCP
+// train classificateur guidelines, fine tune, ...
+// train classificateur intent
 
 #pagebreak()
 #heavy-title(i18n(doc_language, "bibliography-title"), mult: 1, top: 0.5em, bottom: 0.3em)
