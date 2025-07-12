@@ -234,6 +234,7 @@ These initial requirements established the basis for the project. As the solutio
 These requirements are summarized in the #ref(<requirements_table>) below:
 
 #show table.cell.where(y: 0): strong
+#show figure: set block(breakable: true)
 #set table(stroke: (x, y) => if y == 0 {
   (bottom: 0.7pt + black)
 })
@@ -481,29 +482,93 @@ Although the GeoAdmin API enables searching for features in a given area, it is 
 Consequently, identifying them requires breaking down the search area into smaller sub-areas and querying each sub-area separately.
 
 This has been made possible by first clipping settlements and centres of larger cities onto the municipality's geometry, optimizing the search area, and applying a spatial tiling on top. Different layers obviously require different tiling sizes, depending on the number and resolution of features.
-The #ref(<dataset_table>) presents the data sources incorporated in the solution:
+
+The #ref(<datasets_table>) presents the data sources incorporated in the solution:
 
 #figure(
-  table(
-    columns: 3,
-    table.header([Requirement], [Type], [Description]),
-    [Gather relevant data sources],
-    [Functional],
-    [The solution must collect and integrate data from various sources relevant to the municipality's energy landscape.],
+  rotate(-90deg, reflow: true, table(
+    columns: 5,
+    table.header([Category], [Layer ID], [Description], [Unit], [Discretization]),
+    [Needs],
+    [ch.bfe.fernwaerme-nachfrage_industrie],
+    [Heat and cooling demand from industry],
+    [MWh/year],
+    [100m x 100m],
 
-    [Analyze and present energy landscape],
-    [Functional],
-    [The system should process and visualize the current energy situation of the municipality, enabling users to understand available resources and needs.],
-  ),
-  caption: "Datasets",
-) <dataset_table>
+    [],
+    [ch.bfe.fernwaerme-nachfrage_wohn_dienstleistungsgebaeude],
+    [Heat and cooling demand from residential and commercial buildings],
+    [MWh/year],
+    [100m x 100m],
+
+    [],
+    [ch.bafu.klima-co2_ausstoss_gebaeude],
+    [Greenhouse gas emissions from buildings],
+    [kg per m² of energy reference area],
+    [Per building],
+
+    [Potential],
+    [ch.bfe.kleinwasserkraftpotentiale],
+    [Potential of small hydropower plants],
+    [kW per meter of watercourse length],
+    [Per watercourse],
+
+    [],
+    [ch.bfe.waermepotential-gewaesser],
+    [Potential heat use of water bodies],
+    [GWh/year for heating and cooling, respectively],
+    [Per water body],
+
+    [],
+    [ch.bfe.solarenergie-eignung-daecher],
+    [Suitability of roofs for use of solar energy],
+    [kWh/year],
+    [Per roof pane],
+
+    [], [ch.bfe.solarenergie-eignung-fassaden], [Solar energy: suitability of façade], [kWh/year], [Per façade],
+
+    [],
+    [ch.bfe.biomasse-nicht-verholzt],
+    [Biomass potential],
+    [TJ for woody and non-woody, respectively],
+    [Per municipality],
+
+    [], [ch.bfe.fernwaerme-angebot], [Potential heat recovery from WWTPs], [MWh/year], [Per plant],
+
+    [Infrastructure], [ch.bfe.statistik-wasserkraftanlagen], [Hydropower plants: statistics], [GWh/year], [Per plant],
+
+    [], [ch.bfe.windenergieanlagen], [Wind energy plants], [GWh/year], [Per turbine],
+
+    [], [ch.bfe.biogasanlagen], [Biogas plants], [kWh/year], [Per plant],
+    [],
+    [ch.bfe.kehrichtverbrennungsanlagen],
+    [Waste incineration plants],
+    [MWh/year for electricity and heat production, respectively],
+    [Per plant],
+
+    [], [ch.bfe.elektrizitaetsproduktionsanlagen], [Electricity production plants], [kW], [Per plant],
+
+    [], [ch.bfe.thermische-netze], [Thermal networks], [MWh/year], [Per network],
+
+    [], [ch.swisstopo.swissboundaries3d-gemeinde-flaeche.fill], [Municipalities], [-], [Per municipality],
+
+    [], [ch.swisstopo.vec200-landcover], [Swiss land cover], [-], [Per surface],
+  )),
+  caption: "Public datasets",
+) <datasets_table>
+
+// catégoriser selon tool provider
+// aggrégation données, estimation statistique..
 
 #highlight("TODO: mettre un schéma du tiling?")
 #highlight("TODO: dire requêtes API concurrent")
-#highlight("TODO: dire requêtes API concurrent")
 #highlight("TODO: parler spécifique map et système coordonnées?")
 
+// ajouter tool energy needs
 // tools
+// in memory vector store
+// amélioration graphe
+// MCP
 // geosession
 // location valide ou non, throw
 ==== Guidelines Retriever
