@@ -435,7 +435,7 @@ A solution is proposed in the section #ref(<geocontext_retriever>, supplement: i
 Finally, the query is routed according to the #ref(<ai_agent_design>):
 - If clarification is needed (either because the need for clarification is explicitly requested, or fields are missing), the request is sent to the clarify query agent (2).
 - If the conversation type is a correction request, the query is sent to the geocontext retriever agent (4).
-- If the intent is said to be actionable, the request is sent to both the geocontext retriever and the guidelines retriever agents (4) and (5).
+- If the intent is said to be actionable, the request is sent to both the geocontext retriever and the guidelines retriever agents, concurrently - (4) and (5).
 - Otherwise, the query is sent to the geocontext retriever agent (4).
 
 With the aim of the user's query now clearly defined, the next step is to address any ambiguities or missing information with the clarification agent.
@@ -543,22 +543,75 @@ The #ref(<datasets_table>) presents the data sources incorporated in the solutio
   caption: "Public datasets",
 ) <datasets_table>
 
+#highlight("TODO: mieux décrire ce qu'il y a dans le tableau?")
 #highlight("TODO: bouger label figure au dessus?")
 
-// catégoriser selon tool provider
-// aggrégation données, estimation statistique..
+The discretization of the different datasources showcases the importance of spatial tiling when dealing with this data.
+
+In the average municipality, certain features are few and easily assessable whereas it is impossible to retrieve meaningful insights from the greater-resolution datasets (for e.g. the suitability of roofs, per roof pane) without additional processing or aggregation.
+
+Therefore, the features within the municipality are (1) identified within the municipality, (2) aggregated to the municipality level, and (3) brought back to the same GWh/year unit#footnote("Only applies to energy measures. Energy is deduced from power, in watts, assuming non-stop operation (24/7/365)."). This standardization allows for an easier and consistent comparison of scalars, on a yearly basis, crucial for interpretability but comes with drawbacks:
+- The information of variability within the municipality itself is lost.
+- The aggregation of data is a costly process, especially when doing this on the fly.
+
+The first issue is partially recovered from the fact that the layers are displayed at their original resolution, in the web interface. This way, the variability can be easily visualized.
+
+The second issue is mitigated depending on the nature of the data. The basic approach to aggregation requires the summation of values and is only needed for datasets that benefit from great precision. On the other hand, datasets that do not require such precision are subject to statistical estimation:
+- The spatial tiling is randomly sampled.
+- The features within the sampled tiling are identified and their values summed.
+- The sample mean and standard deviation are calculated.
+- The confidence interval is computed using a T-distribution and confidence level.
+#highlight("TOOD: mettre réf. mathématique??")
+Choosing the sampling size and confidence level is important for a proper statistical estimation. In this work, both parameters are set empirically and kept relatively large to benefit from lower computational costs, but without optimizing for the best possible accuracy.
+As such, only the suitability of roofs and façades for use of solar energy is estimated using this technique as they are both datasets which showcase potential of exploitation rather than precise measurements and are well distributed in the geographic space.
+
+#highlight("TODO: ajoute schéma sampling statistique")
+#highlight("TODO: parler ajouter des modèles simu et autre dans les tools?")
+
+With the data standardized and properly aggregated, the geocontext retriever agent must now be able to interact with it.
+
+Previously, AI agents were described as autonomous systems able to operate and make decisions independently. These operations rely on tools.
+
+A construction worker, for example, has different tools for different needs, such as a hammer for nails, a saw for cutting wood, and a level for ensuring straight walls. The tools come with a set of instructions describing how to use them and what to expect from them.
+
+The same applies to AI agents, which have, in this work, different tools allowing them to query, aggregate and retrieve data from the datasets in #ref(<datasets_table>).
+Consequently, language models can leverage their natural language processing capabilities to choose the appropriate tools for the query.
+
+An issue with the current approach is that when the _toolbox_ is too large, it becomes difficult for the language model to choose the right tools for the job.
+This issue is addressed by exploiting the power of embeddings.
+
+An embedding is a mathematical representation of data in a high-dimensional vector space where semantically similar information are mapped to nearby points.
+This enables the system to embed the descriptions of the different tools and easily retrieve them semantically. On top of that, it is more efficient computation-wise than prompting the language model to choose them.
+#highlight("TODO: définition terminologie? prompting")
+#highlight("TODO: parler de reranking?")
+
+When retrieving tools, the system computes the cosine similarity between both embeddings to quantify the semantic similarity.
+Finally, the quartile coefficient of dispersion is measured against the distribution of retrieved scores. This indicator provides a measure of the uniformity of the retrieved tools.
+As such, uniform tools are provided to a language model, which is then prompted to choose the appropriate ones.
+
+This approach reduces the overall computational cost while increasing the quality of tool selection.
+
+#highlight("TODO: référencer cosine, bibliographie")
+#highlight("TODO: référencer coefficient correctement, bibliographie")
+
+#highlight("TODO: faire un schéma détaillé du processus de l'agent?")
+
+With the appropriate tools chosen, the system can effectively retrieve the data. It is simply added to the _context_tools_ field in the conversational state (#ref(<conversational_state>)).
+Geospatial information is accumulated over the conversation turns, allowing for context-aware recommendations and planning in the further agents. It is only reset when switching to a new municipality as it becomes invalid.
+
+In the section #ref(<intent_router>, supplement: it => it.body), the validity of the location is not confirmed. This is directly implemented in the different tools above and routing of this agent (#ref(<ai_agent_design>)):
+- If the location is non-valid, retrieving data raises an error and the request is routed to the clarify query agent.
+- Otherwise, the query is sent to the strategy planner agent (6).
+#highlight("TODO: manque flèche vers clarification")
+
+
+With the necessary data collected, the further stage implies analyzing them with the strategy planner agent to conduct proper planning.
 
 #highlight("TODO: mettre un schéma du tiling?")
 #highlight("TODO: dire requêtes API concurrent")
 #highlight("TODO: parler spécifique map et système coordonnées?")
+#highlight("TODO: ajouter tool energy needs, heuristique et détailler planification énergétique?")
 
-// ajouter tool energy needs
-// tools
-// in memory vector store
-// amélioration graphe
-// MCP
-// geosession
-// location valide ou non, throw
 ==== Guidelines Retriever
 Each layer is composed of modular components that interact through well-defined interfaces, ensuring flexibility and ease of maintenance. When the user prompts the system from the web interface, the query is routed to the AI agent in the backend. The AI agent will make use of two datasources: a local database (in the backend) and third-party APIs (in the external services layer).
 
@@ -581,6 +634,8 @@ The extracted information is formatted in markdown, utilizing headings to struct
 
 Finally, the extracted information is encoded into a vector representation -an embedding- and stored in the local database along with its associated chunks and metadata. An embedding is a mathematical representation of data in a high-dimensional vector space where semantically similar information are mapped to nearby points. This enables the system to embed text queries and efficiently retrieve semantically relevant information when compared with the stored embeddings.
 
+// scaling et difficulté guidelines
+
 #highlight("TODO: cite plus tard que Retrieve multiple chunks recreate the context")
 #highlight("TODO: reformuler et enlever les formulations 'we' ?")
 #highlight("TODO: citer modèle utilisé MLLM et embeddings ?")
@@ -589,6 +644,9 @@ Finally, the extracted information is encoded into a vector representation -an e
 #highlight("TODO: inclure prompts dans bibliographie")
 
 ==== Strategy Planner
+// fan in des deux agents précédents
+// recommendations tools similaires par catégorie
+
 ==== Critic
 
 === Web Interface
@@ -602,13 +660,12 @@ Finally, the extracted information is encoded into a vector representation -an e
 // qualité des données
 
 = Results
-#lorem(950)
 
 = Discussion
-#lorem(1000)
 
 = Conclusion
-#lorem(1256)
+// amélioration graphe
+// MCP
 
 #pagebreak()
 #heavy-title(i18n(doc_language, "bibliography-title"), mult: 1, top: 0.5em, bottom: 0.3em)
