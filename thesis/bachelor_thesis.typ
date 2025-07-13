@@ -364,6 +364,7 @@ By constraining the conversational state and narrowing the scope of each agent, 
 Doing so, it becomes possible to select reasoning models that are better suited to specific tasks while reducing the computational costs.
 
 #figure(image("figs/ai_agent_system_design.svg", height: 7.5cm), caption: "AI agent architecture")<ai_agent_design>
+#highlight("TODO: séparer proprement les API geoadmin dans un bloc external services?")
 #highlight("TODO: remplacer par un schéma de FSM classique??")
 
 The architecture in the #ref(<ai_agent_design>) above is modeled after a Finite State Machine (FSM), where each node represents an agent and each edge represents a transition that is either always executed (solid) or conditionally executed (dashed). The dynamic flow of control between agents is guided by the evolving conversational state. It is finite, per definition, as the state takes value in a discrete set.
