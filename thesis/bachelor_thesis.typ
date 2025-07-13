@@ -138,7 +138,7 @@ Municipalities may introduce in their regulations energy requirements that are m
 Municipalities in Switzerland are required to submit an energy planning document which outlines their future strategies to comply with those directives while also considering the characteristics of their energetical landscape.
 
 These different properties can be quantified and analyzed through the use of a very valuable resource: data.
-Data is emitted by various sources ; sensors, energy models or citizen records for e.g. all yield datapoints that help us assess different indicators we are willing to measure against our municipality. These indicators, _in fine_, help us evaluate our progress towards energy-related goals.
+Data is emitted by various sources ; sensors, energy models or citizen records for e.g. all yield data points that help us assess different indicators we are willing to measure against our municipality. These indicators, _in fine_, help us evaluate our progress towards energy-related goals.
 
 Over the past few years, Artificial Intelligence (AI) has rapidly transformed our habits when interacting with information.
 
@@ -225,7 +225,7 @@ The first step is to understand the problem that is solved. Energy planning typi
 #highlight("TODO: décrire dans ce chapitre les données et autres à disposition?")
 Hence, assisting users in energy planning requires a solution that can gather relevant data sources, analyze and present the current energy landscape of the municipality and provide actionable recommendations tailored to the context of the municipality while ensuring compliance with the legislation and guidelines that apply to said municipality.
 
-Besides that, it had been requested that the user interface has a map showcasing the assessed datapoints within the municipality as well as for the AI to be able to _remember_ the user's preferences and past interactions to have the answer better fit what the user expects.
+Besides that, it had been requested that the user interface has a map showcasing the assessed data points within the municipality as well as for the AI to be able to _remember_ the user's preferences and past interactions to have the answer better fit what the user expects.
 
 These initial requirements established the basis for the project. As the solution was evaluated with supervisors on a weekly basis, additional requirements emerged gradually shaping the solution to enhance the overall solution and meet the needs of energy planning.
 
@@ -257,7 +257,7 @@ These requirements are summarized in the #ref(<requirements_table>) below:
 
     [Interactive map interface],
     [Functional],
-    [The user interface should include a map displaying assessed datapoints within the municipality for better spatial understanding.],
+    [The user interface should include a map displaying assessed data points within the municipality for better spatial understanding.],
 
     [Conversational interface],
     [Functional],
@@ -441,7 +441,7 @@ Finally, the query is routed according to the #ref(<ai_agent_design>):
 - If the conversation type is a correction request, the query is sent to the geocontext retriever agent (4).
 - If the intent is said to be actionable, the request is sent to both the geocontext retriever and the guidelines retriever agents, concurrently - (4) and (5).
 - Otherwise, the query is sent to the geocontext retriever agent (4).
-
+#highlight("TODO: mieux expliquer routing et pourquoi comme ça")
 With the aim of the user's query now clearly defined, the next step is to address any ambiguities or missing information with the clarification agent.
 
 ==== Clarify Query
@@ -672,8 +672,25 @@ With the relevant guidelines retrieved and rescaled, the query is routed to the 
 #highlight("TODO: inclure prompts dans bibliographie")
 
 ==== Strategy Planner
-// fan in des deux agents précédents
+
+At this stage, every bit of information that is needed to establish a proper energy planning strategy is gathered into the conversational context (#ref(<conversational_state>)).
+The user's prompt has been broken down and analyzed with relevant data points and guidelines retrieved and processed.
+
+In the #ref(<intent_router>, supplement: it => it.body) section, the _intent_ field was defined to either "factual" or "actionable".
+This distinction is crucial as it allows the agent to differentiate between the two tasks, the latter being more expensive because of the extra complexity of correlating guidelines and data to concretize a strategy.
+
+Factual queries still contribute to the final goal of establishing an energy planning strategy as it enables users to assess the profile of the municipality and subsequently refine and guide the system into a more effective and informed strategy.
+
+As defined in the same section, the local database stores user feedback and corrections to past queries.
+The agent retrieves pertinent memories and preferences related to the current query and shapes the response according to those expectations.
+
+Finally,
 // recommendations tools similaires par catégorie
+// interpretation données ?
+#highlight("TODO: inclure prompts actionable et factuel")
+
+// fan in des deux agents précédents
+// memories
 
 ==== Critic
 
@@ -688,6 +705,8 @@ With the relevant guidelines retrieved and rescaled, the query is routed to the 
 
 // données privées ?
 // qualité des données
+// memories et application format
+// interprétation données petits modèles
 // fuzzy search
 
 = Results
