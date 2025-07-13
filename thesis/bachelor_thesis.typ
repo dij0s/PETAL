@@ -364,6 +364,8 @@ By constraining the conversational state and narrowing the scope of each agent, 
 Doing so, it becomes possible to select reasoning models that are better suited to specific tasks while reducing the computational costs.
 
 #figure(image("figs/ai_agent_system_design.svg", height: 7.5cm), caption: "AI agent architecture")<ai_agent_design>
+#highlight("TODO: ajouter flèche stream response clarificaction et answer")
+#highlight("TODO: renommer critic")
 #highlight("TODO: séparer proprement les API geoadmin dans un bloc external services?")
 #highlight("TODO: remplacer par un schéma de FSM classique??")
 
@@ -676,21 +678,22 @@ With the relevant guidelines retrieved and rescaled, the query is routed to the 
 At this stage, every bit of information that is needed to establish a proper energy planning strategy is gathered into the conversational context (#ref(<conversational_state>)).
 The user's prompt has been broken down and analyzed with relevant data points and guidelines retrieved and processed.
 
-In the #ref(<intent_router>, supplement: it => it.body) section, the _intent_ field was defined to either "factual" or "actionable".
+In the #ref(<intent_router>, supplement: it => it.body) section, the _intent_ field is defined to either be factual (requesting data) or actionable (seeking planning guidance, recommendations, or strategic advice).
 This distinction is crucial as it allows the agent to differentiate between the two tasks, the latter being more expensive because of the extra complexity of correlating guidelines and data to concretize a strategy.
 
 Factual queries still contribute to the final goal of establishing an energy planning strategy as it enables users to assess the profile of the municipality and subsequently refine and guide the system into a more effective and informed strategy.
 
 As defined in the same section, the local database stores user feedback and corrections to past queries.
-The agent retrieves pertinent memories and preferences related to the current query and shapes the response according to those expectations.
+The agent retrieves pertinent preferences and memories related to the current query and shapes the response according to those expectations.
+Like tools and guidelines, memories are stored as embeddings and are therefore retrieved based on semantic similarity.
 
-Finally,
-// recommendations tools similaires par catégorie
-// interpretation données ?
-#highlight("TODO: inclure prompts actionable et factuel")
+Finally, similar tools to those retrieved by the geocontext retriever agent are retrieved in order to generate tailored recommendations.
+The selection of similar tools is based on their categorization, as defined in #ref(<datasets_table>). This encourages assessing the full spectrum of available data for any municipality.
+#highlight("TODO: inclure prompts actionable et factuel et expliquer comment leverage les guidelines")
 
-// fan in des deux agents précédents
-// memories
+The language model response, which is the answer to the user's query, is streamed to the web interface.
+
+While the user examines the response, it is sent to critic agent (#ref(<ai_agent_design>), transition 8), which will evaluate its quality and act accordingly.
 
 ==== Critic
 
@@ -703,6 +706,7 @@ Finally,
 === Limitations
 #highlight("TODO: en faire un chapitre par composant au dessus ou en dehors de la partie méthodologie?")
 
+// llm incapable de faire des maths
 // données privées ?
 // qualité des données
 // memories et application format
