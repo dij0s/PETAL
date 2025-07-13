@@ -715,12 +715,35 @@ A maximum of three attempts are allowed before the workflow is not restarted any
 
 At this point, the user's request has been answered and the system is ready to receive a new request, refining the proposed energy planning.
 
+This concludes the design and implementation of the AI agent responsible for energy planning.
+
 === Web Interface
 
+Designing and providing an interface that is user-friendly and convenient for the user to interact with the AI system is key to the adoption of the product.
+The exactitude and accuracy of the AI system weighs heavily on the user's satisfaction but so does the user experience and presentation that is offered.
+
+In recent times, the tendency shifted from traditional desktop applications to web-based interfaces, offering greater accessibility for portable devices.
+
+On the development side, the interface was implemented using React#footnote("https://react.dev/"), a popular JavaScript framework released by Facebook (now Meta) in 2013. React offers a declarative and efficient way to build user interfaces, offering a clean and modular approach using components.
+
+In reality, the choice of framework is not particularly critical in this context. Dozens of frameworks claim to revolutionize the way developers build web applications, but all lead to similar outcomes despite different approaches and philosophies. Past experiences with React and its ecosystem made it a comfortable and efficient choice for this project.
+
+#highlight("TODO: parler vite, bun et docker???")
+
+What is more important is paradigm of presentation is driven
+
+// parler pas de support mobile
+// parler techstack
+
 // overview
-// streaming et map (présentation)
+// ux
+// sse
+// map
 // faire un graphe des événements ?
-// spécificités (persistance, heuristique consommation...)
+// concept de persistance
+// mise en évidence datasources augmente confiance
+// heurisitque consommation
+#highlight("TODO: mettre des screenshots?")
 
 === Limitations
 #highlight("TODO: en faire un chapitre par composant au dessus ou en dehors de la partie méthodologie?")
@@ -732,11 +755,13 @@ At this point, the user's request has been answered and the system is ready to r
 // qualité des données
 // memories et application format
 // interprétation données petits modèles
-// fuzzy search
+// fuzzy search <- amélioration plutôt que limitation
 
 = Results
 
+// citer date version code utilisée pour comparer expert et llm
 // parler difficulté llm assigner un score, alors tabelle prédéfinie
+// impossible de comparer les résultats avec état de l'art car pas même critères
 
 = Discussion
 
