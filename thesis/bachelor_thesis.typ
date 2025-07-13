@@ -673,7 +673,7 @@ With the relevant guidelines retrieved and rescaled, the query is routed to the 
 #highlight("TODO: citer comment traiter données communales")
 #highlight("TODO: inclure prompts dans bibliographie")
 
-==== Strategy Planner
+==== Strategy Planner <strategy_planner>
 
 At this stage, every bit of information that is needed to establish a proper energy planning strategy is gathered into the conversational context (#ref(<conversational_state>)).
 The user's prompt has been broken down and analyzed with relevant data points and guidelines retrieved and processed.
@@ -697,23 +697,46 @@ While the user examines the response, it is sent to critic agent (#ref(<ai_agent
 
 ==== Critic
 
+One of the main challenges in designing a conversational AI solution for real-world problems is ensuring the accuracy and relevancy of the response.
+Decomposing the complex task of energy planning into smaller steps, each addressed by a dedicated agent, allows for specialized solutions, leading to more precise and context-aware interactions.
+
+Inaccurate responses issue from different factors such as incorrect data or lack of context.
+In this work, an element that may be even more impactful is the interpretation of this same context, curated by the different agents involved in the workflow.
+These interpretations errors typically include:
+- Mathematical errors where data points are added or subtracted to support insights.
+- Flawed conclusions from different metrics incorrectly treated or incorrect assumptions.
+
+As such, a language model is prompted the response generated in the <strategy_planner> with the data points and guidelines that shaped it.
+Its output is a boolean value that indicates whether the response has been interpreted correctly based on the rules above.
+#highlight("TODO: insérer prompt")
+
+If it the response is not satisfactory, the complete process is restarted as if the user had just prompted the system (#ref(<ai_agent_design>), transition 9).
+A maximum of three attempts are allowed before the workflow is not restarted anymore.
+
+At this point, the user's request has been answered and the system is ready to receive a new request, refining the proposed energy planning.
+
 === Web Interface
 
 // overview
 // streaming et map (présentation)
+// faire un graphe des événements ?
 // spécificités (persistance, heuristique consommation...)
 
 === Limitations
 #highlight("TODO: en faire un chapitre par composant au dessus ou en dehors de la partie méthodologie?")
 
+// CITER DES EXAMPLES ICI MGL
 // llm incapable de faire des maths
 // données privées ?
+// interprétation données
 // qualité des données
 // memories et application format
 // interprétation données petits modèles
 // fuzzy search
 
 = Results
+
+// parler difficulté llm assigner un score, alors tabelle prédéfinie
 
 = Discussion
 
