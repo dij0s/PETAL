@@ -153,7 +153,8 @@ class Benchmark:
         - Language inconsistencies
 
         SCORING PHILOSOPHY:
-        - Score 1-2: Major errors, misleading advice, fundamental misunderstanding, or wrong methodology
+        - Score 1: Fundamental misunderstanding, major errors, or advice that is actively misleading or harmful.
+        - Score 2: Wrong methodology, significant mistakes, or advice that is not actionable or fails basic requirements.
         - Score 3: Basic competence but significant limitations, generic advice, or methodology gaps
         - Score 4: Good quality with minor issues, genuinely useful for municipal planning, correct methodology
         - Score 5: Exceptional - accurate, specific, actionable, demonstrates deep understanding, perfect methodology alignment

@@ -45,7 +45,7 @@ The abstract of a bachelor thesis should provide a concise summary of the entire
 - The key results or findings.
 - The main conclusion or implications of the work.
 
-The abstract should be self-contained, clear, and usually does not exceed 250–300 words. It allows readers to quickly understand the purpose and outcomes of the thesis without reading the full document.
+The abstract should be self-contained, clear, and usually does not exceed 250-300 words. It allows readers to quickly understand the purpose and outcomes of the thesis without reading the full document.
 
 The abstract *must* be written in both French and English.
 
@@ -126,6 +126,7 @@ This structure may vary depending on the field of study, but these elements are 
 = Introduction
 
 #highlight("TODO: diviser en sections? contexte, problématique...")
+#highlight("TODO: METTRE UNE AI NOTICE!!")
 
 Over the past few decades, society has been sensitized and slowly became more aware of significant problems that we are likely to face in the coming years.
 
@@ -168,7 +169,9 @@ User behavior is analyzed to takeaway user preferences which gradually adapt the
   "TODO: provide a brief overview of the structure of the thesis (plan), add reference to extra scope in methodology?",
 )
 
-= State of the Art
+= State of the Art <state_of_art>
+
+#highlight("TODO: METTRE UNE AI NOTICE ET CHECKER VIM TEMP!!")
 
 Large language models are highly effective tools for natural language processing and offer various opportunities to enhance our day-to-day tasks and workflows.
 Ever since they have been introduced to the public, they have been adopted across a wide range of fields and applications.
@@ -228,17 +231,15 @@ Hence, assisting users in energy planning requires a solution that can gather re
 Besides that, it had been requested that the user interface has a map showcasing the assessed data points within the municipality as well as for the AI to be able to _remember_ the user's preferences and past interactions to have the answer better fit what the user expects.
 
 These initial requirements established the basis for the project. As the solution was evaluated with supervisors on a weekly basis, additional requirements emerged gradually shaping the solution to enhance the overall solution and meet the needs of energy planning.
-
+#highlight("TODO: METTRE UNE AI NOTICE ET CHECKER VIM TEMP!!")
 #highlight("TODO: revoir la dernière phrase, ajouter des autres requirements ?")
-
-These requirements are summarized in the #ref(<requirements_table>) below:
 
 #show table.cell.where(y: 0): strong
 #show figure: set block(breakable: true)
 #set table(stroke: (x, y) => if y == 0 {
   (bottom: 0.7pt + black)
 })
-
+These requirements are summarized in the #ref(<requirements_table>) below:
 #figure(
   table(
     columns: 3,
@@ -343,7 +344,6 @@ Hence, when the entire conversation history is provided to the model, important 
 
 Considering this, a more efficient approach is proposed, relying on a single key assumption: each conversation focuses exclusively on energy planning for one municipality at a time.
 Accordingly, the conversational context is modeled as a single object that is updated at every turn. It is defined in the codeblock #ref(<conversational_state>) :
-
 #let destructured_state = read("code/destructured_state.py")
 #figure(
   code()[
@@ -378,7 +378,7 @@ This graph-based structure brings determinism to the system’s behavior as the 
 
 All of the available multi-agent AI frameworks are relatively novel and in constant evolution. LangGraph benefits from being built on top of the already renowned LangChain#footnote("https://www.langchain.com/") ecosystem which adds to its reliability and ease of integration with other technologies.
 Pydantic’s type safety will still be implemented within the project to enhance data validation and error handling.
-
+#highlight("TODO: METTRE UNE AI NOTICE ET CHECKER VIM TEMP!!")
 #highlight("TODO: mettre la techstack dans un chapitre différent??")
 
 The main responsibility of each agent is as follows:
@@ -448,7 +448,7 @@ Finally, the query is routed according to the #ref(<ai_agent_design>):
 With the aim of the user's query now clearly defined, the next step is to address any ambiguities or missing information with the clarification agent.
 
 ==== Clarify Query
-
+#highlight("TODO: METTRE UNE AI NOTICE ET CHECKER VIM TEMP ET INCLURE PROMPT ENGINEERING POUR AGENTS DEDANS!!")
 Clarifying and resolving vagueness in the user's query is essential to better understand the fundamental intent and provide an aligned response.
 
 With the output of the intent router agent properly defined, the two cases which lead to the need for clarification are either an explicit request for clarification due to ambiguity or missing information.
@@ -491,9 +491,8 @@ Consequently, identifying them requires breaking down the search area into small
 
 This has been implemented by first clipping settlements and centres of larger cities onto the municipality's geometry, optimizing the search area, and applying a spatial tiling on top. Different layers obviously require different tiling sizes, depending on the number and resolution of features.
 
-The #ref(<datasets_table>) presents the data sources incorporated in the solution:
-
 #set table(fill: (x, y) => if calc.odd(y) and x != 0 { rgb("EAF2F5") })
+The #ref(<datasets_table>) presents the data sources incorporated in the solution:
 #figure(
   rotate(-90deg, reflow: true, table(
     columns: 5,
@@ -598,7 +597,7 @@ Finally, the quartile coefficient of dispersion is measured against the distribu
 As such, uniform tools are provided to a language model, which is then prompted to choose the appropriate ones.
 
 This approach reduces the overall computational cost while increasing the quality of tool selection.
-
+#highlight("TODO: METTRE UNE AI NOTICE ET CHECKER VIM TEMP!!")
 #highlight("TODO: référencer cosine, bibliographie")
 #highlight("TODO: référencer coefficient correctement, bibliographie")
 
@@ -622,7 +621,7 @@ Once the relevant data is gathered, the next stage is for the strategy planner a
 
 ==== Guidelines Retriever
 
-The sole difference between enumerating the data, as collected in the geocontext retriever, and proper energy planning lies in the measures that are taken in response to identified issues. Those measures are conditioned by guidelines, broken down into multiple sources:
+The sole difference between enumerating the data, as collected in the geocontext retriever, and proper energy planning lies in the measures that are taken in response to identified issues. Those measures are conditioned by guidelines, broken down into multiple sources.
 
 The primary document called _Vision 2060 et objectifs 2035_ has been adopted in 2019 and sets intermediate targets for 2035 that take into account the energetical landscape of Valais/Wallis, current knowledge, as well as federal energy and climate policies with the ultimate goal of achieving a 100% renewable and indigenous energy supply in 2060.
 
@@ -752,7 +751,7 @@ On the implementation side, OpenLayers#footnote("https://openlayers.org/") is a 
 Native support for Web Map Tile Service (WMTS) enables the integration of tiled map services such as those provided by GeoAdmin. These tiles are high-resolution images enabling efficient and scalable map rendering by only loading visible portions of the map. GeoAdmin notably makes use of OpenLayers in their services.
 #highlight("TODO: citer WMTS correctement")
 
-With the ultimate goal of assisting users into energy planning, downplaying the importance of durability aspects of the solution would be a significant oversight.
+With the ultimate goal of assisting users i energy planning, downplaying the importance of durability aspects of the solution would be a significant oversight.
 AI progress is often celebrated, yet the energetical impact of these systems is frequently overlooked.
 While a complete evaluation of the energetical footprint of the solution is clearly beyond this work's scope, a simple approach has been implemented to sensitize users to the matter.
 #highlight("TODO: en faire un sous-chapitre?")
@@ -773,6 +772,7 @@ To sum up, the token utilization of users is tracked in the form of three metric
 When users prompt the AI, the cumulative token count for that run is monitored. This value is then compared against the user's sampled token utilization distribution using a z-score to measure how far the new usage deviates from the user's average.
 Accordingly, the token usage of the current prompt is categorized into one of the predefined categories: "bad", "average", or "good" ; each associated with a color pelet displayed in the interface.
 #highlight("TODO: mieux définir zscore??")
+#highlight("TODO: METTRE UNE AI NOTICE!!")
 #highlight("TODO: mettre les maths?")
 
 Moreover, an energy consumption analogy is presented alongside the pelet.
@@ -869,15 +869,120 @@ In summary, these points illustrate some of the current limitations inherent to 
 
 = Results
 
+This chapter presents the empirical findings from the assessment of the implemented system.
+A structured testing methodology is established, facilitating the evaluation of the solution's primary objective: assisting users in municipal energy planning.
 
+To begin, it is essential to establish the methodology and criteria used to evaluate the system's performance.
 
-// décrire dataset et but, attention pas questions conversationnelles
-// argumenter taille dataset
+There is no definitive ground truth in energy planning, making it difficult to quantify the accuracy of the reported recommendations and strategies.
+Consequently, qualitative observations provide valuable insight into the practical effectiveness of the solution.
+
+These insights are provided by two sources:
+- An expert assessment, provided by Prof. Jessen Page
+- An automated evaluation using a LLM-as-a-judge benchmarking framework
+
+The latter leverages language models to mimic expert judgment, assessing the response against a set of predefined criteria.
+This approach provides a scalable and consistent alternative to human evaluation.
+
+Unlike human experts which may emphasize different aspects depending on their interpretation or even mood, language model evaluation is driven by clear rules, ensuring consistency and uniformity across all cases. The G-Eval, as introduced in the #ref(<state_of_art>, supplement: it => it.body) section, metric summarizes the score of the criteria and quantifies the quality of the response.
+
+The criteria are defined as follows:
+1. Data interpretation: assesses whether the response uses only relevant data, maintains mathematical accuracy, distinguishes energy types, preserves units, and handles zero values correctly.
+2. Methodology alignment:
+  - For factual queries: checks clear data analysis, insight identification and avoidance of proper plannification.
+  - For actionable queries: evaluates structured planning, guidelines integration and expert positioning.
+3. Municipal relevance: rates feasibility at local scale, direct query alignment, consideration of local context and actionable next steps.
+4. Technical compliance: checks language consistency, correct structure, citation format, and completeness of required sections.
+
+And evaluated according to the following scale, presented in #ref(<scoring_grid_llm>):
+#set table(fill: (x, y) => if calc.odd(y) { rgb("F7F9FA") })
+#figure(
+  table(
+    columns: 2,
+    table.header([Score], [Description]),
+    [1], [Fundamental misunderstanding, major errors, or advice that is actively misleading or harmful.],
+    [2], [Wrong methodology, significant mistakes, or advice that is not actionable or fails basic requirements.],
+    [3], [Basic competence, but significant limitations or generic advice.],
+    [4], [Good quality, minor issues, genuinely useful for municipal planning.],
+    [5], [Exceptional—accurate, specific, actionable, perfect methodology alignment.],
+  ),
+  caption: "Ordinal evaluation grid for criteria in the benchmarking framework",
+) <scoring_grid_llm>
+
+Finally, the individual scores are aggregated to a single score using a weighted average.
+
+#highlight("TODO: donner prompt évaluation benchmark framework")
+
+The former human insight is naturally shaped by the domain knowledge and nuanced judgment of the expert, leading to a more informed assessment.
+
+While the automated evaluation is constrained to a rigid scoring grid, the expert evaluation is richer as observations extend beyond these predefined criteria and reflects interpreted, context-specific priorities.
+As such, it is not feasible to enforce strict scoring rules to the expert.
+
+However, the grid presented in #ref(<scoring_grid_expert>) acts as a reference point and guides the nuanced and _unlimited_ qualitative feedback to a single quantitative score, allowing for further comparison and analysis:
+#figure(
+  table(
+    columns: 3,
+    table.header([Score], [Label], [Description]),
+    [1],
+    [Not relevant],
+    [Information is completely off-topic ; does not answer the question, is generic or incoherent in the context of energy planning.],
+
+    [2],
+    [Weakly relevant],
+    [Some elements are related to the subject ; the response is mostly vague, imprecise, or off-topic. It could mislead an expert.],
+
+    [3],
+    [Moderately relevant],
+    [Response is generally on theme but remains partial, imprecise, or incomplete ; requires significant corrections to be useful.],
+
+    [4],
+    [Relevant],
+    [Information is correct, targeted, and generally adapted to the question ; minor adjustments may be needed but it is usable for planning.],
+
+    [5],
+    [Highly relevant],
+    [Information is perfectly aligned with the question, complete and contextualized ; no corrections are necessary and it is ready to be used as-is for decision-making.],
+  ),
+  caption: "Ordinal evaluation grid for the expert",
+) <scoring_grid_expert>
+
+It is important to note that the G-eval and expert scores cannot be compared, each being grounded in a distinct evaluation framework.
+
+G-eval offers a standardized framework with set evaluation criteria, allowing for consistent and reliable benchmarking. This enables the comparison of different solutions under identical conditions.
+
+By presenting both evaluation methods, the objectivity of an automated scoring is complemented by the more practice-oriented expert judgment
+This dual approach treats both methodological rigor and contextual relevance to assess the quality of the solution.
+
+With the evaluation frameworks introduced, the next step is to define the test dataset.
+This dataset consists of nine prompts and establishes the basis for assessing the performance of the solution:
+- _What is the current energy consumption per energy vector and per consumer type in Sion ?_
+- _How is is this demand expected to evolve until 2050 ?_
+- _What energy efficiency measures should be considered to reduce this consumption ?_
+- _Can you tell me the amount of CO2 associated to this demand ?_
+- _What are potential sources of renewable energy in Sion (GWh/an for each source) ?_
+- _How much of this potential is currently exploited ?_
+- _How much is expected to be exploited in the future ?_
+- _Can you provide me with a map of the electricity grid and potential PV production on roofs and other surfaces ?_
+- _Can you provide me with a map of heat/cold demand density and potential sources of heat/cold ?_
+
+The dataset is deliberately designed and aligned within the specific scope of available data sources, inherently restricting its size.
+It is crafted by Prof. Jessen Page to support energy planning for the municipality of Sion.
+
+With everything defined, the results are presented in the tables below.
+#highlight("TODO: mieux introduire ?")
+
 // citer date version code utilisée pour comparer expert et llm
-// parler difficulté llm assigner un score, alors tabelle prédéfinie, revoir scores
-// impossible de comparer les résultats avec état de l'art car pas même critères
+// présenter scores par différentes configurations, petites et grandes
+// montrer scores par type de query, factual et actionable
+// analyse temps par query
+
+#highlight("TODO: break down en plusieurs sections?")
 
 = Discussion
+
+// détailler résultats section ici haut
+
+// futur work ici ou autre section ?
 // DONNEES PRIVEES?
 // amélioration graphe
 // MCP
