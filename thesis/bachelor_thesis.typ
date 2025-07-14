@@ -162,7 +162,7 @@ Certain measures are taken to ensure the privacy and security of data that would
 
 The solution is designed to offer a user-friendly interface from which users can interact with the system in a conversational manner and visualize a map of the municipality with different layers.
 
-User behaviour is analyzed to takeaway user preferences which gradually adapt the answers to better meet the user expectations.
+User behavior is analyzed to takeaway user preferences which gradually adapt the answers to better meet the user expectations.
 
 #highlight(
   "TODO: provide a brief overview of the structure of the thesis (plan), add reference to extra scope in methodology?",
@@ -331,7 +331,7 @@ Having established a high-level understanding of the system's architecture, the 
 In recent months, AI agents have gained traction with the rapid advancement of AI technologies and the increasing demand for personalized and intelligent services.
 As a result, the term "AI agent" has become a buzzword, with product designers frequently applying the label to a wide range of technologies.
 
-Most definitions agree that the key behaviour that distinguishes AI agents from other solutions is their degree of autonomy as they are able to operate and make decisions independently to achieve a set goal.
+Most definitions agree that the key behavior that distinguishes AI agents from other solutions is their degree of autonomy as they are able to operate and make decisions independently to achieve a set goal.
 The complete solution whose sole task is urban energy planning aligns with this definition, as do each of its individual components. Therefore, the term "AI agent" will be used to describe both the entire system and its subsystems.
 
 Human conversations rely on context and prior knowledge and so does the system's architecture. To deliver a conversational experience, it is essential that the architecture is built to effectively preserve and re-use this context throughout the discussion.
@@ -374,7 +374,7 @@ The architecture in the #ref(<ai_agent_design>) above is modeled after a Finite 
 #highlight("TODO: enlever notion finite state machine?")
 
 On the implementation-side, LangGraph#footnote("https://www.langchain.com/langgraph"), an open-source Python framework, is used to implement the AI agent architecture. Unlike linear pipelines, LangGraph uses a graph abstraction by default, which is particularly well-suited for this state machine architecture.
-This graph-based structure brings determinism to the system’s behaviour as the flow between agents is defined by the architecture itself, rather than being dynamically determined by agent-to-agent conversations as in frameworks like Microsoft's AutoGen#footnote("https://www.microsoft.com/en-us/research/project/autogen/"). Another framework that had been considered was PydanticAI#footnote("https://ai.pydantic.dev/") which offers a structured, type-safe approach to building agent systems by leveraging Pydantic models for inter-agent communication and behaviour definitions. However, it lacks the built-in support for complex state transitions.
+This graph-based structure brings determinism to the system’s behavior as the flow between agents is defined by the architecture itself, rather than being dynamically determined by agent-to-agent conversations as in frameworks like Microsoft's AutoGen#footnote("https://www.microsoft.com/en-us/research/project/autogen/"). Another framework that had been considered was PydanticAI#footnote("https://ai.pydantic.dev/") which offers a structured, type-safe approach to building agent systems by leveraging Pydantic models for inter-agent communication and behavior definitions. However, it lacks the built-in support for complex state transitions.
 
 All of the available multi-agent AI frameworks are relatively novel and in constant evolution. LangGraph benefits from being built on top of the already renowned LangChain#footnote("https://www.langchain.com/") ecosystem which adds to its reliability and ease of integration with other technologies.
 Pydantic’s type safety will still be implemented within the project to enhance data validation and error handling.
@@ -421,12 +421,13 @@ Once the municipality is provided, for example, it is not needed anymore as the 
 On the other hand, when a request treats a different municipality, both the _context_tools_ and _context_constraints_ defined in #ref(<conversational_state>) are reset. This way, the data associated with the previously discussed municipality is cleared.
 To ensure correct implementation, whenever a request concerns a different municipality, both the _context_tools_ and _context_constraints_ defined in #ref(<conversational_state>) are reset. This means the geospatial data and guidelines previously associated with the conversation are cleared.
 
-On top of that, user-provided feedback and corrections shape the system's behaviour allowing it to adapt to the user's preferences.
+On top of that, user-provided feedback and corrections shape the system's behavior allowing it to adapt to the user's preferences.
 When there is a need for memoization, the system stores both the previous query (the _corrected_) and the current query (the _correctee_), in the database.
 
 #highlight("TODO: parler que store parallèle ??")
 #highlight("TODO: parler quelque part d'async??")
 #highlight("TODO: schéma avec flux entiers, database, ...")
+#highlight("TODO: expliquer principe few shots prompting")
 #highlight("TODO: décire que local database redis...")
 #highlight("TODO: mettre au format UML??")
 #highlight("TODO: parler au dessus coûte cher de faire un appel LLM")
@@ -696,7 +697,7 @@ The language model response, which is the answer to the user's query, is streame
 
 While the user examines the response, it is sent to critic agent (#ref(<ai_agent_design>), transition 8), which will evaluate its quality and act accordingly.
 
-==== Critic
+==== Critic <critic>
 
 One of the main challenges in designing a conversational AI solution for real-world problems is ensuring the accuracy and relevancy of the response.
 Decomposing the complex task of energy planning into smaller steps, each addressed by a dedicated agent, allows for specialized solutions, leading to more precise and context-aware interactions.
@@ -801,50 +802,93 @@ These constraints often stem from underlying assumptions made during the design 
 Identifying them is a first step towards a self-evaluation of the solution. Please note that the limitations outlined in this section are not exhaustive.
 
 When integrating external services and data sources, it is very difficult to assess the quality and exactitude of the data.
-This problem leads to incorrect conclusions and decisions reported by the system, degrading the performance and reliability of the system.
+Inaccuracies lead to incorrect interpretations and conclusions reported by the system, degrading the performance and reliability of the system.
 
-The various offices referenced in the #ref(<geocontext_retriever>, supplement: it => it.body) section, commissioned to retrieve and publish data, address these issues by assessing the quality and plausibility
+The various offices referenced in the #ref(<geocontext_retriever>, supplement: it => it.body) section, commissioned to retrieve and publish data, address these issues by implementing different quality assessment procedures.
 
+The SFOE, for example, only tolerates a small proportion of errors and gaps in the data they collect#footnote("https://www.bfs.admin.ch/bfs/de/home/register/personenregister/registerharmonisierung/qualitaet-datenlieferung.html").
 
-The data originates from various offices commissioned by the Confederation:
-- Swiss Federal Office of Energy (SFOE)
-- Federal Office for Spatial Development (ARE)
-- Federal Office of Topography (swisstopo)
-- Federal Office for Agriculture (FOAG)
-- Federal Office for the Environment (FOEN)
+During the development of the solution, one such observation was made.
+When assessing the energy production of waste incineration plants, both the electricity and heat production are reported.
+In the municipality of Sion (#ref(<datasets_table>)), the values that are reported for the waste treatment plant of central Valais/Wallis (UTO, now Enevi#footnote("https://www.enevi.ch/fr")) are those of the year 2017.
 
+These outdated values surely lead to inexact deductions when establishing the profile and strategy of a municipality.
+Establishing long-term roadmaps and strategies based on outdated data can surely lead to inaccurate predictions and ineffective planning.
 
-Incorrect data can lead to incorrect conclusions and decisions.
-This is because the data may be incomplete, inconsistent, or biased, and the source may not be reliable or trustworthy.
+It is virtually impossible to estimate the full extent of inexactitudes and underlying issues within the data. Therefore, the sole solution is to place trust in these organizations.
 
+Besides that, the interpretation that is made of the data is as important as its quality. Poor understanding may promote false biases and false deductions.
 
+In this work, the solution was organized around agents, each responsible for specific tasks. As such, smaller reasoning language models were leveraged to reduce the computational cost of the system.
+However, a bigger, more capable model was used in the strategy planner agent.
 
-Biased or untrustworthy data can lead to incorrect conclusions and decisions.
-This is because the data may be incomplete, inconsistent, or biased, and the source may not be reliable or trustworthy.
+Although not quantified in this context, larger models are generally better at processing complex accumulated context and providing more coherent interpretations.
+Recent research highlights that larger language models demonstrate superior emergent reasoning and contextual integration abilities.
+This is shown in the paper _Emergent Abilities of Large Language Models_, published in the _Transactions of Machine Learning Research_, in 2022.
+These capabilities are relevant for the strategy planner agent which must synthesize large context to deduce energy planning insights and recommendations.
+#highlight("TODO: citer proprement")
 
-// CITER DES EXAMPLES ICI MGL
-// qualité des données
-// interprétation données petits modèles
-// memories et application format
-// llm incapable de faire des maths -> paradigm coding
-// support mobile
-// DONNES PRIVEES?
+To support this, greater models run on _Calypso_, a sandbox infrastructure designed and reserved for students of the bachelor program.
+Nevertheless, the largest model that fits on this infrastructure (around 8 billion parameters) remains relatively small compared to state-of-the-art large language models (>150 billion parameters).
+Exploring the use of -_really_- large language models in future work could yield improvements in interpretation and overall quality of the system.
+#highlight("TODO: mettre un exemple prompt mixin résutlats??")
+
+Furthermore, a strong limitation of the solution is the inability of the user to provide and induce bias in the system#footnote("While no extensive jailbreaking or bias testing was conducted, all attempts made during the development process to introduce bias into the system were unsuccessful.").
+
+This might be seen as a good thing, as it guarantees consistency in the output but this also means that the system is less flexible and adaptable to the individual preferences, explained in the #ref(<intent_router>, supplement: it => it.body) section.
+While this ensures consistent output, it also reduces the flexibility and adaptability of the system to put into service all user preferences.
+
+These instructions are distinguished into two categories: presentation directives (1) and custom data instructions (2).
+
+Presentation directives define how the data should be formatted (table, bullet points...) and which aspects of the data should be prioritized or highlighted. This structures the response and emphasizes specific details that are key to the users.
+
+Custom data instructions, on the other hand, attempt to substitute the official data sources retrieved by the system with user-provided knowledge.
+Informed users may provide more accurate and precise figures regarding the datasets referenced in #ref(<datasets_table>) but their contributions are completely ignored as the solution prioritizes its own retrieved data.
+#highlight("TODO: mettre un exemple de bias data qui marche pas")
+
+The system is guided by the different prompts to strictly operate based on the workflow defined in #ref(<ai_agent_design>) and offer assistance in energy planning tasks.
+Providing more detailed instructions in the response generation prompt may enable this behavior.
+#highlight("TODO: parler qqepart de prompt engineering?")
+
+Finally, a stronger limitation is induced by the choice of agentic paradigm.
+Lately, coding agents, AI agents capable of autonomously generating and executing code, have gained popularity.
+
+Leveraging them broadens the scope of tasks that can be handled by the agents. General use cases for these agents include data processing and analysis, interaction with APIs and arithmetics.
+The retrieveal, processing and aggregation of the data sources presented in the #ref(<geocontext_retriever>, supplement: it => it.body) section would be an excellent application of their capabilities.
+
+The classic agent architecture adopted in this work ensures a more transparent and traceable workflow where the role and interface of each agent is clearly defined.
+While this design choice facilitates maintainability and allows for a more reliable and structured handling of complex geospatial data, it would still be interesting to explore the paradigm shift towards coding agents.
+
+Outside of the data retrieval and processing, these agents would greatly enhance the critic of the system's response (#ref(<critic>, supplement: it => it.body)).
+A typical energy profile, including relevant indicators from the datasets in #ref(<datasets_table>) could be pre-defined and, for example, standardized to a per-resident basis.
+
+By doing so, the agent could evaluate the accuracy of the values presented in the energy planning report, converting them to the same reference scale and comparing them against the average profile.
+This would enable the identification of subtle inconsistencies, leading to a more robust and reliable implementation.
+
+In summary, these points illustrate some of the current limitations inherent to the system. The following chapter presents the results obtained from the implemented solution.
 
 = Results
 
+
+
+// décrire dataset et but, attention pas questions conversationnelles
+// argumenter taille dataset
 // citer date version code utilisée pour comparer expert et llm
-// parler difficulté llm assigner un score, alors tabelle prédéfinie
+// parler difficulté llm assigner un score, alors tabelle prédéfinie, revoir scores
 // impossible de comparer les résultats avec état de l'art car pas même critères
 
 = Discussion
-
-= Conclusion
+// DONNEES PRIVEES?
 // amélioration graphe
 // MCP
 // train classificateur guidelines, fine tune, ...
 // train classificateur intent
 // fuzzy search <- amélioration plutôt que limitation
+// support mobile
 // EVALUER LES OBJECTIFS DU TRAVAIL
+
+
+= Conclusion
 
 #pagebreak()
 #heavy-title(i18n(doc_language, "bibliography-title"), mult: 1, top: 0.5em, bottom: 0.3em)
