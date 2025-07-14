@@ -743,22 +743,22 @@ The application being event-driven, SSE was chosen over classic polling mechanis
 On top of that, the use-case of energy planning for municipalities greatly benefits from a map, displaying the assessed data points.
 This functionality recovers a problem covered in the #ref(<geocontext_retriever>, supplement: it => it.body) section: the loss of information due to aggregation.
 
-All datasets referenced in #ref(<datasets_table>) provide layers, along with their discretized features. Interpreting them visually preserves the local variation and allows for a more nuanced understanding of the reported scalar values.
+All datasets referenced in #ref(<datasets_table>) provide layers, along with their discretized features. Interpreting them visually preserves the local variation and allows for a more nuanced understanding of the reported aggregated values.
 
-Aggregated data points and their sources are presented in the interface, allowing users to assess and verify the accuracy of the reported energy planning. This transparency is offered to further build user trust in the solution.
+These data points and their sources are also presented in the interface, allowing users to assess and verify the accuracy of the reported energy planning. This transparency is offered to further build user trust in the solution.
 
-Implementation-wise, OpenLayers#footnote("https://openlayers.org/") is a robust and flexible open-source library for building interactive web maps.
+On the implementation side, OpenLayers#footnote("https://openlayers.org/") is a robust and flexible open-source library for building interactive web maps.
 Native support for Web Map Tile Service (WMTS) enables the integration of tiled map services such as those provided by GeoAdmin. These tiles are high-resolution images enabling efficient and scalable map rendering by only loading visible portions of the map. GeoAdmin notably makes use of OpenLayers in their services.
 #highlight("TODO: citer WMTS correctement")
 
 With the ultimate goal of assisting users into energy planning, downplaying the importance of durability aspects of the solution would be a significant oversight.
-AI progress is often celebrated, yet the energy costs of these systems are frequently overlooked.
-While a complete evaluation of the energetical footprint of the solution is clearly beyond this work's scope, a simple approach has been implemented to sensitize users.
+AI progress is often celebrated, yet the energetical impact of these systems is frequently overlooked.
+While a complete evaluation of the energetical footprint of the solution is clearly beyond this work's scope, a simple approach has been implemented to sensitize users to the matter.
 #highlight("TODO: en faire un sous-chapitre?")
 
 For each user prompt, the cumulated number of tokens that are input and output from the agents in #ref(<ai_agent_design>) is recorded.
 
-The cumulative count of prompts and average token count per prompt are calculated and stored in the database.
+The cumulative count of prompts and average token count per prompt are incrementally calculated and stored in the database.
 
 Along that, Welford's online algorithm allows for the calculation of the variance, in a single pass.
 It defines a recurrence relation for updating the sum of squared differences from the current mean, allowing to compute the variance incrementally.
@@ -767,7 +767,7 @@ It defines a recurrence relation for updating the sum of squared differences fro
 
 This algorithm is numerically stable and does not require storing all the data points, reducing the memory footprint of the system.
 
-_In fine_, the token utilization of users is tracked in the form of three metrics only: the average token count per prompt (1), the sum of squared differences from the current mean, from which the variance can be computed (2), and the cumulative count of prompts (3).
+To sum up, the token utilization of users is tracked in the form of three metrics only: the average token count per prompt (1), the sum of squared differences from the current mean, from which the variance can be computed (2), and the cumulative count of prompts (3).
 
 When users prompt the AI, the cumulative token count for that run is monitored. This value is then compared against the user's sampled token utilization distribution using a z-score to measure how far the new usage deviates from the user's average.
 Accordingly, the token usage of the current prompt is categorized into one of the predefined categories: "bad", "average", or "good" ; each associated with a color pelet displayed in the interface.
@@ -781,14 +781,14 @@ It is then expressed as the equivalent duration, in minutes, a 10 W LED light bu
 #highlight("TODO: CITER LE PAPIER ET LE METTRE DANS LA BIBLIOGRAPHIE")
 #highlight("TODO: mettre les maths?")
 
-This implementation is strictly meant to raise awareness of the energy consumption of AI usage rather than properly benchmarking it.
+This implementation is strictly meant to raise awareness about the energy consumption associated with AI usage.
 In this solution, requesting factual data from the system is more energy-efficient than inquiring actionable planning.
 This is because factual queries involve fewer agents in the workflow defined in #ref(<ai_agent_design>).
 
 #highlight("TOOD: concept de persistance???")
 #highlight("TODO: mettre des screenshots?")
 
-With that, the implementation details of the web interface are clarified. This highlights its role as being on par with the AI agent itself.
+With that, the implementation details of the web interface are clarified. This highlights its role as being on par with the AI agent solution itself.
 
 === Limitations
 #highlight("TODO: en faire un chapitre par composant au dessus ou en dehors de la partie méthodologie?")
