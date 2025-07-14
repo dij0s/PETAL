@@ -791,17 +791,44 @@ This is because factual queries involve fewer agents in the workflow defined in 
 With that, the implementation details of the web interface are clarified. This highlights its role as being on par with the AI agent solution itself.
 
 === Limitations
+
 #highlight("TODO: en faire un chapitre par composant au dessus ou en dehors de la partie méthodologie?")
+#highlight("TODO: checker orthographe de tout le rapport!!")
+
+Every technical solution, regardless of how well designed and implemented, is subject to different limitations.
+These constraints often stem from underlying assumptions made during the design process or specific implementation details.
+
+Identifying them is a first step towards a self-evaluation of the solution. Please note that the limitations outlined in this section are not exhaustive.
+
+When integrating external services and data sources, it is very difficult to assess the quality and exactitude of the data.
+This problem leads to incorrect conclusions and decisions reported by the system, degrading the performance and reliability of the system.
+
+The various offices referenced in the #ref(<geocontext_retriever>, supplement: it => it.body) section, commissioned to retrieve and publish data, address these issues by assessing the quality and plausibility
+
+
+The data originates from various offices commissioned by the Confederation:
+- Swiss Federal Office of Energy (SFOE)
+- Federal Office for Spatial Development (ARE)
+- Federal Office of Topography (swisstopo)
+- Federal Office for Agriculture (FOAG)
+- Federal Office for the Environment (FOEN)
+
+
+Incorrect data can lead to incorrect conclusions and decisions.
+This is because the data may be incomplete, inconsistent, or biased, and the source may not be reliable or trustworthy.
+
+
+
+Biased or untrustworthy data can lead to incorrect conclusions and decisions.
+This is because the data may be incomplete, inconsistent, or biased, and the source may not be reliable or trustworthy.
 
 // CITER DES EXAMPLES ICI MGL
-// support mobile
-// llm incapable de faire des maths
-// données privées ?
-// interprétation données
 // qualité des données
-// memories et application format
 // interprétation données petits modèles
-// fuzzy search <- amélioration plutôt que limitation
+// memories et application format
+// llm incapable de faire des maths -> paradigm coding
+// support mobile
+// DONNES PRIVEES?
 
 = Results
 
@@ -816,6 +843,8 @@ With that, the implementation details of the web interface are clarified. This h
 // MCP
 // train classificateur guidelines, fine tune, ...
 // train classificateur intent
+// fuzzy search <- amélioration plutôt que limitation
+// EVALUER LES OBJECTIFS DU TRAVAIL
 
 #pagebreak()
 #heavy-title(i18n(doc_language, "bibliography-title"), mult: 1, top: 0.5em, bottom: 0.3em)
