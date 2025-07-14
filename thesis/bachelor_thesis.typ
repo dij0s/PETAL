@@ -403,7 +403,7 @@ Upon receiving a user prompt, the agent analyzes the query to extract its underl
 - The location: the municipality name mentioned in the user request, if available.
 - The aggregated query: a summary that combines all available context from the current conversation and the previous query into a single one.
 - The conversation type: identifies the conversational context ; "new_analysis" (fresh query), "correction_request" (user questions the accuracy of a previous response) or 'follow_up' (user requests additional detail or expansion on the same topic).
-- The need for clarification: defines whether more information is needed to understand what the user wants (e.g., missing location, unclear intent, or vague request).
+- The need for clarification: defines whether more information is needed to understand what users wants (e.g., missing location, unclear intent, or vague request).
 - The needs for memoization: specifies if the user provided explicit preferences, corrections to assumptions, or scope refinements that should be remembered for future queries (for e.g. the format used to summarize the retrieved data or only considering a single aspect from certain datapoints).
 
 Implementation-wise, the output of the language model is constrained to a single Pydantic data schema, _RouterOutput_.
@@ -422,7 +422,7 @@ On the other hand, when a request treats a different municipality, both the _con
 To ensure correct implementation, whenever a request concerns a different municipality, both the _context_tools_ and _context_constraints_ defined in #ref(<conversational_state>) are reset. This means the geospatial data and guidelines previously associated with the conversation are cleared.
 
 On top of that, user-provided feedback and corrections shape the system's behaviour allowing it to adapt to the user's preferences.
-When there is a need for memoization, the system stores both the previous query (the _corrected_) and the current query (the _correctee_) in the user's namespace, in the database.
+When there is a need for memoization, the system stores both the previous query (the _corrected_) and the current query (the _correctee_), in the database.
 
 #highlight("TODO: parler que store parallèle ??")
 #highlight("TODO: parler quelque part d'async??")
@@ -550,6 +550,7 @@ The #ref(<datasets_table>) presents the data sources incorporated in the solutio
 ) <datasets_table>
 
 #highlight("TODO: mieux décrire ce qu'il y a dans le tableau?")
+#highlight("TODO: mettre les sources, liens vers datasets?")
 #highlight("TODO: bouger label figure au dessus?")
 
 The discretization of the different datasources showcases the importance of spatial tiling when dealing with this data.
@@ -716,39 +717,84 @@ A maximum of three attempts are allowed before the workflow is not restarted any
 At this point, the user's request has been answered and the system is ready to receive a new request, refining the proposed energy planning.
 
 This concludes the design and implementation of the AI agent responsible for energy planning.
+#highlight("TODO: conclusion plus longue jsp")
 
 === Web Interface
 
 Designing and providing an interface that is user-friendly and convenient for the user to interact with the AI system is key to the adoption of the product.
 The exactitude and accuracy of the AI system weighs heavily on the user's satisfaction but so does the user experience and presentation that is offered.
 
-In recent times, the tendency shifted from traditional desktop applications to web-based interfaces, offering greater accessibility for portable devices.
+In recent times, the tendency shifted from traditional desktop applications to web-based interfaces, offering greater accessibility for devices such as smartphones.
+Therefore, a web interface was developed to provide a seamless experience for users.
 
-On the development side, the interface was implemented using React#footnote("https://react.dev/"), a popular JavaScript framework released by Facebook (now Meta) in 2013. React offers a declarative and efficient way to build user interfaces, offering a clean and modular approach using components.
+On the development side, the interface was implemented using React#footnote("https://react.dev/"), a popular framework released by Facebook (now Meta) in 2013. React offers a declarative and efficient way to build user interfaces, offering a clean and modular approach using components.
 
 In reality, the choice of framework is not particularly critical in this context. Dozens of frameworks claim to revolutionize the way developers build web applications, but all lead to similar outcomes despite different approaches and philosophies. Past experiences with React and its ecosystem made it a comfortable and efficient choice for this project.
 
 #highlight("TODO: parler vite, bun et docker???")
 
-What is more important is paradigm of presentation is driven
+The primary feature of the web interface is the ability to send a prompt to the AI system and have the response streamed back, in real time.
+This is achieved using Server-Sent Events (SSE), a one-way communication protocol where the server (here the AI agent) pushes events to the client.
+#highlight("TODO: citer SSE correctmentt")
+In addition to streaming tokens as events, continuous status updates are emitted from the agents to provide live feedback about the progress of the AI solution.
 
-// parler pas de support mobile
-// parler techstack
+The application being event-driven, SSE was chosen over classic polling mechanisms. Polling requires repeated requests from the client to the server, which can increase both server load and response latency whereas SSE maintains a single persistent connection on which events are pushed.
 
-// overview
-// ux
-// sse
-// map
-// faire un graphe des événements ?
-// concept de persistance
-// mise en évidence datasources augmente confiance
-// heurisitque consommation
+On top of that, the use-case of energy planning for municipalities greatly benefits from a map, displaying the assessed data points.
+This functionality recovers a problem covered in the #ref(<geocontext_retriever>, supplement: it => it.body) section: the loss of information due to aggregation.
+
+All datasets referenced in #ref(<datasets_table>) provide layers, along with their discretized features. Interpreting them visually preserves the local variation and allows for a more nuanced understanding of the reported scalar values.
+
+Aggregated data points and their sources are presented in the interface, allowing users to assess and verify the accuracy of the reported energy planning. This transparency is offered to further build user trust in the solution.
+
+Implementation-wise, OpenLayers#footnote("https://openlayers.org/") is a robust and flexible open-source library for building interactive web maps.
+Native support for Web Map Tile Service (WMTS) enables the integration of tiled map services such as those provided by GeoAdmin. These tiles are high-resolution images enabling efficient and scalable map rendering by only loading visible portions of the map. GeoAdmin notably makes use of OpenLayers in their services.
+#highlight("TODO: citer WMTS correctement")
+
+With the ultimate goal of assisting users into energy planning, downplaying the importance of durability aspects of the solution would be a significant oversight.
+AI progress is often celebrated, yet the energy costs of these systems are frequently overlooked.
+While a complete evaluation of the energetical footprint of the solution is clearly beyond this work's scope, a simple approach has been implemented to sensitize users.
+#highlight("TODO: en faire un sous-chapitre?")
+
+For each user prompt, the cumulated number of tokens that are input and output from the agents in #ref(<ai_agent_design>) is recorded.
+
+The cumulative count of prompts and average token count per prompt are calculated and stored in the database.
+
+Along that, Welford's online algorithm allows for the calculation of the variance, in a single pass.
+It defines a recurrence relation for updating the sum of squared differences from the current mean, allowing to compute the variance incrementally.
+#highlight("TODO: référencer wikipedia correctement")
+#highlight("TODO: inclure math ahahahha")
+
+This algorithm is numerically stable and does not require storing all the data points, reducing the memory footprint of the system.
+
+_In fine_, the token utilization of users is tracked in the form of three metrics only: the average token count per prompt (1), the sum of squared differences from the current mean, from which the variance can be computed (2), and the cumulative count of prompts (3).
+
+When users prompt the AI, the cumulative token count for that run is monitored. This value is then compared against the user's sampled token utilization distribution using a z-score to measure how far the new usage deviates from the user's average.
+Accordingly, the token usage of the current prompt is categorized into one of the predefined categories: "bad", "average", or "good" ; each associated with a color pelet displayed in the interface.
+#highlight("TODO: mieux définir zscore??")
+#highlight("TODO: mettre les maths?")
+
+Moreover, an energy consumption analogy is presented alongside the pelet.
+A simple heuristic of 3 Joules per token is used to estimate the energy consumption of the current prompt.
+It is then expressed as the equivalent duration, in minutes, a 10 W LED light bulb could run with the same amount of energy.
+
+#highlight("TODO: CITER LE PAPIER ET LE METTRE DANS LA BIBLIOGRAPHIE")
+#highlight("TODO: mettre les maths?")
+
+This implementation is strictly meant to raise awareness of the energy consumption of AI usage rather than properly benchmarking it.
+In this solution, requesting factual data from the system is more energy-efficient than inquiring actionable planning.
+This is because factual queries involve fewer agents in the workflow defined in #ref(<ai_agent_design>).
+
+#highlight("TOOD: concept de persistance???")
 #highlight("TODO: mettre des screenshots?")
+
+With that, the implementation details of the web interface are clarified. This highlights its role as being on par with the AI agent itself.
 
 === Limitations
 #highlight("TODO: en faire un chapitre par composant au dessus ou en dehors de la partie méthodologie?")
 
 // CITER DES EXAMPLES ICI MGL
+// support mobile
 // llm incapable de faire des maths
 // données privées ?
 // interprétation données

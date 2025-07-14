@@ -9,6 +9,8 @@
   "RLM": (link("https://en.wikipedia.org/wiki/Reasoning_language_model")[Reasoning Language Model],),
   "PDF": (link("https://en.wikipedia.org/wiki/PDF")[Portable Document Format],),
   "MLLM": (link("https://en.wikipedia.org/wiki/Multimodal_learning")[Multimodal Large Language Model],),
+  "SSE": (link("https://en.wikipedia.org/wiki/Server-sent_events")[Server-Sent Events],),
+  "WMTS": (link("https://en.wikipedia.org/wiki/Web_Map_Tile_Service")[Web Map Tile Service],),
 )
 
 #init-acronyms(acronyms)
