@@ -1,0 +1,4 @@
+Provide me a prompt for the following task:
+TASK DETAILS
+
+Please make sure to apply prompt engineering techniques to ensure clear, concise, and effective instructions.

@@ -12,7 +12,7 @@
   thesis-supervisor: "Prof. Jessen Page",
   thesis-co-supervisor: "Florian Desmons", // Optional, use none if not needed
   thesis-expert: "Nils Schüler", // Optional, use none if not needed
-  // thesis-id: "ISC-ID-2501", // Your thesis ID (from the official project description) or none if not used
+  thesis-id: "ISC-ID-2501", // Your thesis ID (from the official project description) or none if not used
   project-repos: "https://github.com/dij0s/PETAL", // Your project repository
 
 
@@ -95,32 +95,8 @@ Keep this section concise and sincere. It is typically placed after the abstract
 
 
 #table-of-contents(depth: 2)
-
-= Writing a thesis
-
 // Enable headers and footers from this point on
 #set-header-footer(true)
-
-Writing a report is an exercise that involves both *content and form*. In this document, we aim to simplify the formatting aspect without making any assumptions about the content, specifically in the context of the ISC program#footnote[Here is how to add a footnote https://isc.hevs.ch].
-
-== The content of a thesis
-
-The general structure of a bachelor thesis typically includes the following sections:
-
-1. *Abstract*: A concise summary of the thesis, including the research question, methodology, results, and conclusions.
-2. *Résumé*: A summary of the thesis in French.
-3. *Acknowledgements*: (Optional) A section to thank those who supported the work.
-4. *Table of Contents*: An organized listing of chapters and sections.
-5. *Introduction*: Presents the background, motivation, objectives, and scope and plan of the thesis.
-6. *State of the Art / Literature Review*: Reviews existing research and situates the thesis within the academic context. If salient in your work.
-7. *Methodology*: Describes the methods, materials, and procedures used in the research / thesis.
-8. *Results*: Presents the findings of the research, often with tables, figures, and analysis.
-9. *Discussion*: Interprets the results, discusses implications, and relates findings to the research question.
-10. *Conclusion*: Summarizes the main findings, contributions, and suggests future work.
-11. *References / Bibliography*: Lists all sources cited in the thesis.
-12. *Appendices*: (Optional) Contains supplementary material such as raw data, code, or additional explanations.
-
-This structure may vary depending on the field of study, but these elements are commonly found in most bachelor theses. They are compulsory for the _ISC Bachelor thesis_.
 
 = Introduction
 
@@ -167,6 +143,18 @@ User behavior is analyzed to takeaway user preferences which gradually adapt the
 #highlight(
   "TODO: provide a brief overview of the structure of the thesis (plan), add reference to extra scope in methodology?",
 )
+
+= Artificial intelligence notice
+
+While generative artificial intelligence is the core of this work, it has also been a great help in assisting the following tasks: prompt engineering (1) and thesis report rewording (2)#footnote("The language models used for these tasks are GPT-4.1 (OpenAI) and Claude 3.7 (Anthropic).").
+
+The different prompts defined in the appendix were refined with the use of generative artificial intelligence. This strongly enhances the quality of the prompts, implementing prompt engineering techniques to ensure clear, concise, and effective instructions.
+
+#ref(<prompt_creation>) defines typical directives that were given to the language model.
+
+On top of that, sentences in the following report were often revised with the assistance of a language model, improving their clarity and readability.
+
+Besides that, all other aspects of this work are my own.
 
 = State of the Art <state_of_art>
 
@@ -626,7 +614,7 @@ The sole difference between enumerating the data, as collected in the geocontext
 
 The primary document called _Vision 2060 et objectifs 2035_ has been adopted in 2019 and sets intermediate targets for 2035 that take into account the energetical landscape of Valais/Wallis, current knowledge, as well as federal energy and climate policies with the ultimate goal of achieving a 100% renewable and indigenous energy supply in 2060.
 
-Moreover, the _Plan directeur 2019_ adopted by the federal council on the 1st of May 2019, states the strategy for the canton's territorial development in the form of 49 information sheets, distributed across the five activity sectors: _Agriculture, forest, landscape and nature_ (1), _Tourism and leisure_ (2), _Urbanization_ (3), _Mobility and transport infrastructure_ (4) and _Supply and other infrastructure_ (5).
+Moreover, the _Plan directeur 2019_ adopted by the federal council on the 1st of May 2019, states the strategy for the canton's territorial development in the form of 49 information sheets, distributed across the five activity sectors: (1) _Agriculture, forest, landscape and nature_, (2) _Tourism and leisure_, (3) _Urbanization_, (4) _Mobility and transport infrastructure_ and (5) _Supply and other infrastructure_.
 
 Finally, the legal framework is defined by two key legislative documents. Notably, the _RS 705.1 - Loi sur les constructions (LC)_ establishes the regulations for construction activities, while the _RS 730.1 - Loi sur l'énergie (LcEne)_ defines the objectives and requirements for sustainable energy supply.
 #highlight("TODO: citer autrement -> bib?")
@@ -769,7 +757,7 @@ It defines a recurrence relation for updating the sum of squared differences fro
 
 This algorithm is numerically stable and does not require storing all the data points, reducing the memory footprint of the system.
 
-To sum up, the token utilization of users is tracked in the form of three metrics only: the average token count per prompt (1), the sum of squared differences from the current mean, from which the variance can be computed (2), and the cumulative count of prompts (3).
+To sum up, the token utilization of users is tracked in the form of three metrics only: (1) the average token count per prompt, (2) the sum of squared differences from the current mean, from which the variance can be computed and (3) the cumulative count of prompts.
 
 When users prompt the AI, the cumulative token count for that run is monitored. This value is then compared against the user's sampled token utilization distribution using a z-score to measure how far the new usage deviates from the user's average.
 Accordingly, the token usage of the current prompt is categorized into one of the predefined categories: "bad", "average", or "good" ; each associated with a color pelet displayed in the interface.
@@ -960,27 +948,37 @@ This dual approach treats both methodological rigor and contextual relevance to 
 
 With the evaluation frameworks introduced, the next step is to define the test dataset.
 This dataset consists of nine prompts and establishes the basis for assessing the performance of the solution:
-- _What is the current energy consumption per energy vector and per consumer type in Sion ?_
-- _How is is this demand expected to evolve until 2050 ?_
-- _What energy efficiency measures should be considered to reduce this consumption ?_
-- _Can you tell me the amount of CO2 associated to this demand ?_
-- _What are potential sources of renewable energy in Sion (GWh/an for each source) ?_
-- _How much of this potential is currently exploited ?_
-- _How much is expected to be exploited in the future ?_
-- _Can you provide me with a map of the electricity grid and potential PV production on roofs and other surfaces ?_
-- _Can you provide me with a map of heat/cold demand density and potential sources of heat/cold ?_
+#set table(fill: (x, y) => if calc.odd(y) { rgb("F7F9FA") })
+#figure(
+  table(
+    columns: 1,
+    align: left,
+    table.header([Prompt]),
+    [What is the current energy consumption per energy vector and per consumer type in Sion?],
+    [How is this demand expected to evolve until 2050?],
+    [What energy efficiency measures should be considered to reduce this consumption?],
+    [Can you tell me the amount of CO2 associated to this demand?],
+    [What are potential sources of renewable energy in Sion (GWh/an for each source)?],
+    [How much of this potential is currently exploited?],
+    [How much is expected to be exploited in the future?],
+    [Can you provide me with a map of the electricity grid and potential PV production on roofs and other surfaces?],
+    [Can you provide me with a map of heat/cold demand density and potential sources of heat/cold?],
+  ),
+  caption: "Test dataset prompts for municipal energy planning in Sion",
+)
 
-#highlight("TODO: en faire une table ?")
 The dataset is aligned within the specific scope of available data sources, inherently restricting its size.
 It is crafted by Prof. Jessen Page to support energy planning for the municipality of Sion.
 
-With everything defined, the results are presented in the tables below.
+#highlight("TODO: différencier style tables pour résultats ?")
 #highlight("TODO: mieux introduire ?")
+With everything defined, the results are presented in the tables below:
 
 // citer date version code utilisée pour comparer expert et llm
 // présenter scores par différentes configurations, petites et grandes
 // montrer scores par type de query, factual et actionable
-// analyse temps par query
+// analyse temps par query ?
+// analyse de cumulation des résultats ?
 
 #highlight("TODO: break down en plusieurs sections?")
 
@@ -1020,7 +1018,18 @@ With everything defined, the results are presented in the tables below.
 #appendix-page()
 #pagebreak()
 
-#heavy-title("Résumé", top: 1em, bottom: 1em)
+#heavy-title("Prompts", top: 1em, bottom: 1em)
+
+#let prompt_creation = read("code/prompt_creation.txt")
+#figure(
+  code()[
+    #raw(prompt_creation)
+  ],
+  caption: "Prompt engineering prompt",
+  kind: "prompt",
+  supplement: [Prompt],
+) <prompt_creation>
+
 #let intent_router_prompts_system = read("code/intent_router_prompt_system.py")
 #figure(
   code()[
