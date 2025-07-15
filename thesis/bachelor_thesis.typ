@@ -1,4 +1,4 @@
-#import "@preview/isc-hei-bthesis:0.5.2": *
+#import "@preview/isc-hei-bthesis:0.5.3": *
 
 #let doc_language = "en" // Valid values are en, fr
 
@@ -12,6 +12,9 @@
   thesis-supervisor: "Prof. Jessen Page",
   thesis-co-supervisor: "Florian Desmons", // Optional, use none if not needed
   thesis-expert: "Nils Schüler", // Optional, use none if not needed
+  // thesis-id: "ISC-ID-2501", // Your thesis ID (from the official project description) or none if not used
+  project-repos: "https://github.com/dij0s/PETAL", // Your project repository
+
 
   school: "Haute École d'Ingénierie de Sion",
   programme: "Informatique et Systèmes de communication (ISC)",
@@ -27,7 +30,7 @@
   version: none, // or for instance "1.0", for the version of your thesis],
   code-theme: "bluloco-light",
 )
-
+#highlight("TODO: update le thesis-id")
 // // If using acronyms
 #import "@preview/acrostiche:0.5.2": *
 #include "acronyms.typ"
@@ -53,9 +56,7 @@ Please also insert your project git/github URL HERE if your project is not confi
 
 #lorem(150)
 
-#v(1fr)
-
-*Keywords* : #context inc.global-keywords.get().join(", ")
+#abstract-footer("en")
 
 #cleardoublepage()
 #heavy-title("Résumé")
@@ -76,9 +77,7 @@ Veuillez également ajouter l'URL de votre git/github ici si le projet n'est pas
 
 #lorem(150)
 
-#v(1fr)
-
-*Keywords* : #context inc.global-keywords.get().join(", ")
+#abstract-footer("fr")
 
 #cleardoublepage()
 // Get the proper title for acknowledgements if not written in English
