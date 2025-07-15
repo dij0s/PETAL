@@ -140,9 +140,9 @@ Municipalities in Switzerland are required to submit an energy planning document
 These different properties can be quantified and analyzed through the use of a very valuable resource: data.
 Data is emitted by various sources ; sensors, energy models or citizen records for e.g. all yield data points that help us assess different indicators we are willing to measure against our municipality. These indicators, _in fine_, help us evaluate our progress towards energy-related goals.
 
-Over the past few years, Artificial Intelligence (AI) has rapidly transformed our habits when interacting with information.
+Over the past few years, #acr("AI") has rapidly transformed our habits when interacting with information.
 
-Large Language Models (LLM) allow users to interact with these systems in natural language facilitating the interface between humans and _machines_. They can provide insights into vast amounts of data at speed and scales which are beyond our capabilities.
+#acrpl("LLM") allow users to interact with these systems in natural language facilitating the interface between humans and _machines_. They can provide insights into vast amounts of data at speed and scales which are beyond our capabilities.
 
 This work tackles this exact problem that is the implementation of a solution which assists users into energy planning for a municipality.
 
@@ -175,11 +175,10 @@ User behavior is analyzed to takeaway user preferences which gradually adapt the
 Large language models are highly effective tools for natural language processing and offer various opportunities to enhance our day-to-day tasks and workflows.
 Ever since they have been introduced to the public, they have been adopted across a wide range of fields and applications.
 
+The AI Institude at ITMO University published in 2025 a paper titled _LLM Agents for Smart City Management: Enhancing Decision Support Through Multi-Agent AI Systems_. The study examines how the natural language processing strengths of LLMs, combined with the distributed problem-solving abilities of multi-agent systems, can enhance urban decision-making processes.
 #highlight("TODO: citer proprement")
 
-The AI Institude at ITMO University published in 2025 a paper titled _LLM Agents for Smart City Management: Enhancing Decision Support Through Multi-Agent AI Systems_. The study examines how the natural language processing strengths of LLMs, combined with the distributed problem-solving abilities of multi-agent systems, can enhance urban decision-making processes.
-
-The research focused on the testing of three hypotheses: (1) evaluating the capability of LLM agents to effectively route and process diverse urban queries against existing urban information systems, (2) the effectiveness of Retrieval-Augmented Generation (RAG) technology in improving response accuracy when working with local knowledge and regulations and (3) the impact of integrating LLM agents with existing urban information-systems - increasing efficiency and decreasing the decision making process time.
+The research focused on the testing of three hypotheses: (1) evaluating the capability of LLM agents to effectively route and process diverse urban queries against existing urban information systems, (2) the effectiveness of #acr("RAG") technology in improving response accuracy when working with local knowledge and regulations and (3) the impact of integrating LLM agents with existing urban information-systems - increasing efficiency and decreasing the decision making process time.
 
 LLM agents (sometimes called AI agents) are software systems that use AI to pursue goals and complete tasks on behalf of users. They show reasoning, planning, and memory and have a level of autonomy to make decisions, learn, and adapt as per #link("https://cloud.google.com/discover/what-are-ai-agents?hl=en")[cloud.google.com].
 #highlight("mieux citer??")
@@ -305,7 +304,7 @@ The following chapter covers both the design and the implementation aspects of t
 The global architecture in its most simplified form is presented in the #ref(<global_system_design>) above. The system is broken down into three distinct layers:
 - The frontend layer manages user interaction and presentation of data, providing an intuitive interface for users to communicate with the system.
 - The backend layer is responsible for business logic, orchestrating AI agents, processing data, managing a database and handling requests from the frontend.
-- The external services layer provides access to third-party Application Programming Interfaces (APIs), a set of protocols and tools that allows different software components to communicate with each other, enabling the system to retrieve data from external platforms and services.
+- The external services layer provides access to third-party #acrpl("API"), a set of protocols and tools that allows different software components to communicate with each other, enabling the system to retrieve data from external platforms and services.
 #highlight("TODO: spécifier que database est redis ??")
 The layers are made up of various components. The basic dataflow between them is presented in the #ref(<global_dataflow>) below:
 #figure(
@@ -353,11 +352,11 @@ Accordingly, the conversational context is modeled as a single object that is up
 
 #highlight("TODO: mettre au format UML??")
 #highlight("TODO: mettre les sous-objets, router, ...?")
+#highlight("TODO: PARLER OLLAMA MGL")
 #highlight("TODO: citer pydantic, runtime, tralala???")
 
-The different agents leverage Reasoning Language Models (RLMs), a type of LLM designed to tackle problems by breaking them into logical steps, mimicking human reasoning.
+The different agents leverage #acrpl("RLM"), a type of LLM designed to tackle problems by breaking them into logical steps, mimicking human reasoning.
 Compared to standard language models, they are particularly valuable for tasks that require logical deduction and planning but come with notable drawbacks as they are typically more computationally intensive, leading to higher operational costs and increasing latency in response times.
-#highlight("TODO: citer correctement acronyme")
 
 By constraining the conversational state and narrowing the scope of each agent, it is possible to reduce the computational load and latency by simply swapping out these large reasoning models by smaller, better-suited models.
 Doing so, it becomes possible to select reasoning models that are better suited to specific tasks while reducing the computational costs.
@@ -368,8 +367,7 @@ Doing so, it becomes possible to select reasoning models that are better suited 
 #highlight("TODO: séparer proprement les API geoadmin dans un bloc external services?")
 #highlight("TODO: remplacer par un schéma de FSM classique??")
 
-The architecture in the #ref(<ai_agent_design>) above is modeled after a Finite State Machine (FSM), where each node represents an agent and each edge represents a transition that is either always executed (solid) or conditionally executed (dashed). The dynamic flow of control between agents is guided by the evolving conversational state. It is finite, per definition, as the state takes value in a discrete set.
-#highlight("TODO: citer acronyme correctement?")
+The architecture in the #ref(<ai_agent_design>) above is modeled after a #acr("FSM"), where each node represents an agent and each edge represents a transition that is either always executed (solid) or conditionally executed (dashed). The dynamic flow of control between agents is guided by the evolving conversational state. It is finite, per definition, as the state takes value in a discrete set.
 #highlight("TODO: enlever notion finite state machine?")
 
 On the implementation-side, LangGraph#footnote("https://www.langchain.com/langgraph"), an open-source Python framework, is used to implement the AI agent architecture. Unlike linear pipelines, LangGraph uses a graph abstraction by default, which is particularly well-suited for this state machine architecture.
@@ -629,12 +627,12 @@ Moreover, the _Plan directeur 2019_ adopted by the federal council on the 1st of
 Finally, the legal framework is defined by two key legislative documents. Notably, the _RS 705.1 - Loi sur les constructions (LC)_ establishes the regulations for construction activities, while the _RS 730.1 - Loi sur l'énergie (LcEne)_ defines the objectives and requirements for sustainable energy supply.
 #highlight("TODO: citer autrement -> bib?")
 
-These documents are specifically designed and structured to convey information to the public and come in a single Portable Document Format (PDF) and are available in both french and german. They are organized into sections, subsections or paragraphs which reference figures, tables, plots, past paragraphs and so on.
+These documents are specifically designed and structured to convey information to the public and come in a single #acr("PDF") and are available in both french and german. They are organized into sections, subsections or paragraphs which reference figures, tables, plots, past paragraphs and so on.
 
 Visual structure does not necessarily imply a logical flow of information. A document can look and feel organized but still lack a proper machine readable structure.
 In practice, it is neither realistic nor scalable to expect a human to manually extract all the key information needed for energy planning from such complex documents. Therefore, it becomes essential to delegate this task to the computer, enabling automated extraction and processing of documents.
 
-When data lacks clear structure, it becomes difficult to extract information using algorithms or systematic procedures. However, advances in Multimodal Large Language Models (MLLMs) offer a solution as these models are designed to process and understand information presented in various modalities such as text, images, audio, and video. Paired with existing methods that are able to extract raw text from these documents, it has become easier to extract precise information from visually organized and heterogeneous documents by understanding not only the way information is displayed but also its underlying semantic meaning.
+When data lacks clear structure, it becomes difficult to extract information using algorithms or systematic procedures. However, advances in #acrpl("MLLM") offer a solution as these models are designed to process and understand information presented in various modalities such as text, images, audio, and video. Paired with existing methods that are able to extract raw text from these documents, it has become easier to extract precise information from visually organized and heterogeneous documents by understanding not only the way information is displayed but also its underlying semantic meaning.
 
 As such, a systematic approach is applied when extracting information from these documents:
 - Raw text is extracted from the documents on a per-page basis.
@@ -733,8 +731,7 @@ In reality, the choice of framework is not particularly critical in this context
 #highlight("TODO: parler vite, bun et docker???")
 
 The primary feature of the web interface is the ability to send a prompt to the AI system and have the response streamed back, in real time.
-This is achieved using Server-Sent Events (SSE), a one-way communication protocol where the server (here the AI agent) pushes events to the client.
-#highlight("TODO: citer SSE correctmentt")
+This is achieved using #acr("SSE"), a one-way communication protocol where the server (here the AI agent) pushes events to the client.
 In addition to streaming tokens as events, continuous status updates are emitted from the agents to provide live feedback about the progress of the AI solution.
 
 The application being event-driven, SSE was chosen over classic polling mechanisms. Polling requires repeated requests from the client to the server, which can increase both server load and response latency whereas SSE maintains a single persistent connection on which events are pushed.
@@ -747,8 +744,7 @@ All datasets referenced in #ref(<datasets_table>) provide layers, along with the
 These data points and their sources are also presented in the interface, allowing users to assess and verify the accuracy of the reported energy planning. This transparency is offered to further build user trust in the solution.
 
 On the implementation side, OpenLayers#footnote("https://openlayers.org/") is a robust and flexible open-source library for building interactive web maps.
-Native support for Web Map Tile Service (WMTS) enables the integration of tiled map services such as those provided by GeoAdmin. These tiles are high-resolution images enabling efficient and scalable map rendering by only loading visible portions of the map. GeoAdmin notably makes use of OpenLayers in their services.
-#highlight("TODO: citer WMTS correctement")
+Native support for #acr("WMTS") enables the integration of tiled map services such as those provided by GeoAdmin. These tiles are high-resolution images enabling efficient and scalable map rendering by only loading visible portions of the map. GeoAdmin notably makes use of OpenLayers in their services.
 
 With the ultimate goal of assisting users i energy planning, downplaying the importance of durability aspects of the solution would be a significant oversight.
 AI progress is often celebrated, yet the energetical impact of these systems is frequently overlooked.
