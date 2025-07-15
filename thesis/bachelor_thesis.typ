@@ -961,6 +961,7 @@ This dataset consists of nine prompts and establishes the basis for assessing th
 - _Can you provide me with a map of the electricity grid and potential PV production on roofs and other surfaces ?_
 - _Can you provide me with a map of heat/cold demand density and potential sources of heat/cold ?_
 
+#highlight("TODO: en faire une table ?")
 The dataset is aligned within the specific scope of available data sources, inherently restricting its size.
 It is crafted by Prof. Jessen Page to support energy planning for the municipality of Sion.
 
@@ -992,6 +993,7 @@ With everything defined, the results are presented in the tables below.
 = Conclusion
 
 // PROS AND CONS DU PROJET, LLM POUR LA TACHE
+// EVALUER LES OBJECTIFS DU TRAVAIL ICI?
 
 
 #pagebreak()
@@ -1007,6 +1009,127 @@ With everything defined, the results are presented in the tables below.
 #cleardoublepage()
 #appendix-page()
 #pagebreak()
+
+#heavy-title("Résumé", top: 1em, bottom: 1em)
+#let intent_router_prompts_system = read("code/intent_router_prompt_system.py")
+#figure(
+  code()[
+    #raw(intent_router_prompts_system, lang: "python")
+  ],
+  caption: "Intent Router, system prompt",
+  kind: "prompt",
+  supplement: [Prompt],
+) <intent_router_prompt_system>
+
+#let intent_router_prompts_user = read("code/intent_router_prompt_user.py")
+#figure(
+  code()[
+    #raw(intent_router_prompts_user, lang: "python")
+  ],
+  caption: "Intent Router, user prompt",
+  kind: "prompt",
+  supplement: [Prompt],
+) <intent_router_prompt_user>
+
+#let clarify_query_prompts_system = read("code/clarify_query_system_prompt.py")
+#figure(
+  code()[
+    #raw(clarify_query_prompts_system, lang: "python")
+  ],
+  caption: "Clarify Query, system prompt",
+  kind: "prompt",
+  supplement: [Prompt],
+) <clarify_query_system_prompt>
+
+#let clarify_query_prompts_user = read("code/clarify_query_user_prompt.py")
+#figure(
+  code()[
+    #raw(clarify_query_prompts_user, lang: "python")
+  ],
+  caption: "Clarify Query, user prompt",
+  kind: "prompt",
+  supplement: [Prompt],
+) <clarify_query_user_prompt>
+
+#let geocontext_retriever_prompts_system = read("code/geocontext_retriever_system_prompt.py")
+#figure(
+  code()[
+    #raw(geocontext_retriever_prompts_system, lang: "python")
+  ],
+  caption: "Geocontext Retriever, system prompt",
+  kind: "prompt",
+  supplement: [Prompt],
+) <geocontext_retriever_system_prompt>
+
+#let guidelines_retriever_prompts_system = read("code/guidelines_retriever_system_prompt.py")
+#figure(
+  code()[
+    #raw(guidelines_retriever_prompts_system, lang: "python")
+  ],
+  caption: "Guidelines Retriever, system prompt",
+  kind: "prompt",
+  supplement: [Prompt],
+) <guidelines_retriever_system_prompt>
+
+#let generate_answer_actionable_system_prompt = read("code/generate_answer_actionable_system_prompt.py")
+#figure(
+  code()[
+    #raw(generate_answer_actionable_system_prompt, lang: "python")
+  ],
+  caption: "Generate Answer, actionable system prompt",
+  kind: "prompt",
+  supplement: [Prompt],
+) <generate_answer_actionable_system_prompt>
+
+#let generate_answer_actionable_user_prompt = read("code/generate_answer_actionable_user_prompt.py")
+#figure(
+  code()[
+    #raw(generate_answer_actionable_user_prompt, lang: "python")
+  ],
+  caption: "Generate Answer, actionable user prompt",
+  kind: "prompt",
+  supplement: [Prompt],
+) <generate_answer_actionable_user_prompt>
+
+#let generate_answer_factual_system_prompt = read("code/generate_answer_factual_system_prompt.py")
+#figure(
+  code()[
+    #raw(generate_answer_factual_system_prompt, lang: "python")
+  ],
+  caption: "Generate Answer, factual system prompt",
+  kind: "prompt",
+  supplement: [Prompt],
+) <generate_answer_factual_system_prompt>
+
+#let generate_answer_factual_user_prompt = read("code/generate_answer_factual_user_prompt.py")
+#figure(
+  code()[
+    #raw(generate_answer_factual_user_prompt, lang: "python")
+  ],
+  caption: "Generate Answer, factual user prompt",
+  kind: "prompt",
+  supplement: [Prompt],
+) <generate_answer_factual_user_prompt>
+
+#let critic_answer_system_prompt = read("code/critic_answer_system_prompt.py")
+#figure(
+  code()[
+    #raw(critic_answer_system_prompt, lang: "python")
+  ],
+  caption: "Critic Answer, system prompt",
+  kind: "prompt",
+  supplement: [Prompt],
+) <critic_answer_system_prompt>
+
+#let benchmark_system_prompt = read("code/benchmark_system_prompt.py")
+#figure(
+  code()[
+    #raw(benchmark_system_prompt, lang: "python")
+  ],
+  caption: "Benchmark, system prompt",
+  kind: "prompt",
+  supplement: [Prompt],
+) <benchmark_system_prompt>
 
 // Table of acronyms, NOT COMPULSORY
 #print-index(
