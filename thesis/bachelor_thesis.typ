@@ -387,6 +387,8 @@ The main responsibility of each agent is as follows:
 - The *Critic Answer* evaluates the proposed energy planning strategy and possibly restarts the whole process.
 #highlight("TODO: plus en détails ?")
 
+The various prompts are included in the appendix.
+
 With the overall solution defined, the following sections dig in the details of each agent and their implementation.
 
 #highlight("TODO: parler tech stack et choix ollama?")
@@ -406,7 +408,10 @@ Upon receiving a user prompt, the agent analyzes the query to extract its underl
 Implementation-wise, the output of the language model is constrained to a single Pydantic data schema, _RouterOutput_.
 While these models typically generate natural language responses, these complex multi-agent systems benefit from a structured output format that can easily be further processed.
 This is possible thanks to OpenAI#footnote("https://openai.com/"), introducing the support for structured outputs in late 2024, a feature that has since been adopted by many providers.
-#highlight("TODO: inclure prompt system")
+
+The instructions #ref(<intent_router_prompt_system>) and #ref(<intent_router_prompt_user>) are designed to guide the language model on how to generate the correct output.
+Few-shot prompting helps the language model by providing examples on how to complete the task, helping it generalize to subsequent prompts.
+In this context, it facilitates the definition of the _aggregated_query_ and _needs_memoization_ fields.
 
 All these fields except the aggregated query take value in a finite set of options (considering the _location_ field is either set or unset.).
 Consequently, it is very easy to plan and orchestrate the following actions.
@@ -424,7 +429,6 @@ When there is a need for memoization, the system stores both the previous query 
 #highlight("TODO: parler que store parallèle ??")
 #highlight("TODO: parler quelque part d'async??")
 #highlight("TODO: schéma avec flux entiers, database, ...")
-#highlight("TODO: expliquer principe few shots prompting")
 #highlight("TODO: décire que local database redis...")
 #highlight("TODO: mettre au format UML??")
 #highlight("TODO: parler au dessus coûte cher de faire un appel LLM")
@@ -453,9 +457,9 @@ With the output of the intent router agent properly defined, the two cases which
 Those two cases are both handled at once as a language model is prompted with the user's query and missing fields to generate and stream a response inquiring for further information or clarification (#ref(<ai_agent_design>), transition 3).
 In the following turn, the newly provided information is merged with the previously deduced intent as designed and presented in the section #ref(<intent_router>, supplement: it => it.body).
 
-With no _structural_ ambiguity left in the user's query, the intent router agent can now proceed to route the query to the *Geocontext Retriever* and *Guidelines Retriever* agents.
+This task is supported by both #ref(<clarify_query_system_prompt>) and #ref(<clarify_query_user_prompt>).
 
-#highlight("TODO: filer le prompt")
+With no _structural_ ambiguity left in the user's query, the intent router agent can now proceed to route the query to the geocontext retriever and guidelines retriever agents.
 
 ==== Geocontext Retriever <geocontext_retriever>
 
@@ -591,7 +595,7 @@ This enables the system to embed the descriptions of the different tools and eas
 
 When retrieving tools, the system computes the cosine similarity between both embeddings to quantify the semantic similarity.
 Finally, the quartile coefficient of dispersion is measured against the distribution of retrieved scores. This indicator provides a measure of the uniformity of the retrieved tools.
-As such, uniform tools are provided to a language model, which is then prompted to choose the appropriate ones.
+As such, uniform tools are provided to a language model, which is then prompted to choose the appropriate ones (#ref(<geocontext_retriever_system_prompt>)).
 
 This approach reduces the overall computational cost while increasing the quality of tool selection.
 #highlight("TODO: METTRE UNE AI NOTICE ET CHECKER VIM TEMP!!")
@@ -638,7 +642,8 @@ As such, a systematic approach is applied when extracting information from these
 - Raw text is extracted from the documents on a per-page basis.
 - Each page is rendered into an image.
 - Each rendered page and associated text are processed using MLLMs to retrieve key insights and interpret the information within the page.
-#highlight("TODO: citer prompt")
+
+This is supported by the #ref(<guidelines_retriever_data_extraction>).
 
 The extracted information is formatted in markdown, utilizing headings to structure the summary. It is then broken down into smaller chunks, each chunk being a "chapter" derived from the markdown content. Since only individual chunks are considered in subsequent steps, there is no need to perform an analysis across neighboring pages to ensure that the information is retrieved from its full context.
 
@@ -652,8 +657,7 @@ Therefore, these quantitative targets must be scaled down to reflect the municip
 #highlight("TODO: mettre un exemple?")
 
 Identifying these key figures which need rescaling is not a simple task as broader context is required to assess that.
-In order to achieve this, a language model is prompted with the task of identifying key figures that need rescaling.
-#highlight("TODO: citer prompt")
+In order to achieve this, a language model is prompted with the task of identifying key figures that need rescaling (#ref(<guidelines_retriever_system_prompt>)).
 
 Finally, they are multiplied by a factor corresponding to the ratio of the municipality's number of residents to the total population of the canton.
 While this is a straightforward way to scale targets, proper rescaling should take into account the economic activity, energy landscape and industrial presence in the municipality to ensure a more accurate adjustment.
@@ -687,7 +691,9 @@ Like tools and guidelines, memories are stored as embeddings and are therefore r
 
 Finally, similar tools to those retrieved by the geocontext retriever agent are retrieved in order to generate tailored recommendations.
 The selection of similar tools is based on their categorization, as defined in #ref(<datasets_table>). This encourages assessing the full spectrum of available data for any municipality.
-#highlight("TODO: inclure prompts actionable et factuel et expliquer comment leverage les guidelines")
+
+The factual queries are treated by both #ref(<generate_answer_factual_system_prompt>) and #ref(<generate_answer_factual_user_prompt>) whereas actionable queries are handled by #ref(<generate_answer_actionable_system_prompt>) and #ref(<generate_answer_actionable_user_prompt>).
+The conversational context is simply broken down and included in the prompts.
 
 The language model response, which is the answer to the user's query, is streamed to the web interface.
 
@@ -704,9 +710,10 @@ These interpretations errors typically include:
 - Mathematical errors where data points are added or subtracted to support insights.
 - Flawed conclusions from different metrics incorrectly treated or incorrect assumptions.
 
-As such, a language model is prompted the response generated in the <strategy_planner> with the data points and guidelines that shaped it.
+As such, a language model is prompted the response generated in the <strategy_planner> with the data points and guidelines that shaped it (#ref(<critic_answer_system_prompt>)).
+On top of that, the number of residents in the municipality and its exploitable area are both included, providing extra context that helps the model assess the feasibility of the proposed strategy.
+
 Its output is a boolean value that indicates whether the response has been interpreted correctly based on the rules above.
-#highlight("TODO: insérer prompt")
 
 If it the response is not satisfactory, the complete process is restarted as if the user had just prompted the system (#ref(<ai_agent_design>), transition 9).
 A maximum of three attempts are allowed before the workflow is not restarted anymore.
@@ -904,6 +911,8 @@ And evaluated according to the following scale, presented in #ref(<scoring_grid_
   caption: "Ordinal evaluation grid for criteria in the benchmarking framework",
 ) <scoring_grid_llm>
 
+These instructions are summarized and included in the #ref(<benchmark_system_prompt>). The accumulated context is included, helping the model to evaluate the accuracy of the generated response.
+
 Finally, the individual scores are aggregated to a single score using a weighted average.
 
 #highlight("TODO: rendre table plus jolie ?")
@@ -993,6 +1002,7 @@ With everything defined, the results are presented in the tables below.
 = Conclusion
 
 // PROS AND CONS DU PROJET, LLM POUR LA TACHE
+// importance prompt engineering?
 // EVALUER LES OBJECTIFS DU TRAVAIL ICI?
 
 
@@ -1016,7 +1026,7 @@ With everything defined, the results are presented in the tables below.
   code()[
     #raw(intent_router_prompts_system, lang: "python")
   ],
-  caption: "Intent Router, system prompt",
+  caption: "Intent router, system prompt",
   kind: "prompt",
   supplement: [Prompt],
 ) <intent_router_prompt_system>
@@ -1026,7 +1036,7 @@ With everything defined, the results are presented in the tables below.
   code()[
     #raw(intent_router_prompts_user, lang: "python")
   ],
-  caption: "Intent Router, user prompt",
+  caption: "Intent router, user prompt",
   kind: "prompt",
   supplement: [Prompt],
 ) <intent_router_prompt_user>
@@ -1036,7 +1046,7 @@ With everything defined, the results are presented in the tables below.
   code()[
     #raw(clarify_query_prompts_system, lang: "python")
   ],
-  caption: "Clarify Query, system prompt",
+  caption: "Clarify query, system prompt",
   kind: "prompt",
   supplement: [Prompt],
 ) <clarify_query_system_prompt>
@@ -1046,7 +1056,7 @@ With everything defined, the results are presented in the tables below.
   code()[
     #raw(clarify_query_prompts_user, lang: "python")
   ],
-  caption: "Clarify Query, user prompt",
+  caption: "Clarify query, user prompt",
   kind: "prompt",
   supplement: [Prompt],
 ) <clarify_query_user_prompt>
@@ -1056,47 +1066,37 @@ With everything defined, the results are presented in the tables below.
   code()[
     #raw(geocontext_retriever_prompts_system, lang: "python")
   ],
-  caption: "Geocontext Retriever, system prompt",
+  caption: "Geocontext retriever, system prompt",
   kind: "prompt",
   supplement: [Prompt],
 ) <geocontext_retriever_system_prompt>
+
+#let infer_pages_prompts_system = read("code/infer_pages_system_prompt.py")
+#figure(
+  code()[
+    #raw(infer_pages_prompts_system, lang: "python")
+  ],
+  caption: "Guidelines retriever, data extraction prompt",
+  kind: "prompt",
+  supplement: [Prompt],
+) <guidelines_retriever_data_extraction>
 
 #let guidelines_retriever_prompts_system = read("code/guidelines_retriever_system_prompt.py")
 #figure(
   code()[
     #raw(guidelines_retriever_prompts_system, lang: "python")
   ],
-  caption: "Guidelines Retriever, system prompt",
+  caption: "Guidelines retriever, system prompt",
   kind: "prompt",
   supplement: [Prompt],
 ) <guidelines_retriever_system_prompt>
-
-#let generate_answer_actionable_system_prompt = read("code/generate_answer_actionable_system_prompt.py")
-#figure(
-  code()[
-    #raw(generate_answer_actionable_system_prompt, lang: "python")
-  ],
-  caption: "Generate Answer, actionable system prompt",
-  kind: "prompt",
-  supplement: [Prompt],
-) <generate_answer_actionable_system_prompt>
-
-#let generate_answer_actionable_user_prompt = read("code/generate_answer_actionable_user_prompt.py")
-#figure(
-  code()[
-    #raw(generate_answer_actionable_user_prompt, lang: "python")
-  ],
-  caption: "Generate Answer, actionable user prompt",
-  kind: "prompt",
-  supplement: [Prompt],
-) <generate_answer_actionable_user_prompt>
 
 #let generate_answer_factual_system_prompt = read("code/generate_answer_factual_system_prompt.py")
 #figure(
   code()[
     #raw(generate_answer_factual_system_prompt, lang: "python")
   ],
-  caption: "Generate Answer, factual system prompt",
+  caption: "Strategy planner, factual system prompt",
   kind: "prompt",
   supplement: [Prompt],
 ) <generate_answer_factual_system_prompt>
@@ -1106,17 +1106,37 @@ With everything defined, the results are presented in the tables below.
   code()[
     #raw(generate_answer_factual_user_prompt, lang: "python")
   ],
-  caption: "Generate Answer, factual user prompt",
+  caption: "Strategy planner, factual user prompt",
   kind: "prompt",
   supplement: [Prompt],
 ) <generate_answer_factual_user_prompt>
+
+#let generate_answer_actionable_system_prompt = read("code/generate_answer_actionable_system_prompt.py")
+#figure(
+  code()[
+    #raw(generate_answer_actionable_system_prompt, lang: "python")
+  ],
+  caption: "Strategy planner, actionable system prompt",
+  kind: "prompt",
+  supplement: [Prompt],
+) <generate_answer_actionable_system_prompt>
+
+#let generate_answer_actionable_user_prompt = read("code/generate_answer_actionable_user_prompt.py")
+#figure(
+  code()[
+    #raw(generate_answer_actionable_user_prompt, lang: "python")
+  ],
+  caption: "Strategy planner, actionable user prompt",
+  kind: "prompt",
+  supplement: [Prompt],
+) <generate_answer_actionable_user_prompt>
 
 #let critic_answer_system_prompt = read("code/critic_answer_system_prompt.py")
 #figure(
   code()[
     #raw(critic_answer_system_prompt, lang: "python")
   ],
-  caption: "Critic Answer, system prompt",
+  caption: "Strategy planner, system prompt",
   kind: "prompt",
   supplement: [Prompt],
 ) <critic_answer_system_prompt>
