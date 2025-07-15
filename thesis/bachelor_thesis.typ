@@ -884,9 +884,9 @@ These insights are provided by two sources:
 The latter leverages language models to mimic expert judgment, assessing the response against a set of predefined criteria.
 This approach provides a scalable and consistent alternative to human evaluation.
 
-Unlike human experts which may emphasize different aspects depending on their interpretation or even mood, language model evaluation is driven by clear rules, ensuring consistency and uniformity across all cases. The G-Eval, as introduced in the #ref(<state_of_art>, supplement: it => it.body) section, metric summarizes the score of the criteria and quantifies the quality of the response.
+Unlike human experts which may emphasize different aspects depending on their interpretation or even mood, language model evaluation is driven by clear rules, ensuring consistency and uniformity across all cases. The G-Eval metric, as introduced in the #ref(<state_of_art>, supplement: it => it.body) section, summarizes the score of the criteria and quantifies the quality of the response.
 
-The criteria are defined as follows:
+The criteria for the LLM-as-a-judge benchmarking framework are defined as follows:
 1. Data interpretation: assesses whether the response uses only relevant data, maintains mathematical accuracy, distinguishes energy types, preserves units, and handles zero values correctly.
 2. Methodology alignment:
   - For factual queries: checks clear data analysis, insight identification and avoidance of proper plannification.
@@ -911,6 +911,7 @@ And evaluated according to the following scale, presented in #ref(<scoring_grid_
 
 Finally, the individual scores are aggregated to a single score using a weighted average.
 
+#highlight("TODO: rendre table plus jolie ?")
 #highlight("TODO: donner prompt évaluation benchmark framework")
 
 The former human insight is naturally shaped by the domain knowledge and nuanced judgment of the expert, leading to a more informed assessment.
@@ -965,7 +966,7 @@ This dataset consists of nine prompts and establishes the basis for assessing th
 - _Can you provide me with a map of the electricity grid and potential PV production on roofs and other surfaces ?_
 - _Can you provide me with a map of heat/cold demand density and potential sources of heat/cold ?_
 
-The dataset is deliberately designed and aligned within the specific scope of available data sources, inherently restricting its size.
+The dataset is aligned within the specific scope of available data sources, inherently restricting its size.
 It is crafted by Prof. Jessen Page to support energy planning for the municipality of Sion.
 
 With everything defined, the results are presented in the tables below.
@@ -994,6 +995,9 @@ With everything defined, the results are presented in the tables below.
 
 
 = Conclusion
+
+// PROS AND CONS DU PROJET, LLM POUR LA TACHE
+
 
 #pagebreak()
 #heavy-title(i18n(doc_language, "bibliography-title"), mult: 1, top: 0.5em, bottom: 0.3em)
