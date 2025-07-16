@@ -48,7 +48,7 @@ The abstract of a bachelor thesis should provide a concise summary of the entire
 - The key results or findings.
 - The main conclusion or implications of the work.
 
-The abstract should be self-contained, clear, and usually does not exceed 250-300 words. It allows readers to quickly understand the purpose and outcomes of the thesis without reading the full document.
+The abstract should be self-contained, clear and usually does not exceed 250-300 words. It allows readers to quickly understand the purpose and outcomes of the thesis without reading the full document.
 
 The abstract *must* be written in both French and English.
 
@@ -148,7 +148,7 @@ User behavior is analyzed to takeaway user preferences which gradually adapt the
 
 While generative artificial intelligence is the core of this work, it has also been a great help in assisting the following tasks: prompt engineering (1) and thesis report rewording (2)#footnote("The language models used for these tasks are GPT-4.1 (OpenAI) and Claude 3.7 (Anthropic).").
 
-The different prompts defined in the appendix were refined with the use of generative artificial intelligence. This strongly enhances the quality of the prompts, implementing prompt engineering techniques to ensure clear, concise, and effective instructions.
+The different prompts defined in the appendix were refined with the use of generative artificial intelligence. This strongly enhances the quality of the prompts, implementing prompt engineering techniques to ensure clear, concise and effective instructions.
 
 #ref(<prompt_creation>) defines typical directives that were given to the language model.
 
@@ -168,11 +168,11 @@ The AI Institude at ITMO University published in 2025 a paper titled _LLM Agents
 
 The research focused on the testing of three hypotheses: (1) evaluating the capability of LLM agents to effectively route and process diverse urban queries against existing urban information systems, (2) the effectiveness of #acr("RAG") technology in improving response accuracy when working with local knowledge and regulations and (3) the impact of integrating LLM agents with existing urban information-systems - increasing efficiency and decreasing the decision making process time.
 
-LLM agents (sometimes called AI agents) are software systems that use AI to pursue goals and complete tasks on behalf of users. They show reasoning, planning, and memory and have a level of autonomy to make decisions, learn, and adapt as per #link("https://cloud.google.com/discover/what-are-ai-agents?hl=en")[cloud.google.com].
+LLM agents (sometimes called AI agents) are software systems that use AI to pursue goals and complete tasks on behalf of users. They show reasoning, planning and memory and have a level of autonomy to make decisions, learn and adapt as per #link("https://cloud.google.com/discover/what-are-ai-agents?hl=en")[cloud.google.com].
 #highlight("mieux citer??")
 
 Their proposed solution was tested against 150 question-answer pairs and used St. Petersburg's Digital Urban Platform as a testbed.
-The testing dataset was curated and built by a group of human experts such as specialists in urban data analysis, GIS specialists, and urban architects.
+The testing dataset was curated and built by a group of human experts such as specialists in urban data analysis, GIS specialists and urban architects.
 
 They then evaluated different configurations of LLM agents and state-of-the-art models against two primary metrics: G-eval and answer relevance.
 The G-eval metric provides greater compliance with human requirements as it uses LLMs to evaluate answers from other LLMs based on custom user criteria. These criteria can for e.g. be provided as a list of rules specifying precise steps the LLM should take for evaluation, mirroring human reasoning process.
@@ -189,7 +189,7 @@ This work strongly values the user experience with efforts in enhancing conversa
 It neither serves as a continuation nor a re-implementation of the ITMO study, but rather represents an independent application of AI agents to a related use case specifically adapted to the context of a Bachelor's thesis and shaped by my practical implementation choices and problem-solving approach.
 Any solution designed and implemented around similar goals and data-related constraints, regardless of the specificities of the use case, may result in an architecture that is somewhat similar.
 
-As we forget about the use case and consider more generic research on the matter, we encounter  publications that rather focus on the optimization of various aspects of AI agents, such as their scalability, efficiency, and robustness. While this work tackles some of these challenges, it does not incorporate major research efforts into these areas.
+As we forget about the use case and consider more generic research on the matter, we encounter  publications that rather focus on the optimization of various aspects of AI agents, such as their scalability, efficiency and robustness. While this work tackles some of these challenges, it does not incorporate major research efforts into these areas.
 
 #highlight("TODO: citer aino différement?")
 Another AI-centric solution relevant to this use case is #link("https://www.aino.world/")[aino], described on their homepage as an _AI GIS Analyst for Urban planning teams_. Developed and marketed in the United States, it is a commercial business solution offering a platform where an AI analyzes sites and provides visual insights from simple questions. This solution inspired me into a few design and user experience improvements in my work as no implementation details are provided.
@@ -276,7 +276,7 @@ These requirements are summarized in the #ref(<requirements_table>) below:
 #highlight("TODO: ajouter nice to have multilingue, persistance, ...")
 
 #pagebreak()
-== System Design
+== System Design <system_design>
 #highlight("Renommer implémentation ?")
 
 #highlight("Parler de tech stack, définition des données ?")
@@ -474,7 +474,7 @@ Thus, identifying relevant features within a municipality implies searching them
 Although the GeoAdmin API enables searching for features in a given area, it is subject to a maximum number of 50 features retrieved per request.
 Consequently, identifying them requires breaking down the search area into smaller sub-areas and querying each sub-area separately.
 
-This has been implemented by first clipping settlements and centres of larger cities onto the municipality's geometry, optimizing the search area, and applying a spatial tiling on top. Different layers obviously require different tiling sizes, depending on the number and resolution of features.
+This has been implemented by first clipping settlements and centres of larger cities onto the municipality's geometry, optimizing the search area and applying a spatial tiling on top. Different layers obviously require different tiling sizes, depending on the number and resolution of features.
 
 #set table(fill: (x, y) => if calc.odd(y) and x != 0 { rgb("EAF2F5") })
 The #ref(<datasets_table>) presents the data sources incorporated in the solution:
@@ -542,7 +542,7 @@ The discretization of the different datasources showcases the importance of spat
 
 In the average municipality, certain features are few and easily assessable whereas it is impossible to retrieve meaningful insights from the greater-resolution datasets (for e.g. the suitability of roofs, per roof pane) without additional processing or aggregation.
 
-Therefore, the features within the municipality are (1) identified within the municipality, (2) aggregated to the municipality level, and (3) brought back to the same GWh/year unit#footnote("Only applies to energy measures. Energy is deduced from power, in watts, assuming non-stop operation (24/7/365)."). This standardization allows for an easier and consistent comparison of scalars, on a yearly basis, crucial for interpretability but comes with drawbacks:
+Therefore, the features within the municipality are (1) identified within the municipality, (2) aggregated to the municipality level and (3) brought back to the same GWh/year unit#footnote("Only applies to energy measures. Energy is deduced from power, in watts, assuming non-stop operation (24/7/365)."). This standardization allows for an easier and consistent comparison of scalars, on a yearly basis, crucial for interpretability but comes with drawbacks:
 - The information of variability within the municipality itself is lost.
 - The aggregation of data is a costly process, especially when doing this on the fly.
 
@@ -564,7 +564,7 @@ With the data standardized and properly aggregated, the geocontext retriever age
 
 Previously, AI agents were described as autonomous systems able to operate and make decisions independently. These operations rely on tools.
 
-A construction worker, for example, has different tools for different needs, such as a hammer for nails, a saw for cutting wood, and a level for ensuring straight walls. The tools come with a set of instructions describing how to use them and what to expect from them.
+A construction worker, for example, has different tools for different needs, such as a hammer for nails, a saw for cutting wood and a level for ensuring straight walls. The tools come with a set of instructions describing how to use them and what to expect from them.
 
 The same applies to AI agents, which have, in this work, different tools allowing them to query, aggregate and retrieve data from the datasets in #ref(<datasets_table>).
 Consequently, language models can leverage their natural language processing capabilities to choose the appropriate tools for the query.
@@ -611,7 +611,7 @@ Once the relevant data is gathered, the next stage is for the strategy planner a
 
 ==== Guidelines Retriever
 
-The sole difference between enumerating the data, as collected in the geocontext retriever, and proper energy planning lies in the measures that are taken in response to identified issues. Those measures are conditioned by guidelines, broken down into multiple sources.
+The sole difference between enumerating the data, as collected in the geocontext retriever and proper energy planning lies in the measures that are taken in response to identified issues. Those measures are conditioned by guidelines, broken down into multiple sources.
 
 The primary document called _Vision 2060 et objectifs 2035_ has been adopted in 2019 and sets intermediate targets for 2035 that take into account the energetical landscape of Valais/Wallis, current knowledge, as well as federal energy and climate policies with the ultimate goal of achieving a 100% renewable and indigenous energy supply in 2060.
 
@@ -625,7 +625,7 @@ These documents are specifically designed and structured to convey information t
 Visual structure does not necessarily imply a logical flow of information. A document can look and feel organized but still lack a proper machine readable structure.
 In practice, it is neither realistic nor scalable to expect a human to manually extract all the key information needed for energy planning from such complex documents. Therefore, it becomes essential to delegate this task to the computer, enabling automated extraction and processing of documents.
 
-When data lacks clear structure, it becomes difficult to extract information using algorithms or systematic procedures. However, advances in #acrpl("MLLM") offer a solution as these models are designed to process and understand information presented in various modalities such as text, images, audio, and video. Paired with existing methods that are able to extract raw text from these documents, it has become easier to extract precise information from visually organized and heterogeneous documents by understanding not only the way information is displayed but also its underlying semantic meaning.
+When data lacks clear structure, it becomes difficult to extract information using algorithms or systematic procedures. However, advances in #acrpl("MLLM") offer a solution as these models are designed to process and understand information presented in various modalities such as text, images, audio and video. Paired with existing methods that are able to extract raw text from these documents, it has become easier to extract precise information from visually organized and heterogeneous documents by understanding not only the way information is displayed but also its underlying semantic meaning.
 
 As such, a systematic approach is applied when extracting information from these documents:
 - Raw text is extracted from the documents on a per-page basis.
@@ -669,6 +669,16 @@ With the relevant guidelines retrieved and rescaled, the query is routed to the 
 #highlight("TODO: citer modèle utilisé MLLM et embeddings ?")
 #highlight("TODO: citer comment traiter données communales")
 #highlight("TODO: inclure prompts dans bibliographie")
+
+==== Municipal citizen profile
+
+Before delving into the strategy planner agent, it is necessary to assess how the solution could be enhanced by incorporating additional municipal data.
+This section is deliberately included in the #ref(<system_design>, supplement: it => it.body) chapter, as this aspect of the solution was envisioned from the start and a proof of concept has been developed.
+
+Switzerland has three levels of political authority: the Confederation (federal government), the cantons (states) and the communes (municipalities).
+
+// identifiable mais pas anonyme
+// pas inclu as of now pcq...
 
 ==== Strategy Planner <strategy_planner>
 
@@ -895,12 +905,12 @@ This approach provides a scalable and consistent alternative to human evaluation
 Unlike human experts which may emphasize different aspects depending on their interpretation or even mood, language model evaluation is driven by clear rules, ensuring consistency and uniformity across all cases. The G-Eval metric, as introduced in the #ref(<state_of_art>, supplement: it => it.body) section, summarizes the score of the criteria and quantifies the quality of the response.
 
 The criteria for the LLM-as-a-judge benchmarking framework are defined as follows:
-1. Data interpretation: assesses whether the response uses only relevant data, maintains mathematical accuracy, distinguishes energy types, preserves units, and handles zero values correctly.
+1. Data interpretation: assesses whether the response uses only relevant data, maintains mathematical accuracy, distinguishes energy types, preserves units and handles zero values correctly.
 2. Methodology alignment:
   - For factual queries: checks clear data analysis, insight identification and avoidance of proper plannification.
   - For actionable queries: evaluates structured planning, guidelines integration and expert positioning.
 3. Municipal relevance: rates feasibility at local scale, direct query alignment, consideration of local context and actionable next steps.
-4. Technical compliance: checks language consistency, correct structure, citation format, and completeness of required sections.
+4. Technical compliance: checks language consistency, correct structure, citation format and completeness of required sections.
 
 And evaluated according to the following scale, presented in #ref(<scoring_grid_llm>):
 #set table(fill: (x, y) => if calc.odd(y) { rgb("F7F9FA") })
@@ -948,7 +958,7 @@ However, the grid presented in #ref(<scoring_grid_expert>) acts as a reference p
 
     [4],
     [Relevant],
-    [Information is correct, targeted, and generally adapted to the question ; minor adjustments may be needed but it is usable for planning.],
+    [Information is correct, targeted and generally adapted to the question ; minor adjustments may be needed but it is usable for planning.],
 
     [5],
     [Highly relevant],
