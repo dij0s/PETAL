@@ -141,8 +141,8 @@ def score(request, ai_message, router) -> BenchmarkScore:
         raise ValueError("Invalid response type")
     return response
 
-for index in range(10):
-    with open(f"benchmarking/sion_small_benchmark_0{index}.json", "r") as file:
+for index in range(5):
+    with open(f"benchmarking/sion_benchmark_0{index}.json", "r") as file:
         data = json.load(file)
 
     results = reduce(
@@ -154,5 +154,5 @@ for index in range(10):
         data.get("results", []),
         []
     )
-    with open(f"benchmarking/small_benchmark_dp_0{index}.json", "w") as out:
+    with open(f"benchmarking/sion_benchmark_0{index+5}.json", "w") as out:
         json.dump(results, out, indent=2)
