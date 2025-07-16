@@ -114,7 +114,7 @@ Municipalities may introduce in their regulations energy requirements that are m
 Municipalities in Switzerland are required to submit an energy planning document which outlines their future strategies to comply with those directives while also considering the characteristics of their energetical landscape.
 
 These different properties can be quantified and analyzed through the use of a very valuable resource: data.
-Data is emitted by various sources ; sensors, energy models or citizen records for e.g. all yield data points that help us assess different indicators we are willing to measure against our municipality. These indicators, _in fine_, help us evaluate our progress towards energy-related goals.
+Data is emitted by various sources ; sensors, energy models or citizens' records for example all yield data points that help us assess different indicators we are willing to measure against our municipality. These indicators, _in fine_, help us evaluate our progress towards energy-related goals.
 
 Over the past few years, #acr("AI") has rapidly transformed our habits when interacting with information.
 
@@ -388,7 +388,7 @@ Upon receiving a user prompt, the agent analyzes the query to extract its underl
 - The aggregated query: a summary that combines all available context from the current conversation and the previous query into a single one.
 - The conversation type: identifies the conversational context ; "new_analysis" (fresh query), "correction_request" (user questions the accuracy of a previous response) or 'follow_up' (user requests additional detail or expansion on the same topic).
 - The need for clarification: defines whether more information is needed to understand what users wants (e.g., missing location, unclear intent, or vague request).
-- The needs for memoization: specifies if the user provided explicit preferences, corrections to assumptions, or scope refinements that should be remembered for future queries (for e.g. the format used to summarize the retrieved data or only considering a single aspect from certain datapoints).
+- The needs for memoization: specifies if the user provided explicit preferences, corrections to assumptions, or scope refinements that should be remembered for future queries (for e.g. the format used to summarize the retrieved data or only considering a single aspect from certain data points).
 
 Implementation-wise, the output of the language model is constrained to a single Pydantic#footnote("https://docs.pydantic.dev/latest/") data schema.
 While these models typically generate natural language responses, these complex multi-agent systems benefit from a structured output format that can easily be further processed.
@@ -609,7 +609,7 @@ Once the relevant data is gathered, the next stage is for the strategy planner a
 #highlight("TODO: parler spécifique map et système coordonnées?")
 #highlight("TODO: ajouter tool energy needs, heuristique et détailler planification énergétique?")
 
-==== Guidelines Retriever
+==== Guidelines Retriever <guidelines_retriever>
 
 The sole difference between enumerating the data, as collected in the geocontext retriever and proper energy planning lies in the measures that are taken in response to identified issues. Those measures are conditioned by guidelines, broken down into multiple sources.
 
@@ -677,8 +677,57 @@ This section is deliberately included in the #ref(<system_design>, supplement: i
 
 Switzerland has three levels of political authority: the Confederation (federal government), the cantons (states) and the communes (municipalities).
 
-// identifiable mais pas anonyme
-// pas inclu as of now pcq...
+Municipalities have an administrative and regulatory role in different over residents, especially regarding housing and energy use.
+Consequently, municipalities gather extensive data that can be highly valuable to establish proper energy planning strategies, at a local level.
+
+When residents apply for building permits, they are required to submit detailed information regarding the construction.
+Energy efficiency standards enforce mandatory requirements, which are evaluated via an energy profile of the construction.
+
+These applications become part of the citizen's record and provide relevant information and contain key details about the type of heating system, the annual energy consumption and the energy reference surface of the construction.
+
+On top of that, residents who install solar photovoltaic systems and solar thermal systems apply for subsidies, provided through various programs.
+Detailed technical specifications of the installation are required, including its power.
+
+After being assessed and approved by the municipality, these applications are added to the official record.
+
+Moreover, municipalities are actively working to digitalize these processes.
+Currently, most documents are scanned and stored in a digital format (typically PDF).
+
+As described in the #ref(<guidelines_retriever>, supplement: it => it.body) section, MLLMs facilitate the extraction of information from these documents.
+The only difference lies in how those models are leveraged.
+
+Instead of inquiring the model to summarize or retrieve key insight, a simple citizen profile that is valuable for energy planning is defined#footnote("This profile was defined with the help of the supervisors and could easily be extended."), and searched for, inside each page of the citizen's record (#ref(<municipal_citizen_profile>)):
+- The parcel number
+- The energy reference surface of the construction, in square meters
+- The type of heating system
+- The annual energy consumption, in kilowatt-hours per annum
+- The power of the solar photovoltaic system, in kilowatt-peak
+
+In the end, the individual pages results are aggregated into a single resident energy profile.
+
+This procedure was tested against a typical citizen record, provided by Prof. Jessen Page. The #ref(<citizen_profile_example>) below provides the anonymized (without _parcel_number_), resulting profile:
+
+#figure(
+  code()[
+    #raw(
+      "{
+        'parcel_number': xxx,
+        'sre': 169,
+        'consumption_heating': 185.3,
+        'source_heating': 'PAC air/eau',
+        'power_pv': 9.68
+}",
+      lang: "json",
+    )
+  ],
+  caption: "Citizen profile, example",
+) <citizen_profile_example>
+
+In a production scenario, these profiles would be generated automatically by setting up data pipelines and stored in a database for further use.
+
+This implementation confirms the feasibility and systematic approach to extracting information from municipal records, supporting the broader vision of the solution's ability to leverage citizen data and gain further insight from these non-public sources.
+
+With this proof of concept demonstrated, the next step covers the design and implementation of the strategy planner agent.
 
 ==== Strategy Planner <strategy_planner>
 
@@ -1130,6 +1179,16 @@ With everything defined, the results are presented in the tables below:
   kind: "prompt",
   supplement: [Prompt],
 ) <guidelines_retriever_system_prompt>
+
+#let infer_pages_structureless_prompts_system = read("code/infer_no_structure_system.py")
+#figure(
+  code()[
+    #raw(infer_pages_structureless_prompts_system, lang: "python")
+  ],
+  caption: "Municipal ciztizen profile, data extraction prompt",
+  kind: "prompt",
+  supplement: [Prompt],
+) <municipal_citizen_profile>
 
 #let generate_answer_factual_system_prompt = read("code/generate_answer_factual_system_prompt.py")
 #figure(
