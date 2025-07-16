@@ -326,10 +326,10 @@ One might suggest that the straightforward approach to maintaining conversationa
 
 LLMs rely on a self-attention mechanism to identify and concentrate on the most relevant parts of the input sequence. Each token, the basic unit of text (word, single character, group of words...) that is processed by the model, is assigned a weight reflecting its importance. This allows the model to prioritize relevant information and ignore irrelevant details.
 
-Hence, when the entire conversation history is provided to the model, important tokens may get lost in the larger context and potentially lead to incorrect responses (attention diffusion).
+Hence, when the entire conversation history is provided to the model, important tokens may get lost in the larger context and potentially lead to incorrect responses (phenomenon called attention diffusion).
 
 Considering this, a more efficient approach is proposed, relying on a single key assumption: each conversation focuses exclusively on energy planning for one municipality at a time.
-Accordingly, the conversational context is modeled as a single object that is updated at every turn. It is defined in the codeblock #ref(<conversational_state>) :
+Accordingly, the conversational context is modeled as a single object that is updated at every turn. It is defined in the #ref(<conversational_state>) below:
 #let destructured_state = read("code/destructured_state.py")
 #figure(
   code()[
@@ -349,11 +349,7 @@ Compared to standard language models, they are particularly valuable for tasks t
 By constraining the conversational state and narrowing the scope of each agent, it is possible to reduce the computational load and latency by simply swapping out these large reasoning models by smaller, better-suited models.
 Doing so, it becomes possible to select reasoning models that are better suited to specific tasks while reducing the computational costs.
 
-#figure(image("figs/ai_agent_system_design.svg", height: 7.5cm), caption: "AI agent architecture")<ai_agent_design>
-#highlight("TODO: ajouter flèche stream response clarificaction et answer")
-#highlight("TODO: renommer critic")
-#highlight("TODO: séparer proprement les API geoadmin dans un bloc external services?")
-#highlight("TODO: remplacer par un schéma de FSM classique??")
+#figure(image("figs/ai_agent_system_design.svg", height: 10cm), caption: "AI agent architecture")<ai_agent_design>
 
 The architecture in the #ref(<ai_agent_design>) above is modeled after a #acr("FSM"), where each node represents an agent and each edge represents a transition that is either always executed (solid) or conditionally executed (dashed). The dynamic flow of control between agents is guided by the evolving conversational state. It is finite, per definition, as the state takes value in a discrete set.
 #highlight("TODO: enlever notion finite state machine?")
@@ -376,6 +372,7 @@ The main responsibility of each agent is as follows:
 #highlight("TODO: plus en détails ?")
 
 The various prompts are included in the appendix.
+#highlight("TODO: mettre autre part cette info?")
 
 With the overall solution defined, the following sections dig in the details of each agent and their implementation.
 
@@ -393,7 +390,7 @@ Upon receiving a user prompt, the agent analyzes the query to extract its underl
 - The need for clarification: defines whether more information is needed to understand what users wants (e.g., missing location, unclear intent, or vague request).
 - The needs for memoization: specifies if the user provided explicit preferences, corrections to assumptions, or scope refinements that should be remembered for future queries (for e.g. the format used to summarize the retrieved data or only considering a single aspect from certain datapoints).
 
-Implementation-wise, the output of the language model is constrained to a single Pydantic data schema, _RouterOutput_.
+Implementation-wise, the output of the language model is constrained to a single Pydantic#footnote("https://docs.pydantic.dev/latest/") data schema.
 While these models typically generate natural language responses, these complex multi-agent systems benefit from a structured output format that can easily be further processed.
 This is possible thanks to OpenAI#footnote("https://openai.com/"), introducing the support for structured outputs in late 2024, a feature that has since been adopted by many providers.
 
@@ -404,7 +401,7 @@ In this context, it facilitates the definition of the _aggregated_query_ and _ne
 All these fields except the aggregated query take value in a finite set of options (considering the _location_ field is either set or unset.).
 Consequently, it is very easy to plan and orchestrate the following actions.
 
-Since the application must offer a conversational experience, the previous _RouterOutput_ is accumulated on every turn.
+Since the application must offer a conversational experience, the previously determined state is updated and not overwritten.
 Past fields are only updated if they differ from the new ones. As such, context and knowledge is properly accumulated over time.
 Once the municipality is provided, for example, it is not needed anymore as the request is assumed to concern the same municipality.
 
@@ -414,19 +411,17 @@ To ensure correct implementation, whenever a request concerns a different munici
 On top of that, user-provided feedback and corrections shape the system's behavior allowing it to adapt to the user's preferences.
 When there is a need for memoization, the system stores both the previous query (the _corrected_) and the current query (the _correctee_), in the database.
 
+This highlights the interfaces of the intent router, as detailed in the #ref(<intent_router_design>) below:
+#figure(image("figs/intent_router_design.svg", width: 80%), caption: "Intent router, interfaces")<intent_router_design>
+
+#highlight("TODO: détail déf pydantic ??")
 #highlight("TODO: parler que store parallèle ??")
 #highlight("TODO: parler quelque part d'async??")
-#highlight("TODO: schéma avec flux entiers, database, ...")
 #highlight("TODO: décire que local database redis...")
-#highlight("TODO: mettre au format UML??")
 #highlight("TODO: parler au dessus coûte cher de faire un appel LLM")
 
 An assumption still lies in the nature of the field _location_ as it is assumed to either be set or unset. A set location does not necessarily imply that it is a valid municipality, inscribed in the published Swiss official commune register#footnote("https://www.bfs.admin.ch/bfs/en/home/basics/swiss-official-commune-register.html").
 A solution is proposed in the section #ref(<geocontext_retriever>, supplement: it => it.body).
-
-#highlight(
-  "TODO: dire que utiliser un dictionnaire difficile car mises à jour fréquentes par exemple ici ou plus bas ??",
-)
 
 Finally, the query is routed according to the #ref(<ai_agent_design>):
 - If clarification is needed (either because the need for clarification is explicitly requested, or fields are missing), the request is sent to the clarify query agent (2).
@@ -437,12 +432,13 @@ Finally, the query is routed according to the #ref(<ai_agent_design>):
 With the aim of the user's query now clearly defined, the next step is to address any ambiguities or missing information with the clarification agent.
 
 ==== Clarify Query
-#highlight("TODO: METTRE UNE AI NOTICE ET CHECKER VIM TEMP ET INCLURE PROMPT ENGINEERING POUR AGENTS DEDANS!!")
 Clarifying and resolving vagueness in the user's query is essential to better understand the fundamental intent and provide an aligned response.
 
 With the output of the intent router agent properly defined, the two cases which lead to the need for clarification are either an explicit request for clarification due to ambiguity or missing information.
 
-Those two cases are both handled at once as a language model is prompted with the user's query and missing fields to generate and stream a response inquiring for further information or clarification (#ref(<ai_agent_design>), transition 3).
+Those two cases are both handled at once as a language model is prompted with the user's query and missing fields to generate and stream a response inquiring for further information or clarification (#ref(<ai_agent_design>), transition 3). The interfaces are illustrated in the #ref(<clarify_query_design>) below:
+#figure(image("figs/clarify_query_design.svg", width: 80%), caption: "Clarify query, interfaces")<clarify_query_design>
+
 In the following turn, the newly provided information is merged with the previously deduced intent as designed and presented in the section #ref(<intent_router>, supplement: it => it.body).
 
 This task is supported by both #ref(<clarify_query_system_prompt>) and #ref(<clarify_query_user_prompt>).
@@ -592,7 +588,12 @@ This approach reduces the overall computational cost while increasing the qualit
 
 #highlight("TODO: faire un schéma détaillé du processus de l'agent?")
 
-With the appropriate tools chosen, the system can effectively retrieve the data. It is simply added to the _context_tools_ field in the conversational state (#ref(<conversational_state>)).
+With the appropriate tools chosen, the system can effectively retrieve the data. It is simply added to the _context_tools_ field in the conversational state (#ref(<conversational_state>)), as presented in the #ref(<geocontext_retriever_design>) below:
+#figure(
+  image("figs/geocontext_retriever_design.svg", width: 80%),
+  caption: "Geocontext retriever, interfaces",
+)<geocontext_retriever_design>
+
 Geospatial information is accumulated over the conversation turns, allowing for context-aware planning and consistent, spatially informed decisions. It is only reset when switching to a new municipality as it becomes invalid.
 
 In the section #ref(<intent_router>, supplement: it => it.body), the validity of the location is not confirmed. This is directly implemented in the different tools above and routing of this agent (#ref(<ai_agent_design>)):
@@ -653,6 +654,12 @@ While this is a straightforward way to scale targets, proper rescaling should ta
 The adjusted guidelines are accumulated onto the _context_constraints_ field in the conversational state (#ref(<conversational_state>)).
 Similarly to the geospatial information described in the #ref(<geocontext_retriever>, supplement: it => it.body) section, the processed guidelines are accumulated in the state as the conversation goes on and only cleared when switching to a new municipality.
 
+These interfaces are shown in the #ref(<guidelines_retriever_design>) below:
+#figure(
+  image("figs/guidelines_retriever_design.svg", width: 80%),
+  caption: "Guidelines retriever, interfaces",
+)<guidelines_retriever_design>
+
 With the relevant guidelines retrieved and rescaled, the query is routed to the strategy planner agent (#ref(<ai_agent_design>), transition 6) which will use them as clear constraints.
 
 #highlight("TODO: mettre un premier chapitre preprocessing?")
@@ -680,6 +687,12 @@ Like tools and guidelines, memories are stored as embeddings and are therefore r
 Finally, similar tools to those retrieved by the geocontext retriever agent are retrieved in order to generate tailored recommendations.
 The selection of similar tools is based on their categorization, as defined in #ref(<datasets_table>). This encourages assessing the full spectrum of available data for any municipality.
 
+The state interfaces are presented in the #ref(<strategy_planner_design>) below:
+#figure(
+  image("figs/strategy_planner_design.svg", width: 80%),
+  caption: "Strategy planner, interfaces",
+)<strategy_planner_design>
+
 The factual queries are treated by both #ref(<generate_answer_factual_system_prompt>) and #ref(<generate_answer_factual_user_prompt>) whereas actionable queries are handled by #ref(<generate_answer_actionable_system_prompt>) and #ref(<generate_answer_actionable_user_prompt>).
 The conversational context is simply broken down and included in the prompts.
 
@@ -701,7 +714,11 @@ These interpretations errors typically include:
 As such, a language model is prompted the response generated in the <strategy_planner> with the data points and guidelines that shaped it (#ref(<critic_answer_system_prompt>)).
 On top of that, the number of residents in the municipality and its exploitable area are both included, providing extra context that helps the model assess the feasibility of the proposed strategy.
 
-Its output is a boolean value that indicates whether the response has been interpreted correctly based on the rules above.
+#figure(
+  image("figs/critic_design.svg", width: 80%),
+  caption: "Critic design, interfaces",
+)<critic_design>
+Its output is a boolean value (#ref(<critic_design>), _retry_) that indicates whether the response has been interpreted correctly based on the rules above.
 
 If it the response is not satisfactory, the complete process is restarted as if the user had just prompted the system (#ref(<ai_agent_design>), transition 9).
 A maximum of three attempts are allowed before the workflow is not restarted anymore.
@@ -778,10 +795,11 @@ This is because factual queries involve fewer agents in the workflow defined in 
 
 #highlight("TOOD: concept de persistance???")
 #highlight("TODO: mettre des screenshots?")
+#highlight("TODO: mettre un schéma?")
 
 With that, the implementation details of the web interface are clarified. This highlights its role as being on par with the AI agent solution itself.
 
-=== Limitations
+== Limitations
 
 #highlight("TODO: en faire un chapitre par composant au dessus ou en dehors de la partie méthodologie?")
 #highlight("TODO: checker orthographe de tout le rapport!!")
@@ -941,7 +959,9 @@ However, the grid presented in #ref(<scoring_grid_expert>) acts as a reference p
 
 It is important to note that the G-eval and expert scores cannot be compared, each being grounded in a distinct evaluation framework.
 
-G-eval offers a standardized framework with set evaluation criteria, allowing for consistent and reliable benchmarking. This enables the comparison of different solutions under identical conditions.
+G-eval offers a standardized framework with set evaluation criteria, allowing for a more consistent and reliable benchmarking. This enables the comparison of different solutions under identical conditions.
+#highlight("TODO: parler de randomness quand même ??")
+#highlight("TODO: parler potentiel benchmark rag?")
 
 By presenting both evaluation methods, the objectivity of an automated scoring is complemented by the more practice-oriented expert judgment
 This dual approach treats both methodological rigor and contextual relevance to assess the quality of the solution.
@@ -992,7 +1012,7 @@ With everything defined, the results are presented in the tables below:
 // MCP
 // train classificateur guidelines, fine tune, ...
 // train classificateur intent
-// fuzzy search <- amélioration plutôt que limitation
+// fuzzy search <- amélioration plutôt que limitation et dire que utiliser un dictionnaire difficile car mises à jour fréquentes par exemple ici ou plus bas ??
 // support mobile
 // EVALUER LES OBJECTIFS DU TRAVAIL
 
@@ -1008,6 +1028,7 @@ With everything defined, the results are presented in the tables below:
 #heavy-title(i18n(doc_language, "bibliography-title"), mult: 1, top: 0.5em, bottom: 0.3em)
 // generate bib file RIS script (https://www.bruot.org/ris2bib/)
 #bibliography("bibliography.bib", full: true, style: "ieee", title: none)
+#highlight("TODO: reexport bookmarks")
 #highlight("TODO: mettre une deuxième bib. technique uniquement!!")
 // #bibliography(("bibliography.bib", "technical_reference.bib"), full: true, style: "ieee", title: none)
 
