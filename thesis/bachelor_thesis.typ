@@ -159,6 +159,8 @@ Besides that, all other aspects of this work are my own.
 
 #highlight("TODO: CHECKER VIM TEMP!!")
 
+#highlight("TODO: parler état de l'art LLM tout court et décrire la technologie ou juste approcher")
+
 Large language models are highly effective tools for natural language processing and offer various opportunities to enhance our day-to-day tasks and workflows.
 Ever since they have been introduced to the public, they have been adopted across a wide range of fields and applications.
 
@@ -959,9 +961,11 @@ And evaluated according to the following scale, presented in #ref(<scoring_grid_
   caption: "Ordinal evaluation grid for criteria in the benchmarking framework",
 ) <scoring_grid_llm>
 
+These criteria are based on the most frequent types of errors, encountered during the weekly assessment of the solution.
+
 These instructions are summarized and included in the #ref(<benchmark_system_prompt>). The accumulated context is included, helping the model to evaluate the accuracy of the generated response.
 
-Finally, the individual scores are aggregated to a single score using a weighted average.
+Finally, the individual benchmark scores are aggregated into a single score by calculating the arithmetic mean and then rescaled linearly to the [0,1] interval.
 
 #highlight("TODO: rendre table plus jolie ?")
 #highlight("TODO: donner prompt évaluation benchmark framework")
@@ -999,32 +1003,39 @@ However, the grid presented in #ref(<scoring_grid_expert>) acts as a reference p
   caption: "Ordinal evaluation grid for the expert",
 ) <scoring_grid_expert>
 
-It is important to note that the G-eval and expert scores cannot be compared, each being grounded in a distinct evaluation framework.
+It is important to note that the G-eval and expert scores cannot be interpreted and as directly comparable, each being grounded in a distinct evaluation framework.
 
 G-eval offers a standardized framework with set evaluation criteria, allowing for a more consistent and reliable benchmarking. This enables the comparison of different solutions under identical conditions.
-#highlight("TODO: parler de randomness quand même ??")
-#highlight("TODO: parler potentiel benchmark rag?")
+
+As G-eval relies on LLMs, scores may showcase some degree of randomness. This is mitigated by multiple runs and aggregated scores, offering a stable estimate.
 
 By presenting both evaluation methods, the objectivity of an automated scoring is complemented by the more practice-oriented expert judgment
 This dual approach treats both methodological rigor and contextual relevance to assess the quality of the solution.
+
+For consistency, expert scores are also rescaled linearly to the [0, 1] interval.
 
 With the evaluation frameworks introduced, the next step is to define the test dataset.
 This dataset consists of nine prompts and establishes the basis for assessing the performance of the solution:
 #set table(fill: (x, y) => if calc.odd(y) { rgb("F7F9FA") })
 #figure(
   table(
-    columns: 1,
+    columns: 2,
     align: left,
-    table.header([Prompt]),
-    [What is the current energy consumption per energy vector and per consumer type in Sion?],
-    [How is this demand expected to evolve until 2050?],
-    [What energy efficiency measures should be considered to reduce this consumption?],
-    [Can you tell me the amount of CO2 associated to this demand?],
-    [What are potential sources of renewable energy in Sion (GWh/an for each source)?],
-    [How much of this potential is currently exploited?],
-    [How much is expected to be exploited in the future?],
+    table.header([No°], [Prompt]),
+    [1], [What is the current energy consumption per energy vector and per consumer type in Sion?],
+    [2], [How is this demand expected to evolve until 2050?],
+
+    [3], [What energy efficiency measures should be considered to reduce this consumption?],
+    [4], [Can you tell me the amount of CO2 associated to this demand?],
+
+    [5], [What are potential sources of renewable energy in Sion (GWh/an for each source)?],
+    [6], [How much of this potential is currently exploited?],
+
+    [7], [How much is expected to be exploited in the future?],
+    [8],
     [Can you provide me with a map of the electricity grid and potential PV production on roofs and other surfaces?],
-    [Can you provide me with a map of heat/cold demand density and potential sources of heat/cold?],
+
+    [9], [Can you provide me with a map of heat/cold demand density and potential sources of heat/cold?],
   ),
   caption: "Test dataset prompts for municipal energy planning in Sion",
 )
@@ -1034,22 +1045,102 @@ It is crafted by Prof. Jessen Page to support energy planning for the municipali
 
 #highlight("TODO: différencier style tables pour résultats ?")
 #highlight("TODO: mieux introduire ?")
-With everything defined, the results are presented in the tables below:
+
+With the groundwork established, the following tables present the results that will be discussed in the next section.
+
+Two different configurations of the solution, each using different language models, are benchmarked. The #ref(<configurations>) below breaks them down:
+
+#set table(
+  stroke: (x, y) => {
+    if y == 2 {
+      (bottom: 0.7pt + black)
+    }
+    if x > 1 {
+      (left: 0.3pt + black)
+    }
+    if x == 0 {
+      (right: 0.7pt + black)
+    }
+    if x == 1 and y == 0 {
+      (top: 0.7pt + black)
+      (bottom: 0.7pt + black)
+    }
+  },
+  align: (x, _) => if x == 0 { left } else { center },
+)
+#figure(
+  table(
+    columns: (auto, 2.5cm, 2.5cm, 2.5cm, 2.5cm, auto),
+    table.header(
+      table.cell(rowspan: 2, []),
+      table.cell(colspan: 4, rowspan: 2, [Agent language model]),
+      table.cell(rowspan: 2, []),
+      [*Configuration*],
+      [*Intent Router*],
+      [*Geocontext Retriever*],
+      [*Guidelines Retriever*],
+      [*Strategy planner*],
+      [*G-eval Evaluator*],
+    ),
+    [Small], [qwen3:1.7b], [qwen3:1.7b], [qwen3:1.7b], [qwen3:1.7b], [deepseek-r1:8b],
+    [Large], [qwen3:1.7b], [qwen3:1.7b], [qwen3:1.7b], [*qwen3:8b*], [deepseek-r1:8b],
+  ),
+  caption: "Agent language model by configuration",
+) <configurations>
+
+A smaller configuration is defined for further comparison against the baseline, large configuration.
+Deepseek-r1:8b, a strong general-purpose language model, is used as the evaluator across both configurations to clearly distinguish the model family from that of the agent components, reducing potential bias in the assessment.
+#highlight("TODO: citer deepseek???")
+
+While the expert assessment and G-eval benchmarking are not comparable _as is_, the #ref(<comparison_test_human_llm>) presents their scores across the nine prompts, side by side, and offers an interesting perspective:
+
+#set table(
+  stroke: (x, y) => {
+    if y == 2 {
+      (bottom: 0.7pt + black)
+    }
+    if x > 1 {
+      (left: 0.3pt + black)
+    }
+    if x == 0 {
+      (right: 0.7pt + black)
+    }
+  },
+  align: (x, _) => if x == 0 { left } else { center },
+)
+#figure(
+  table(
+    columns: 3,
+    table.header(
+      table.cell(rowspan: 2, [Prompt No°]),
+      table.cell(rowspan: 2, [Expert score]),
+      table.cell(rowspan: 2, [G-eval (mean ± st.d.)]),
+    ),
+    [], [], [*Large configuration*],
+    [1], [0.50], [0.39 ± 0.15],
+    [2], [0.25], [0.43 ± 0.11],
+    [3], [0.50], [0.44 ± 0.11],
+    [4], [0.25], [0.37 ± 0.22],
+    [5], [0.75], [0.39 ± 0.17],
+    [6], [0.50], [0.41 ± 0.15],
+    [7], [0.75], [0.44 ± 0.10],
+    [8], [0.25], [0.49 ± 0.13],
+    [9], [0.25], [0.50 ± 0.11],
+  ),
+  caption: "Expert assessment and G-eval benchmarking scores on test dataset, per prompt.",
+) <comparison_test_human_llm>
 
 // citer date version code utilisée pour comparer expert et llm
 // présenter scores par différentes configurations, petites et grandes
 // montrer scores par type de query, factual et actionable
-// analyse temps par query ?
 // analyse de cumulation des résultats ?
-
-#highlight("TODO: break down en plusieurs sections?")
+// aurait été intéressant de construire les critères avec expert
 
 = Discussion
 
 // détailler résultats section ici haut
 
 // futur work ici ou autre section ?
-// DONNEES PRIVEES?
 // amélioration graphe
 // MCP
 // train classificateur guidelines, fine tune, ...
