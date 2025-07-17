@@ -2,8 +2,8 @@ import json
 from functools import reduce
 import polars as pl
 
-file_template = lambda index: f"benchmarking/sion_benchmark_0{index}.json"
-# file_template = lambda index: f"benchmarking/small_benchmark_dp_0{index}.json"
+# file_template = lambda index: f"benchmarking/sion_benchmark_0{index}.json"
+file_template = lambda index: f"benchmarking/small_benchmark_dp_0{index}.json"
 def read_f(filepath) -> list[dict]:
     with open(filepath, "r") as f:
         data = json.load(f)
@@ -35,7 +35,7 @@ if df.count().mean_horizontal().item() != 90.0:
 geval_per_sample = (df
     .with_row_index()
     .with_columns(
-        (pl.col("index") + 1).mod(10).alias("prompt_index"),
+        (pl.col("index").mod(9) + 1).alias("prompt_index"),
         (pl.col("index").floordiv(9) + 1).alias("benchmark_index"),
         pl.mean_horizontal(*df.columns).alias("geval"),
     )
@@ -72,3 +72,16 @@ rescaled_scores = [
     for score in scores
 ]
 print(f"These are the expert scores: {rescaled_scores}, mean: {sum(rescaled_scores) / len(rescaled_scores)} and std: {pl.Series(rescaled_scores).std()}")
+
+intent = (["factual"] + ["actionable", "actionable"] + ["factual"] + (["actionable"] * 5)) * 10
+geval_per_intent = (
+    pl.concat([
+        geval_per_sample, pl.DataFrame(intent).rename(lambda _: "intent")
+    ], how="horizontal")
+    .group_by("intent")
+    .agg(
+        pl.col("geval").mean().alias("mean_geval"),
+        pl.col("geval").std().alias("std_geval")
+    )
+)
+print(f"This are the statistics per intent: {geval_per_intent}")
