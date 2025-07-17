@@ -222,49 +222,53 @@ These initial requirements established the basis for the project. As the solutio
 #set table(stroke: (x, y) => if y == 0 {
   (bottom: 0.7pt + black)
 })
+#set table(
+  fill: (x, y) => { if calc.odd(y) { rgb("EAF2F5") } },
+  align: (x, _) => if x == 0 { center } else { left },
+)
 These requirements are summarized in the #ref(<requirements_table>) below:
 #figure(
   table(
-    columns: 3,
-    table.header([Requirement], [Type], [Description]),
-    [Gather relevant data sources],
+    columns: (auto, 30%, auto),
+    table.header([Type], [Requirement], [Description]),
     [Functional],
+    [Gather relevant data sources],
     [The solution must collect and integrate data from various sources relevant to the municipality's energy landscape.],
 
-    [Analyze and present energy landscape],
     [Functional],
+    [Analyze and present energy landscape],
     [The system should process and visualize the current energy situation of the municipality, enabling users to understand available resources and needs.],
 
-    [Provide actionable recommendations],
     [Functional],
+    [Provide actionable recommendations],
     [The solution must generate tailored recommendations for energy planning, considering the specific context and characteristics of the municipality.],
 
-    [Interactive map interface],
     [Functional],
+    [Interactive map interface],
     [The user interface should include a map displaying assessed data points within the municipality for better spatial understanding.],
 
-    [Conversational interface],
     [Functional],
+    [Conversational interface],
     [The system should provide a natural language interface allowing users to interact with the AI through conversational queries.],
 
-    [Preference memory],
     [Functional],
+    [Preference memory],
     [The AI should remember user preferences and past interactions to adapt responses and improve user experience over time.],
 
-    [Multi-AI orchestration],
     [Functional],
+    [Multi-AI orchestration],
     [The system should coordinate multiple specialized AIs through an orchestration layer to provide comprehensive energy planning assistance.],
 
-    [Usability and accessibility],
     [Non-functional],
+    [Usability and accessibility],
     [The interface should be intuitive and accessible for users with varying technical expertise.],
 
-    [Data privacy and security],
     [Non-functional],
+    [Data privacy and security],
     [The solution must ensure the privacy and security of any non-public data, especially considering future integration of additional datasources.],
 
-    [Extensibility and adaptability],
     [Non-functional],
+    [Extensibility and adaptability],
     [The architecture should allow for the addition of new features and datasources as requirements evolve.],
   ),
   caption: "Requirements table",
@@ -290,6 +294,7 @@ The layers are made up of various components. The basic dataflow between them is
 #figure(
   table(
     columns: 3,
+    align: center,
     table.header([From], [To], [Data]),
     [User (Website)], [AI Agent], [Prompt/query],
     [AI Agent (Backend)], [Local Database], [Data retrieval request],
@@ -459,61 +464,85 @@ Consequently, identifying them requires breaking down the search area into small
 
 This has been implemented by first clipping settlements and centres of larger cities onto the municipality's geometry, optimizing the search area and applying a spatial tiling on top. Different layers obviously require different tiling sizes, depending on the number and resolution of features.
 
-#set table(fill: (x, y) => if calc.odd(y) and x != 0 { rgb("EAF2F5") })
+#set table(
+  fill: (x, y) => { if calc.odd(y) and x != 0 { rgb("EAF2F5") } },
+  stroke: (x, y) => {
+    if y == 0 {
+      (bottom: 0.7pt + black)
+    }
+    if x == 0 {
+      (right: 0.7pt + black)
+    }
+    if y == 4 or y == 10 {
+      (top: 0.3pt + black)
+    }
+  },
+)
 The #ref(<datasets_table>) presents the data sources incorporated in the solution:
+
 #figure(
-  rotate(-90deg, reflow: true, table(
-    columns: 5,
-    table.header([Category], [Layer ID], [Description], [Unit], [Discretization]),
-    [*Needs*],
-    [ch.bfe.fernwaerme-nachfrage_industrie],
-    [Heat and cooling demand from industry],
-    [MWh/year],
-    [100m x 100m],
+  rotate(-90deg, reflow: true, {
+    show table.cell.where(x: 1): cell => {
+      show regex("\b.+?\b"): it => it.text.codepoints().join(sym.zws)
+      cell
+    }
+    table(
+      columns: (3cm, 7cm, 8cm, 3cm, 3cm),
+      table.header([Category], [Layer ID], [Description], [Unit], [Discretization]),
+      [*Needs*],
+      [ch.bfe.fernwaerme-nachfrage_industrie],
+      [Heat and cooling demand from industry],
+      [MWh/year],
+      [100m x 100m],
 
-    [],
-    [ch.bfe.fernwaerme-nachfrage_wohn_dienstleistungsgebaeude],
-    [Heat and cooling demand from residential and commercial buildings],
-    [MWh/year],
-    [100m x 100m],
+      [],
+      [ch.bfe.fernwaerme-nachfrage_wohn_dienstleistungsgebaeude],
+      [Heat and cooling demand from residential and commercial buildings],
+      [MWh/year],
+      [100m x 100m],
 
-    [], [ch.bafu.klima-co2_ausstoss_gebaeude], [Greenhouse gas emissions from buildings], [kg/m²], [Per building],
+      [], [ch.bafu.klima-co2_ausstoss_gebaeude], [Greenhouse gas emissions from buildings], [kg/m²], [Per building],
 
-    [*Potential*],
-    [ch.bfe.kleinwasserkraftpotentiale],
-    [Potential of small hydropower plants],
-    [kW/m],
-    [Per watercourse],
+      [*Potential*],
+      [ch.bfe.kleinwasserkraftpotentiale],
+      [Potential of small hydropower plants],
+      [kW/m],
+      [Per watercourse],
 
-    [], [ch.bfe.waermepotential-gewaesser], [Potential heat use of water bodies], [GWh/year], [Per water body],
+      [], [ch.bfe.waermepotential-gewaesser], [Potential heat use of water bodies], [GWh/year], [Per water body],
 
-    [],
-    [ch.bfe.solarenergie-eignung-daecher],
-    [Suitability of roofs for use of solar energy],
-    [kWh/year],
-    [Per roof pane],
+      [],
+      [ch.bfe.solarenergie-eignung-daecher],
+      [Suitability of roofs for use of solar energy],
+      [kWh/year],
+      [Per roof pane],
 
-    [], [ch.bfe.solarenergie-eignung-fassaden], [Solar energy: suitability of façade], [kWh/year], [Per façade],
+      [], [ch.bfe.solarenergie-eignung-fassaden], [Solar energy: suitability of façade], [kWh/year], [Per façade],
 
-    [], [ch.bfe.biomasse-nicht-verholzt], [Biomass potential], [TJ], [Per municipality],
+      [], [ch.bfe.biomasse-nicht-verholzt], [Biomass potential], [TJ], [Per municipality],
 
-    [], [ch.bfe.fernwaerme-angebot], [Potential heat recovery from WWTPs], [MWh/year], [Per plant],
+      [], [ch.bfe.fernwaerme-angebot], [Potential heat recovery from WWTPs], [MWh/year], [Per plant],
 
-    [*Infrastructure*], [ch.bfe.statistik-wasserkraftanlagen], [Hydropower plants: statistics], [GWh/year], [Per plant],
+      [*Infrastructure*],
+      [ch.bfe.statistik-wasserkraftanlagen],
+      [Hydropower plants: statistics],
+      [GWh/year],
+      [Per plant],
 
-    [], [ch.bfe.windenergieanlagen], [Wind energy plants], [GWh/year], [Per turbine],
+      [], [ch.bfe.windenergieanlagen], [Wind energy plants], [GWh/year], [Per turbine],
 
-    [], [ch.bfe.biogasanlagen], [Biogas plants], [kWh/year], [Per plant],
-    [], [ch.bfe.kehrichtverbrennungsanlagen], [Waste incineration plants], [MWh/year], [Per plant],
+      [], [ch.bfe.biogasanlagen], [Biogas plants], [kWh/year], [Per plant],
+      [], [ch.bfe.kehrichtverbrennungsanlagen], [Waste incineration plants], [MWh/year], [Per plant],
 
-    [], [ch.bfe.elektrizitaetsproduktionsanlagen], [Electricity production plants], [kW], [Per plant],
+      [], [ch.bfe.elektrizitaetsproduktionsanlagen], [Electricity production plants], [kW], [Per plant],
 
-    [], [ch.bfe.thermische-netze], [Thermal networks], [MWh/year], [Per network],
+      [], [ch.bfe.thermische-netze], [Thermal networks], [MWh/year], [Per network],
 
-    // [], [ch.swisstopo.swissboundaries3d-gemeinde-flaeche.fill], [Municipalities], [-], [Per municipality],
+      // [], [ch.swisstopo.swissboundaries3d-gemeinde-flaeche.fill], [Municipalities], [-], [Per municipality],
 
-    // [], [ch.swisstopo.vec200-landcover], [Swiss land cover], [-], [Per surface],
-  )),
+      // [], [ch.swisstopo.vec200-landcover], [Swiss land cover], [-], [Per surface],
+    )
+  }),
   caption: "Public datasets",
 ) <datasets_table>
 
@@ -604,7 +633,8 @@ The primary document called _Vision 2060 et objectifs 2035_ has been adopted in 
 Moreover, the _Plan directeur 2019_ adopted by the federal council on the 1st of May 2019, states the strategy for the canton's territorial development in the form of 49 information sheets, distributed across the five activity sectors: (1) _Agriculture, forest, landscape and nature_, (2) _Tourism and leisure_, (3) _Urbanization_, (4) _Mobility and transport infrastructure_ and (5) _Supply and other infrastructure_.
 
 Finally, the legal framework is defined by two key legislative documents. Notably, the _RS 705.1 - Loi sur les constructions (LC)_ establishes the regulations for construction activities, while the _RS 730.1 - Loi sur l'énergie (LcEne)_ defines the objectives and requirements for sustainable energy supply.
-#highlight("TODO: citer autrement -> bib?")
+#highlight("TODO: citer autrement rs -> bib?")
+#highlight("TODO: citer autrement vision et plan directeur -> bib?")
 
 These documents are specifically designed and structured to convey information to the public and come in a single #acr("PDF") and are available in both french and german. They are organized into sections, subsections or paragraphs which reference figures, tables, plots, past paragraphs and so on.
 
@@ -682,7 +712,7 @@ Currently, most documents are scanned and stored in a digital format (typically 
 As described in the #ref(<guidelines_retriever>, supplement: it => it.body) section, MLLMs facilitate the extraction of information from these documents.
 The only difference lies in how those models are leveraged.
 
-Instead of inquiring the model to summarize or retrieve key insight, a simple citizen profile that is valuable for energy planning is defined#footnote("This profile was defined with the help of the supervisors and could easily be extended."), and searched for, inside each page of the citizen's record (#ref(<municipal_citizen_profile>)):
+Instead of inquiring the model to summarize or retrieve key insight, a simple citizen profile that is valuable for energy planning is defined#footnote("This profile was defined with the help of the supervisors and could easily be extended.") and searched for, inside each page of the citizen's record (#ref(<municipal_citizen_profile>)):
 - The parcel number
 - The energy reference surface of the construction, in square meters
 - The type of heating system
@@ -947,10 +977,18 @@ The criteria for the LLM-as-a-judge benchmarking framework are defined as follow
 4. Technical compliance: checks language consistency, correct structure, citation format and completeness of required sections.
 
 And evaluated according to the following scale, presented in #ref(<scoring_grid_llm>):
-#set table(fill: (x, y) => if calc.odd(y) { rgb("F7F9FA") })
+#set table(
+  fill: (x, y) => { if calc.odd(y) { rgb("F7F9FA") } },
+  align: (x, _) => if x == 0 { center } else { left },
+  stroke: (x, y) => {
+    if y == 0 {
+      (bottom: 0.7pt + black)
+    }
+  },
+)
 #figure(
   table(
-    columns: 2,
+    columns: (auto, 80%),
     table.header([Score], [Description]),
     [1], [Fundamental misunderstanding, major errors, or advice that is actively misleading or harmful.],
     [2], [Wrong methodology, significant mistakes, or advice that is not actionable or fails basic requirements.],
@@ -966,9 +1004,6 @@ These criteria are based on the most frequent types of errors, encountered durin
 These instructions are summarized and included in the #ref(<benchmark_system_prompt>). The accumulated context is included, helping the model to evaluate the accuracy of the generated response.
 
 Finally, the individual benchmark scores are aggregated into a single score by calculating the arithmetic mean and then rescaled linearly to the [0,1] interval.
-
-#highlight("TODO: rendre table plus jolie ?")
-#highlight("TODO: donner prompt évaluation benchmark framework")
 
 The former human insight is naturally shaped by the domain knowledge and nuanced judgment of the expert, leading to a more informed assessment.
 
@@ -1016,11 +1051,13 @@ For consistency, expert scores are also rescaled linearly to the [0, 1] interval
 
 With the evaluation frameworks introduced, the next step is to define the test dataset.
 This dataset consists of nine prompts and establishes the basis for assessing the performance of the solution:
-#set table(fill: (x, y) => if calc.odd(y) { rgb("F7F9FA") })
+#set table(
+  fill: (x, y) => if calc.odd(y) { rgb("F7F9FA") },
+  align: (x, _) => if x == 0 { center } else { left },
+)
 #figure(
   table(
     columns: 2,
-    align: left,
     table.header([No°], [Prompt]),
     [1], [What is the current energy consumption per energy vector and per consumer type in Sion?],
     [2], [How is this demand expected to evolve until 2050?],
@@ -1046,7 +1083,9 @@ It is crafted by Prof. Jessen Page to support energy planning for the municipali
 With the groundwork established, the following tables present the results that will be discussed in the next section.
 Both the expert assessment and benchmarking are conducted using the version of the solution as of June 20, 2025#footnote[Code at commit `c2bea64` in the repository.].
 
-Two different configurations of the solution, each using different language models, are benchmarked. The #ref(<configurations>) below breaks them down:
+Two different configurations of the solution, each using different language models, are benchmarked.
+
+A smaller configuration is defined for further comparison against the baseline, larger configuration. The #ref(<configurations>) below breaks them down:
 
 #set table(
   stroke: (x, y) => {
@@ -1064,7 +1103,9 @@ Two different configurations of the solution, each using different language mode
       (bottom: 0.3pt + black)
     }
   },
-  align: (x, _) => if x == 0 { left } else { center },
+  align: (x, y) => {
+    if (x == 0 or x == 5) and y == 2 { (bottom) } else { auto }
+  },
 )
 #figure(
   table(
@@ -1086,10 +1127,10 @@ Two different configurations of the solution, each using different language mode
   caption: "Agent language model by configuration",
 ) <configurations>
 
-A smaller configuration is defined for further comparison against the baseline, large configuration.
+Qwen is a large language model family built by Alibaba Cloud#footnote("https://www.alibabacloud.com/en?_p_lc=7"). It offers tool-using abilities, reasoning and model size, making it the only currently available option on Ollama that is viable for running lightweight, yet capable agents.
 
-Deepseek-r1:8b, a strong general-purpose language model, is used as the evaluator across both configurations to clearly distinguish the model family from that of the agent components, reducing potential bias in the assessment.
-#highlight("TODO: citer deepseek???")
+Deepseek models, on the other hand, are developed by Deepseek, a company funded by the High-Flyer#footnote("https://www.high-flyer.cn/en/fund/") hedge fund and whose models support similar capabilities to Qwen.
+The R1 model (8B), a strong general-purpose language model, is used as the evaluator across both configurations to clearly distinguish the model family from that of the agent components, reducing potential bias in the assessment.
 
 While the expert assessment and G-eval benchmarking are not comparable _as is_, the #ref(<comparison_test_human_llm>) presents their scores across the nine prompts, side by side, and offers an interesting perspective:
 
@@ -1108,7 +1149,7 @@ While the expert assessment and G-eval benchmarking are not comparable _as is_, 
       (right: 0.3pt + black)
     }
   },
-  align: (x, _) => if x == 0 { left } else { center },
+  align: (x, _) => if x == 0 { right } else { center },
 )
 #figure(
   table(
@@ -1132,8 +1173,7 @@ While the expert assessment and G-eval benchmarking are not comparable _as is_, 
   caption: "Expert assessment and G-eval scores on test dataset, per prompt.",
 ) <comparison_test_human_llm>
 
-Moreover, the #ref(<comparison_per_run>) below shows the G-eval scores across ten benchmark runs for both large and small configurations:
-
+Besides that, the #ref(<comparison_intent>) differentiates the G-eval score, per query _intent_ type (#ref(<conversational_state>)), for both configurations:
 #set table(
   stroke: (x, y) => {
     if y == 2 {
@@ -1151,48 +1191,21 @@ Moreover, the #ref(<comparison_per_run>) below shows the G-eval scores across te
   },
   align: (x, _) => if x == 0 { left } else { center },
 )
-
 #figure(
   table(
     columns: 3,
     table.header(
       table.cell(rowspan: 2, []),
-      table.cell(rowspan: 2, colspan: 2, [G-eval (mean ± st.d.), 10 runs]),
+      table.cell(rowspan: 2, colspan: 2, [G-eval score (mean ± st.d.), 10 runs]),
     ),
-    [Benchmark run], [*Large configuration*], [Small configuration],
-    [1], [0.40 ± 0.13], [0.31 ± 0.09],
-    [2], [0.55 ± 0.10], [0.27 ± 0.10],
-    [3], [0.62 ± 0.02], [0.29 ± 0.10],
-    [4], [0.62 ± 0.06], [0.25 ± 0.09],
-    [5], [0.40 ± 0.11], [0.29 ± 0.10],
-    [6], [0.33 ± 0.08], [0.27 ± 0.10],
-    [7], [0.31 ± 0.09], [0.29 ± 0.10],
-    [8], [0.35 ± 0.10], [0.29 ± 0.10],
-    [9], [0.33 ± 0.08], [0.25 ± 0.09],
-    [10], [0.38 ± 0.09], [0.29 ± 0.10],
+    [Intent type], [*Large configuration*], [Small configuration],
+    [Factual], [0.38 ± 0.18], [0.23 ± 0.08],
+    [Actionable], [0.44 ± 0.13], [0.30 ± 0.09],
   ),
-  caption: "G-eval scores on test dataset across ten runs, for large and small configurations.",
-) <comparison_per_run>
+  caption: "G-eval scores per intent type (factual vs actionable) on test dataset across ten runs, for large and small configurations.",
+) <comparison_intent>
 
-Besides that, the scores per benchmarking criteria, for both configurations, are depicted in the #ref(<comparison_criteria>) below:
-
-#set table(
-  stroke: (x, y) => {
-    if y == 2 {
-      (bottom: 0.7pt + black)
-    }
-    if x > 0 and y > 0 {
-      (left: 0.3pt + black)
-    }
-    if x == 1 and y == 0 {
-      0.3pt + black
-    }
-    if x == 2 and y == 2 {
-      (right: 0.3pt + black)
-    }
-  },
-  align: (x, _) => if x == 0 { left } else { center },
-)
+Finally, the scores per benchmarking criteria, for both configurations, are depicted in the #ref(<comparison_criteria>) below:
 
 #figure(
   table(
@@ -1210,24 +1223,8 @@ Besides that, the scores per benchmarking criteria, for both configurations, are
   caption: "Score per benchmarking criteria on test dataset across ten runs, for large and small configurations.",
 ) <comparison_criteria>
 
-Finally, the #ref(<comparison_intent>) presents and differentiates the G-eval score, per _intent_ type (#ref(<conversational_state>)), for both configurations:
-#figure(
-  table(
-    columns: 3,
-    table.header(
-      table.cell(rowspan: 2, []),
-      table.cell(rowspan: 2, colspan: 2, [G-eval score (mean ± st.d.), 10 runs]),
-    ),
-    [Intent type], [*Large configuration*], [Small configuration],
-    [Factual], [0.38 ± 0.18], [0.23 ± 0.08],
-    [Actionable], [0.44 ± 0.13], [0.30 ± 0.09],
-  ),
-  caption: "G-eval scores per intent type (factual vs actionable) on test dataset across ten runs, for large and small configurations.",
-) <comparison_intent>
-
-#highlight("TODO: décrire un peu plus pourquoi je mets chaque tabelle ?")
-// utiliser tout autres modeles -> pas de raisonnement possible
-// analyse de cumulation des résultats ?
+These tables summarize and introduce further comparison between the expert evaluation and G-eval benchmarking framework, assessing differences between the baseline configuration and a smaller one.
+With the different results presented, the following chapter discusses their implications.
 
 = Discussion
 
