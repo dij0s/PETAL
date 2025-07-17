@@ -3,6 +3,7 @@ from functools import reduce
 import polars as pl
 
 file_template = lambda index: f"benchmarking/sion_benchmark_0{index}.json"
+# file_template = lambda index: f"benchmarking/small_benchmark_dp_0{index}.json"
 def read_f(filepath) -> list[dict]:
     with open(filepath, "r") as f:
         data = json.load(f)
@@ -23,36 +24,51 @@ def read_f(filepath) -> list[dict]:
             []
         )
 
-df = reduce(
+df: pl.DataFrame = reduce(
     lambda res, fp: pl.concat([res, pl.DataFrame(read_f(fp))], how="vertical"),
     map(file_template, range(10)),
     pl.DataFrame()
-).to_pandas()
+)
+if df.count().mean_horizontal().item() != 90.0:
+    raise ValueError("Expected 90 benchmarked prompts")
 
-prompt_ids = list(range(9)) * 10
-df["prompt_id"] = prompt_ids
+geval_per_sample = (df
+    .with_row_index()
+    .with_columns(
+        (pl.col("index") + 1).mod(10).alias("prompt_index"),
+        (pl.col("index").floordiv(9) + 1).alias("benchmark_index"),
+        pl.mean_horizontal(*df.columns).alias("geval"),
+    )
+)
 
-# Group by prompt (same prompt across runs)
-grouped = df.groupby("prompt_id")
+geval_per_prompt = (geval_per_sample
+    .group_by("prompt_index")
+    .agg(
+        pl.col("geval").mean().alias("mean_geval"),
+        pl.col("geval").std().alias("std_geval")
+    )
+)
+print(f"This is the geval per prompt: {geval_per_prompt.sort(pl.col('prompt_index'))}")
 
-# Compute mean and std per prompt
-means = grouped.mean(numeric_only=True)
-stds = grouped.std(numeric_only=True)
+geval_per_benchmark = (geval_per_sample
+    .group_by("benchmark_index")
+    .agg(
+        pl.col("geval").mean().alias("mean_geval"),
+        pl.col("geval").std().alias("std_geval")
+    )
+)
+print(f"This is the geval per benchmark: {geval_per_benchmark.sort(pl.col('benchmark_index'))}")
 
-# ---------- Pretty Print ----------
-print("=== Per Prompt (Sample): Mean ± Std ===")
-for i in means.index:
-    print(f"Prompt {i:02}")
-    for col in means.columns:
-        print(f"  {col:20}: {means.loc[i, col]:.4f} ± {stds.loc[i, col]:.4f}")
-    print()
+criteria_stats = (geval_per_sample
+    .select(["data_interpretation", "guideline_application", "municipal_relevance", "source_citations"])
+    .describe()
+)
+print(f"This are the statistics per criteria: {criteria_stats}")
 
-# ---------- Per-feature stats ----------
-feature_means = df.mean()
-feature_stds = df.std()
-
-print("=== Per Feature: Mean ± Std ===")
-for col in df.columns:
-    mean = feature_means[col]
-    std = feature_stds[col]
-    print(f"{col:20}: {mean:.4f} ± {std:.4f}")
+# expert scoring
+scores = [3, 2, 3, 2, 4, 3, 4, 2, 2]
+rescaled_scores = [
+    (score - 1) / 4
+    for score in scores
+]
+print(f"These are the expert scores: {rescaled_scores}, mean: {sum(rescaled_scores) / len(rescaled_scores)} and std: {pl.Series(rescaled_scores).std()}")
