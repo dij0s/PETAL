@@ -1044,7 +1044,7 @@ The dataset is aligned within the specific scope of available data sources, inhe
 It is crafted by Prof. Jessen Page to support energy planning for the municipality of Sion.
 
 With the groundwork established, the following tables present the results that will be discussed in the next section.
-Both the expert assessment and benchmarking are conducted using the version of the solution as of June 20, 2025#footnote[Code at commit `c2bea64` in the `evaluation` branch of the repository.].
+Both the expert assessment and benchmarking are conducted using the version of the solution as of June 20, 2025#footnote[Code at commit `c2bea64` in the repository.].
 
 Two different configurations of the solution, each using different language models, are benchmarked. The #ref(<configurations>) below breaks them down:
 
@@ -1171,18 +1171,24 @@ Moreover, the #ref(<comparison_per_run>) below shows the G-eval scores across te
     [9], [0.33 ± 0.08], [0.25 ± 0.09],
     [10], [0.38 ± 0.09], [0.29 ± 0.10],
   ),
-  caption: "Average G-eval scores on test dataset across ten runs, for large and small configurations.",
+  caption: "G-eval scores on test dataset across ten runs, for large and small configurations.",
 ) <comparison_per_run>
 
-Finally, the average scores per G-eval criteria and both configurations are depicted in the #ref(<comparison_criteria>) below:
+Besides that, the scores per benchmarking criteria, for both configurations, are depicted in the #ref(<comparison_criteria>) below:
 
 #set table(
   stroke: (x, y) => {
-    if y == 0 {
+    if y == 2 {
       (bottom: 0.7pt + black)
     }
-    if x > 0 {
+    if x > 0 and y > 0 {
       (left: 0.3pt + black)
+    }
+    if x == 1 and y == 0 {
+      0.3pt + black
+    }
+    if x == 2 and y == 2 {
+      (right: 0.3pt + black)
     }
   },
   align: (x, _) => if x == 0 { left } else { center },
@@ -1191,36 +1197,55 @@ Finally, the average scores per G-eval criteria and both configurations are depi
 #figure(
   table(
     columns: 3,
-    table.header([Criteria], [Large configuration], [Small configuration]),
+    table.header(
+      table.cell(rowspan: 2, []),
+      table.cell(rowspan: 2, colspan: 2, [Score (mean ± st.d.), 10 runs]),
+    ),
+    [Criteria], [*Large configuration*], [Small configuration],
     [Data interpretation], [0.43 ± 0.24], [0.16 ± 0.13],
     [Guideline application], [0.47 ± 0.33], [0.26 ± 0.20],
     [Municipal relevance], [0.51 ± 0.28], [0.41 ± 0.23],
     [Source citations], [0.31 ± 0.34], [0.29 ± 0.37],
   ),
-  caption: "Average score per G-eval criteria on test dataset across ten runs, for large and small configurations.",
+  caption: "Score per benchmarking criteria on test dataset across ten runs, for large and small configurations.",
 ) <comparison_criteria>
 
-// montrer scores par type de query, factual et actionable
-// analyse de cumulation des résultats ?
+Finally, the #ref(<comparison_intent>) presents and differentiates the G-eval score, per _intent_ type (#ref(<conversational_state>)), for both configurations:
+#figure(
+  table(
+    columns: 3,
+    table.header(
+      table.cell(rowspan: 2, []),
+      table.cell(rowspan: 2, colspan: 2, [G-eval score (mean ± st.d.), 10 runs]),
+    ),
+    [Intent type], [*Large configuration*], [Small configuration],
+    [Factual], [0.38 ± 0.18], [0.23 ± 0.08],
+    [Actionable], [0.44 ± 0.13], [0.30 ± 0.09],
+  ),
+  caption: "G-eval scores per intent type (factual vs actionable) on test dataset across ten runs, for large and small configurations.",
+) <comparison_intent>
+
+#highlight("TODO: décrire un peu plus pourquoi je mets chaque tabelle ?")
 // utiliser tout autres modeles -> pas de raisonnement possible
+// analyse de cumulation des résultats ?
 
 = Discussion
 
-// détailler résultats section ici haut
+// faire un test statistique démontrant que per benchmarks stables ? wilcoxon??
+// faire un test statistique démontrant que par critère meilleur pour large configuration
+// parler de sur-représentation des queries actionable
+// EVALUER LES OBJECTIFS DU TRAVAIL
+// 9. *Discussion*: Interprets the results, discusses implications, and relates findings to the research question.
+// 10. *Conclusion*: Summarizes the main findings, contributions, and suggests future work.
 
-// faire un test statistique démontrant que per benchmarks stables ?
+= Conclusion
 
-// futur work ici ou autre section ?
 // amélioration graphe
 // MCP
 // train classificateur guidelines, fine tune, ...
 // train classificateur intent
 // fuzzy search <- amélioration plutôt que limitation et dire que utiliser un dictionnaire difficile car mises à jour fréquentes par exemple ici ou plus bas ??
 // support mobile
-// EVALUER LES OBJECTIFS DU TRAVAIL
-
-
-= Conclusion
 
 // PROS AND CONS DU PROJET, LLM POUR LA TACHE
 // importance prompt engineering?
