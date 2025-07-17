@@ -30,6 +30,7 @@
   version: none, // or for instance "1.0", for the version of your thesis],
   code-theme: "bluloco-light",
 )
+#highlight("TODO: check ortographe")
 #highlight("TODO: update le thesis-id")
 // // If using acronyms
 #import "@preview/acrostiche:0.5.2": *
@@ -101,15 +102,13 @@ Keep this section concise and sincere. It is typically placed after the abstract
 = Introduction
 
 #highlight("TODO: diviser en sections? contexte, problématique...")
-#highlight("TODO: METTRE UNE AI NOTICE!!")
 
 Over the past few decades, society has been sensitized and slowly became more aware of significant problems that we are likely to face in the coming years.
 
 Climate change and other environmental issues arise as a result of human-driven activities.
 
 Scientists have monitored this matter and proposed various frameworks to address and mitigate these problems. In Switzerland, these different frameworks are implemented in the legislation and guidelines (at federal and canton levels) to steer the country towards a more sustainable future.
-Municipalities may introduce in their regulations energy requirements that are more constraining than those set by the cantonal law.
-#highlight("TODO: citer loi teams jessen?")
+Municipalities may introduce in their regulations energy requirements that are more constraining than those set by the cantonal law as per article 12, al. 5 of #ref(<rdb6SC4eJbME>).
 
 Municipalities in Switzerland are required to submit an energy planning document which outlines their future strategies to comply with those directives while also considering the characteristics of their energetical landscape.
 
@@ -158,18 +157,16 @@ Besides that, all other aspects of this work are my own.
 
 = State of the Art <state_of_art>
 
-#highlight("TODO: METTRE UNE AI NOTICE ET CHECKER VIM TEMP!!")
+#highlight("TODO: CHECKER VIM TEMP!!")
 
 Large language models are highly effective tools for natural language processing and offer various opportunities to enhance our day-to-day tasks and workflows.
 Ever since they have been introduced to the public, they have been adopted across a wide range of fields and applications.
 
-The AI Institude at ITMO University published in 2025 a paper titled _LLM Agents for Smart City Management: Enhancing Decision Support Through Multi-Agent AI Systems_. The study examines how the natural language processing strengths of LLMs, combined with the distributed problem-solving abilities of multi-agent systems, can enhance urban decision-making processes.
-#highlight("TODO: citer proprement")
+The AI Institute at ITMO University published a paper in 2025 titled _LLM Agents for Smart City Management: Enhancing Decision Support Through Multi-Agent AI Systems_ #ref(<kalyuzhnayaLLMAgentsSmart2025>). The study examines how the natural language processing strengths of LLMs, combined with the distributed problem-solving abilities of multi-agent systems, can enhance urban decision-making processes.
 
 The research focused on the testing of three hypotheses: (1) evaluating the capability of LLM agents to effectively route and process diverse urban queries against existing urban information systems, (2) the effectiveness of #acr("RAG") technology in improving response accuracy when working with local knowledge and regulations and (3) the impact of integrating LLM agents with existing urban information-systems - increasing efficiency and decreasing the decision making process time.
 
 LLM agents (sometimes called AI agents) are software systems that use AI to pursue goals and complete tasks on behalf of users. They show reasoning, planning and memory and have a level of autonomy to make decisions, learn and adapt as per #link("https://cloud.google.com/discover/what-are-ai-agents?hl=en")[cloud.google.com].
-#highlight("mieux citer??")
 
 Their proposed solution was tested against 150 question-answer pairs and used St. Petersburg's Digital Urban Platform as a testbed.
 The testing dataset was curated and built by a group of human experts such as specialists in urban data analysis, GIS specialists and urban architects.
@@ -191,8 +188,7 @@ Any solution designed and implemented around similar goals and data-related cons
 
 As we forget about the use case and consider more generic research on the matter, we encounter  publications that rather focus on the optimization of various aspects of AI agents, such as their scalability, efficiency and robustness. While this work tackles some of these challenges, it does not incorporate major research efforts into these areas.
 
-#highlight("TODO: citer aino différement?")
-Another AI-centric solution relevant to this use case is #link("https://www.aino.world/")[aino], described on their homepage as an _AI GIS Analyst for Urban planning teams_. Developed and marketed in the United States, it is a commercial business solution offering a platform where an AI analyzes sites and provides visual insights from simple questions. This solution inspired me into a few design and user experience improvements in my work as no implementation details are provided.
+Another AI-centric solution relevant to this use case is aino#footnote("https://www.aino.world/"), described on their homepage as an _AI GIS Analyst for Urban planning teams_. Developed and marketed in the United States, it is a commercial business solution offering a platform where an AI analyzes sites and provides visual insights from simple questions. This solution inspired me into a few design and user experience improvements in my work as no implementation details are provided.
 
 These two points of view position this work within the fast-changing field of AI-driven solutions for urban planning and beyond.
 
@@ -208,16 +204,15 @@ The main requirements were established and further refined as the project progre
 Those are categorized into functional and non-functional requirements. Functional requirements focus on user requirements and product features whereas non-functional requirements focus on user expectations and product properties.
 
 The first step is to understand the problem that is solved. Energy planning typically involves:
-- Identifying available energy resources#footnote[The resources and needs are assessed within the geographical boundaries of the municipality, only.], infrastructure and untapped potential.
+- Identifying available energy resources#footnote("The resources and needs are assessed within the geographical boundaries of the municipality, only."), infrastructure and untapped potential.
 - Characterizing the needs.
 - Assessing different measures and their impacts ; sobriety (reducing energy consumption), efficiency (more efficient technologies) and production of renewable energy sources.
-#highlight("TODO: décrire dans ce chapitre les données et autres à disposition?")
+
 Hence, assisting users in energy planning requires a solution that can gather relevant data sources, analyze and present the current energy landscape of the municipality and provide actionable recommendations tailored to the context of the municipality while ensuring compliance with the legislation and guidelines that apply to said municipality.
 
 Besides that, it had been requested that the user interface has a map showcasing the assessed data points within the municipality as well as for the AI to be able to _remember_ the user's preferences and past interactions to have the answer better fit what the user expects.
 
 These initial requirements established the basis for the project. As the solution was evaluated with supervisors on a weekly basis, additional requirements emerged gradually shaping the solution to enhance the overall solution and meet the needs of energy planning.
-#highlight("TODO: METTRE UNE AI NOTICE ET CHECKER VIM TEMP!!")
 #highlight("TODO: revoir la dernière phrase, ajouter des autres requirements ?")
 
 #show table.cell.where(y: 0): strong
@@ -277,17 +272,12 @@ These requirements are summarized in the #ref(<requirements_table>) below:
 
 #pagebreak()
 == System Design <system_design>
-#highlight("Renommer implémentation ?")
-
-#highlight("Parler de tech stack, définition des données ?")
 
 A modular, scalable and adaptable architecture was designed to ensure that the solution can adapt to evolving requirements and facilitate future enhancements. The system is organized into distinct components which are all responsible for a specific set of functionalities and ensure clear separation of concerns and ease of maintenance.
 
 The following chapter covers both the design and the implementation aspects of the solution.
 
 #figure(image("figs/system_design_global.svg", height: 5cm), caption: "Global system design")<global_system_design>
-#highlight("TODO: mettre des numéros sur la figure?? mettre des légendes ?")
-#highlight("TODO: ajouter un label aux flèches?")
 
 The global architecture in its most simplified form is presented in the #ref(<global_system_design>) above. The system is broken down into three distinct layers:
 - The frontend layer manages user interaction and presentation of data, providing an intuitive interface for users to communicate with the system.
@@ -338,10 +328,7 @@ Accordingly, the conversational context is modeled as a single object that is up
   caption: "Conversation state",
 ) <conversational_state>
 
-#highlight("TODO: mettre au format UML??")
-#highlight("TODO: mettre les sous-objets, router, ...?")
 #highlight("TODO: PARLER OLLAMA MGL")
-#highlight("TODO: citer pydantic, runtime, tralala???")
 
 The different agents leverage #acrpl("RLM"), a type of LLM designed to tackle problems by breaking them into logical steps, mimicking human reasoning.
 Compared to standard language models, they are particularly valuable for tasks that require logical deduction and planning but come with notable drawbacks as they are typically more computationally intensive, leading to higher operational costs and increasing latency in response times.
@@ -349,18 +336,16 @@ Compared to standard language models, they are particularly valuable for tasks t
 By constraining the conversational state and narrowing the scope of each agent, it is possible to reduce the computational load and latency by simply swapping out these large reasoning models by smaller, better-suited models.
 Doing so, it becomes possible to select reasoning models that are better suited to specific tasks while reducing the computational costs.
 
-#figure(image("figs/ai_agent_system_design.svg", height: 10cm), caption: "AI agent architecture")<ai_agent_design>
+#figure(image("figs/ai_agent_system_design.svg", width: 100%), caption: "AI agent architecture")<ai_agent_design>
+#highlight("TODO: vérifier partout que les réf. transitions sont bonnes")
 
 The architecture in the #ref(<ai_agent_design>) above is modeled after a #acr("FSM"), where each node represents an agent and each edge represents a transition that is either always executed (solid) or conditionally executed (dashed). The dynamic flow of control between agents is guided by the evolving conversational state. It is finite, per definition, as the state takes value in a discrete set.
-#highlight("TODO: enlever notion finite state machine?")
 
 On the implementation-side, LangGraph#footnote("https://www.langchain.com/langgraph"), an open-source Python framework, is used to implement the AI agent architecture. Unlike linear pipelines, LangGraph uses a graph abstraction by default, which is particularly well-suited for this state machine architecture.
 This graph-based structure brings determinism to the system’s behavior as the flow between agents is defined by the architecture itself, rather than being dynamically determined by agent-to-agent conversations as in frameworks like Microsoft's AutoGen#footnote("https://www.microsoft.com/en-us/research/project/autogen/"). Another framework that had been considered was PydanticAI#footnote("https://ai.pydantic.dev/") which offers a structured, type-safe approach to building agent systems by leveraging Pydantic models for inter-agent communication and behavior definitions. However, it lacks the built-in support for complex state transitions.
 
 All of the available multi-agent AI frameworks are relatively novel and in constant evolution. LangGraph benefits from being built on top of the already renowned LangChain#footnote("https://www.langchain.com/") ecosystem which adds to its reliability and ease of integration with other technologies.
 Pydantic’s type safety will still be implemented within the project to enhance data validation and error handling.
-#highlight("TODO: METTRE UNE AI NOTICE ET CHECKER VIM TEMP!!")
-#highlight("TODO: mettre la techstack dans un chapitre différent??")
 
 The main responsibility of each agent is as follows:
 - The *Intent Router* routes the user's query to the appropriate agents and accumulates query context.
@@ -375,8 +360,6 @@ The various prompts are included in the appendix.
 #highlight("TODO: mettre autre part cette info?")
 
 With the overall solution defined, the following sections dig in the details of each agent and their implementation.
-
-#highlight("TODO: parler tech stack et choix ollama?")
 
 ==== Intent Router <intent_router>
 
@@ -417,7 +400,6 @@ This highlights the interfaces of the intent router, as detailed in the #ref(<in
 #highlight("TODO: détail déf pydantic ??")
 #highlight("TODO: parler que store parallèle ??")
 #highlight("TODO: parler quelque part d'async??")
-#highlight("TODO: décire que local database redis...")
 #highlight("TODO: parler au dessus coûte cher de faire un appel LLM")
 
 An assumption still lies in the nature of the field _location_ as it is assumed to either be set or unset. A set location does not necessarily imply that it is a valid municipality, inscribed in the published Swiss official commune register#footnote("https://www.bfs.admin.ch/bfs/en/home/basics/swiss-official-commune-register.html").
@@ -465,8 +447,7 @@ The datasets are also available for download.
 The choice has been made to use the GeoAdmin API instead of downloading and maintaining local datasets as it ensures (1) that the data is always up to date and (2) removes the need for additional setup and maintenance of a dedicated geospatial database, a task that is particularly time-consuming in such a short time frame.
 
 In a real-world scenario, exploiting data locally allows for preprocessing and aggregation which significantly reduces latency during user interactions.
-Mechanisms such as caching and geospatial indexing would be useful for greater scalability of the solution.
-#highlight("TODO: enlever indexing avant la suite?")
+Mechanisms such as caching and geospatial indexing, a technique used in databases enabling quick identification of objects located within a particular geographical area, would be useful for greater scalability of the solution.
 
 Datasets are often labeled as layers, as the data is organized according to the geospatial paradigm. Data is discretized into points, meshes, polygons and other spatial representations, all defined as a feature. Those features are independent geometries located in the space, without inherent relationships.
 Thus, identifying relevant features within a municipality implies searching them inside its geographic boundaries, since no relation lies between these entities.
@@ -549,15 +530,19 @@ Therefore, the features within the municipality are (1) identified within the mu
 The first issue is partially recovered from the fact that the layers are displayed at their original resolution, in the web interface. This way, the variability can be easily visualized.
 
 The second issue is mitigated depending on the nature of the data. The basic approach to aggregation requires the summation of values and is only needed for datasets that benefit from great precision. On the other hand, datasets that do not require such precision are subject to statistical estimation:
-- The spatial tiling is randomly sampled.
-- The features within the sampled tiling are identified and their values summed.
-- The sample mean and standard deviation are calculated.
-- The confidence interval is computed using a T-distribution and confidence level.
-#highlight("TOOD: mettre réf. mathématique??")
+1. The spatial tiling is randomly sampled.
+2. The features within the sampled tiling are identified and their values summed.
+3. The sample mean (#ref(<sample_mean>)) and standard deviation (#ref(<std>)) are calculated.
+4. The confidence interval is computed using a T-distribution and confidence level (#ref(<confidence_interval>)).
+#set math.equation(numbering: "1.")
+
+This geographical sampling is depicted in the #ref(<sampling_design>) below:
+#figure(image("figs/tiling_design.svg", width: 100%), caption: "Geographical sampling")<sampling_design>
+
 Choosing the sampling size and confidence level is important for a proper statistical estimation. In this work, both parameters are set empirically and kept relatively large to benefit from lower computational costs, but without optimizing for the best possible accuracy.
 As such, only the suitability of roofs and façades for use of solar energy is estimated using this technique as they are both datasets which showcase potential of exploitation rather than precise measurements and are well distributed in the geographic space.
 
-#highlight("TODO: ajoute schéma sampling statistique")
+#highlight("TODO: citer les chiffres confidence level...?")
 #highlight("TODO: parler ajouter des modèles simu et autre dans les tools?")
 
 With the data standardized and properly aggregated, the geocontext retriever agent must now be able to interact with it.
@@ -577,14 +562,12 @@ This enables the system to embed the descriptions of the different tools and eas
 #highlight("TODO: définition terminologie? prompting")
 #highlight("TODO: parler de reranking?")
 
-When retrieving tools, the system computes the cosine similarity between both embeddings to quantify the semantic similarity.
-Finally, the quartile coefficient of dispersion is measured against the distribution of retrieved scores. This indicator provides a measure of the uniformity of the retrieved tools.
+When retrieving tools, the system computes the cosine similarity between both embeddings to quantify the semantic similarity (#ref(<cosine_sim>)).
+Finally, the quartile coefficient of dispersion is measured against the distribution of retrieved scores (#ref(<qcd>)). This indicator provides a measure of the uniformity of the retrieved tools that is less sensitive to outliers than measures such as the coefficient of variation.
 As such, uniform tools are provided to a language model, which is then prompted to choose the appropriate ones (#ref(<geocontext_retriever_system_prompt>)).
 
 This approach reduces the overall computational cost while increasing the quality of tool selection.
 #highlight("TODO: METTRE UNE AI NOTICE ET CHECKER VIM TEMP!!")
-#highlight("TODO: référencer cosine, bibliographie")
-#highlight("TODO: référencer coefficient correctement, bibliographie")
 
 #highlight("TODO: faire un schéma détaillé du processus de l'agent?")
 
@@ -597,8 +580,8 @@ With the appropriate tools chosen, the system can effectively retrieve the data.
 Geospatial information is accumulated over the conversation turns, allowing for context-aware planning and consistent, spatially informed decisions. It is only reset when switching to a new municipality as it becomes invalid.
 
 In the section #ref(<intent_router>, supplement: it => it.body), the validity of the location is not confirmed. This is directly implemented in the different tools above and routing of this agent (#ref(<ai_agent_design>)):
-- If the location is non-valid, retrieving data raises an error and the request is routed to the clarify query agent.
-- Otherwise, the query is sent to the strategy planner agent (6).
+- If the location is non-valid, retrieving data raises an error and the request is routed to the clarify query agent (6).
+- Otherwise, the query is sent to the strategy planner agent (7).
 #highlight("TODO: manque flèche vers clarification")
 
 Once the relevant data is gathered, the next stage is for the strategy planner agent to analyze this information to conduct proper planning.
@@ -660,7 +643,7 @@ These interfaces are shown in the #ref(<guidelines_retriever_design>) below:
   caption: "Guidelines retriever, interfaces",
 )<guidelines_retriever_design>
 
-With the relevant guidelines retrieved and rescaled, the query is routed to the strategy planner agent (#ref(<ai_agent_design>), transition 6) which will use them as clear constraints.
+With the relevant guidelines retrieved and rescaled, the query is routed to the strategy planner agent (#ref(<ai_agent_design>), transition 7) which will use them as clear constraints.
 
 #highlight("TODO: mettre un premier chapitre preprocessing?")
 #highlight("TODO: cite plus tard que Retrieve multiple chunks recreate the context")
@@ -755,9 +738,9 @@ The state interfaces are presented in the #ref(<strategy_planner_design>) below:
 The factual queries are treated by both #ref(<generate_answer_factual_system_prompt>) and #ref(<generate_answer_factual_user_prompt>) whereas actionable queries are handled by #ref(<generate_answer_actionable_system_prompt>) and #ref(<generate_answer_actionable_user_prompt>).
 The conversational context is simply broken down and included in the prompts.
 
-The language model response, which is the answer to the user's query, is streamed to the web interface.
+The language model response, which is the answer to the user's query, is streamed to the web interface (#ref(<ai_agent_design>), transition 8).
 
-While the user examines the response, it is sent to critic agent (#ref(<ai_agent_design>), transition 8), which will evaluate its quality and act accordingly.
+While the user examines the response, it is sent to critic agent (transition 9), which will evaluate its quality and act accordingly.
 
 ==== Critic <critic>
 
@@ -779,7 +762,7 @@ On top of that, the number of residents in the municipality and its exploitable 
 )<critic_design>
 Its output is a boolean value (#ref(<critic_design>), _retry_) that indicates whether the response has been interpreted correctly based on the rules above.
 
-If it the response is not satisfactory, the complete process is restarted as if the user had just prompted the system (#ref(<ai_agent_design>), transition 9).
+If it the response is not satisfactory, the complete process is restarted as if the user had just prompted the system (#ref(<ai_agent_design>), transition 10).
 A maximum of three attempts are allowed before the workflow is not restarted anymore.
 
 At this point, the user's request has been answered and the system is ready to receive a new request, refining the proposed energy planning.
@@ -838,7 +821,6 @@ To sum up, the token utilization of users is tracked in the form of three metric
 When users prompt the AI, the cumulative token count for that run is monitored. This value is then compared against the user's sampled token utilization distribution using a z-score to measure how far the new usage deviates from the user's average.
 Accordingly, the token usage of the current prompt is categorized into one of the predefined categories: "bad", "average", or "good" ; each associated with a color pelet displayed in the interface.
 #highlight("TODO: mieux définir zscore??")
-#highlight("TODO: METTRE UNE AI NOTICE!!")
 #highlight("TODO: mettre les maths?")
 
 Moreover, an energy consumption analogy is presented alongside the pelet.
@@ -1258,6 +1240,40 @@ With everything defined, the results are presented in the tables below:
   row-gutter: 0.7em,
   outlined: false,
 )
+
+#pagebreak()
+
+#heavy-title("Equations", top: 1em, bottom: 1em)
+
+#highlight("TODO: CHECKER les maths encore une fois")
+#highlight("TODO: citer la source wikipedia???")
+$
+  overline(x) = frac(1, N)sum_(i=1)^N x_i && "where" overline(x) "is the sampled mean," N "the number of samples and" x_i "the" i_"th" "sample tile."
+$ <sample_mean>
+
+$
+  s = sqrt(frac(sum_(i=1)^N(x_i-overline(x))², N-1)) && "where" s "is the sample standard deviation of a single tile."
+$ <std>
+
+$
+  "Confidence interval for a single tile" & = overline(x) plus.minus t_(alpha/2, N-1) dot frac(s, sqrt(N)) \
+                                          & "where" t_(alpha/2, N-1) "is the critical value from the"      \
+                                          & "T-distribution for confidence level"
+                                            1-alpha "and"                                                  \
+                                          & N-1 "degrees of freedom."
+$ <confidence_interval>
+
+$
+  "Cosine similarity" & := cos(theta) = frac("A" dot "B", norm("A")norm("B")) = frac(sum_(i=1)^n A_i B_i, sqrt(sum_(i=1)^n A_i²) dot sqrt(sum_(i=1)^n B_i²))\
+  &"where" theta "is the angle between A and B, two" n"-dimensional vectors"\
+  &"and" A_i, B_i "the" i_"th" "components of vectors A and B."
+$ <cosine_sim>
+
+$
+  "quartile coefficient of dispersion" & := frac(frac(1, 2)"IQR", frac(Q_3+Q_1, 2)) = frac(frac(1, 2)(Q_3-Q_1), frac(Q_3+Q_1, 2)) = frac(Q_3-Q_1, Q_3+Q_1)\
+  & "where IQR is the interquartile range and" \
+  & Q_1 "and" Q_3 "the first and third quartiles, respectively."
+$ <qcd>
 
 #pagebreak()
 
