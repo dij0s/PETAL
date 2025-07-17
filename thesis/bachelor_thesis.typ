@@ -1043,10 +1043,8 @@ This dataset consists of nine prompts and establishes the basis for assessing th
 The dataset is aligned within the specific scope of available data sources, inherently restricting its size.
 It is crafted by Prof. Jessen Page to support energy planning for the municipality of Sion.
 
-#highlight("TODO: différencier style tables pour résultats ?")
-#highlight("TODO: mieux introduire ?")
-
 With the groundwork established, the following tables present the results that will be discussed in the next section.
+Both the expert assessment and benchmarking are conducted using the version of the solution as of June 20, 2025#footnote[Code at commit `c2bea64` in the `evaluation` branch of the repository.].
 
 Two different configurations of the solution, each using different language models, are benchmarked. The #ref(<configurations>) below breaks them down:
 
@@ -1059,11 +1057,11 @@ Two different configurations of the solution, each using different language mode
       (left: 0.3pt + black)
     }
     if x == 0 {
-      (right: 0.7pt + black)
+      (right: 0.3pt + black)
     }
     if x == 1 and y == 0 {
-      (top: 0.7pt + black)
-      (bottom: 0.7pt + black)
+      (top: 0.3pt + black)
+      (bottom: 0.3pt + black)
     }
   },
   align: (x, _) => if x == 0 { left } else { center },
@@ -1089,6 +1087,7 @@ Two different configurations of the solution, each using different language mode
 ) <configurations>
 
 A smaller configuration is defined for further comparison against the baseline, large configuration.
+
 Deepseek-r1:8b, a strong general-purpose language model, is used as the evaluator across both configurations to clearly distinguish the model family from that of the agent components, reducing potential bias in the assessment.
 #highlight("TODO: citer deepseek???")
 
@@ -1099,42 +1098,42 @@ While the expert assessment and G-eval benchmarking are not comparable _as is_, 
     if y == 2 {
       (bottom: 0.7pt + black)
     }
-    if x > 1 {
+    if x > 0 and y > 0 {
       (left: 0.3pt + black)
     }
-    if x == 0 {
-      (right: 0.7pt + black)
+    if x == 2 and y == 0 {
+      0.3pt + black
+    }
+    if x == 3 and y == 2 {
+      (right: 0.3pt + black)
     }
   },
   align: (x, _) => if x == 0 { left } else { center },
 )
 #figure(
   table(
-    columns: 3,
+    columns: 4,
     table.header(
-      table.cell(rowspan: 2, [Prompt No°]),
-      table.cell(rowspan: 2, [Expert score]),
-      table.cell(rowspan: 2, [G-eval (mean ± st.d.)]),
+      table.cell(rowspan: 2, []),
+      table.cell(rowspan: 2, []),
+      table.cell(rowspan: 2, colspan: 2, [G-eval (mean ± standard deviation)]),
     ),
-    [], [], [*Large configuration*],
-    [1], [0.50], [0.39 ± 0.15],
-    [2], [0.25], [0.43 ± 0.11],
-    [3], [0.50], [0.44 ± 0.11],
-    [4], [0.25], [0.37 ± 0.22],
-    [5], [0.75], [0.39 ± 0.17],
-    [6], [0.50], [0.41 ± 0.15],
-    [7], [0.75], [0.44 ± 0.10],
-    [8], [0.25], [0.49 ± 0.13],
-    [9], [0.25], [0.50 ± 0.11],
+    [Prompt No°], [*Expert score*], [*Large configuration*], [Small configuration],
+    [1], [0.50], [0.39 ± 0.15], [0.23 ± 0.08],
+    [2], [0.25], [0.43 ± 0.11], [0.26 ± 0.10],
+    [3], [0.50], [0.44 ± 0.11], [0.36 ± 0.06],
+    [4], [0.25], [0.37 ± 0.22], [0.23 ± 0.08],
+    [5], [0.75], [0.39 ± 0.17], [0.38 ± 0.00],
+    [6], [0.50], [0.41 ± 0.15], [0.23 ± 0.08],
+    [7], [0.75], [0.44 ± 0.10], [0.28 ± 0.10],
+    [8], [0.25], [0.49 ± 0.13], [0.38 ± 0.00],
+    [9], [0.25], [0.50 ± 0.11], [0.21 ± 0.06],
   ),
   caption: "Expert assessment and G-eval benchmarking scores on test dataset, per prompt.",
 ) <comparison_test_human_llm>
 
-// citer date version code utilisée pour comparer expert et llm
-// présenter scores par différentes configurations, petites et grandes
 // montrer scores par type de query, factual et actionable
 // analyse de cumulation des résultats ?
-// aurait été intéressant de construire les critères avec expert
 
 = Discussion
 
