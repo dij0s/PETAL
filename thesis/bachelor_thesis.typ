@@ -1073,15 +1073,15 @@ Two different configurations of the solution, each using different language mode
       table.cell(rowspan: 2, []),
       table.cell(colspan: 4, rowspan: 2, [Agent language model]),
       table.cell(rowspan: 2, []),
-      [*Configuration*],
+      [Configuration],
       [*Intent Router*],
       [*Geocontext Retriever*],
       [*Guidelines Retriever*],
       [*Strategy planner*],
       [*G-eval Evaluator*],
     ),
-    [Small], [qwen3:1.7b], [qwen3:1.7b], [qwen3:1.7b], [qwen3:1.7b], [deepseek-r1:8b],
-    [Large], [qwen3:1.7b], [qwen3:1.7b], [qwen3:1.7b], [*qwen3:8b*], [deepseek-r1:8b],
+    [*Small*], [qwen3:1.7b], [qwen3:1.7b], [qwen3:1.7b], [qwen3:1.7b], [deepseek-r1:8b],
+    [*Large*], [qwen3:1.7b], [qwen3:1.7b], [qwen3:1.7b], [*qwen3:8b*], [deepseek-r1:8b],
   ),
   caption: "Agent language model by configuration",
 ) <configurations>
@@ -1116,7 +1116,7 @@ While the expert assessment and G-eval benchmarking are not comparable _as is_, 
     table.header(
       table.cell(rowspan: 2, []),
       table.cell(rowspan: 2, []),
-      table.cell(rowspan: 2, colspan: 2, [G-eval (mean ± standard deviation)]),
+      table.cell(rowspan: 2, colspan: 2, [G-eval (mean ± st.d.), 10 runs]),
     ),
     [Prompt No°], [*Expert score*], [*Large configuration*], [Small configuration],
     [1], [0.50], [0.39 ± 0.15], [0.23 ± 0.08],
@@ -1129,15 +1129,86 @@ While the expert assessment and G-eval benchmarking are not comparable _as is_, 
     [8], [0.25], [0.49 ± 0.13], [0.38 ± 0.00],
     [9], [0.25], [0.50 ± 0.11], [0.21 ± 0.06],
   ),
-  caption: "Expert assessment and G-eval benchmarking scores on test dataset, per prompt.",
+  caption: "Expert assessment and G-eval scores on test dataset, per prompt.",
 ) <comparison_test_human_llm>
+
+Moreover, the #ref(<comparison_per_run>) below shows the G-eval scores across ten benchmark runs for both large and small configurations:
+
+#set table(
+  stroke: (x, y) => {
+    if y == 2 {
+      (bottom: 0.7pt + black)
+    }
+    if x > 0 and y > 0 {
+      (left: 0.3pt + black)
+    }
+    if x == 1 and y == 0 {
+      0.3pt + black
+    }
+    if x == 2 and y == 2 {
+      (right: 0.3pt + black)
+    }
+  },
+  align: (x, _) => if x == 0 { left } else { center },
+)
+
+#figure(
+  table(
+    columns: 3,
+    table.header(
+      table.cell(rowspan: 2, []),
+      table.cell(rowspan: 2, colspan: 2, [G-eval (mean ± st.d.), 10 runs]),
+    ),
+    [Benchmark run], [*Large configuration*], [Small configuration],
+    [1], [0.40 ± 0.13], [0.31 ± 0.09],
+    [2], [0.55 ± 0.10], [0.27 ± 0.10],
+    [3], [0.62 ± 0.02], [0.29 ± 0.10],
+    [4], [0.62 ± 0.06], [0.25 ± 0.09],
+    [5], [0.40 ± 0.11], [0.29 ± 0.10],
+    [6], [0.33 ± 0.08], [0.27 ± 0.10],
+    [7], [0.31 ± 0.09], [0.29 ± 0.10],
+    [8], [0.35 ± 0.10], [0.29 ± 0.10],
+    [9], [0.33 ± 0.08], [0.25 ± 0.09],
+    [10], [0.38 ± 0.09], [0.29 ± 0.10],
+  ),
+  caption: "Average G-eval scores on test dataset across ten runs, for large and small configurations.",
+) <comparison_per_run>
+
+Finally, the average scores per G-eval criteria and both configurations are depicted in the #ref(<comparison_criteria>) below:
+
+#set table(
+  stroke: (x, y) => {
+    if y == 0 {
+      (bottom: 0.7pt + black)
+    }
+    if x > 0 {
+      (left: 0.3pt + black)
+    }
+  },
+  align: (x, _) => if x == 0 { left } else { center },
+)
+
+#figure(
+  table(
+    columns: 3,
+    table.header([Criteria], [Large configuration], [Small configuration]),
+    [Data interpretation], [0.43 ± 0.24], [0.16 ± 0.13],
+    [Guideline application], [0.47 ± 0.33], [0.26 ± 0.20],
+    [Municipal relevance], [0.51 ± 0.28], [0.41 ± 0.23],
+    [Source citations], [0.31 ± 0.34], [0.29 ± 0.37],
+  ),
+  caption: "Average score per G-eval criteria on test dataset across ten runs, for large and small configurations.",
+) <comparison_criteria>
 
 // montrer scores par type de query, factual et actionable
 // analyse de cumulation des résultats ?
+// utiliser tout autres modeles -> pas de raisonnement possible
 
 = Discussion
 
 // détailler résultats section ici haut
+
+// faire un test statistique démontrant que per benchmarks stables ?
 
 // futur work ici ou autre section ?
 // amélioration graphe
