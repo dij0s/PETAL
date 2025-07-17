@@ -536,8 +536,11 @@ The second issue is mitigated depending on the nature of the data. The basic app
 4. The confidence interval is computed using a T-distribution and confidence level (#ref(<confidence_interval>)).
 #set math.equation(numbering: "1.")
 
-This geographical sampling is depicted in the #ref(<sampling_design>) below:
-#figure(image("figs/tiling_design.svg", width: 100%), caption: "Geographical sampling")<sampling_design>
+This random geographical sampling process is depicted in the #ref(<sampling_design>) below:
+#figure(
+  image("figs/tiling_design.svg", width: 100%),
+  caption: "Random geographical sampling, municipality of Grône",
+)<sampling_design>
 
 Choosing the sampling size and confidence level is important for a proper statistical estimation. In this work, both parameters are set empirically and kept relatively large to benefit from lower computational costs, but without optimizing for the best possible accuracy.
 As such, only the suitability of roofs and façades for use of solar energy is estimated using this technique as they are both datasets which showcase potential of exploitation rather than precise measurements and are well distributed in the geographic space.
@@ -582,12 +585,10 @@ Geospatial information is accumulated over the conversation turns, allowing for 
 In the section #ref(<intent_router>, supplement: it => it.body), the validity of the location is not confirmed. This is directly implemented in the different tools above and routing of this agent (#ref(<ai_agent_design>)):
 - If the location is non-valid, retrieving data raises an error and the request is routed to the clarify query agent (6).
 - Otherwise, the query is sent to the strategy planner agent (7).
-#highlight("TODO: manque flèche vers clarification")
 
 Once the relevant data is gathered, the next stage is for the strategy planner agent to analyze this information to conduct proper planning.
 
 #highlight("TODO: citer external services database")
-#highlight("TODO: mettre un schéma du tiling?")
 #highlight("TODO: dire requêtes API concurrent")
 #highlight("TODO: parler spécifique map et système coordonnées?")
 #highlight("TODO: ajouter tool energy needs, heuristique et détailler planification énergétique?")
