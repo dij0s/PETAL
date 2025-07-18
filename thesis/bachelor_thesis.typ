@@ -1145,7 +1145,7 @@ The #ref(<configurations>) below breaks down their composition:
       [*G-eval Evaluator*],
     ),
     [*Small*], [qwen3:1.7b], [qwen3:1.7b], [qwen3:1.7b], [qwen3:1.7b], [deepseek-r1:8b],
-    [*Large*], [qwen3:1.7b], [qwen3:1.7b], [qwen3:1.7b], [*qwen3:8b*], [deepseek-r1:8b],
+    [*Large (Baseline)*], [qwen3:1.7b], [qwen3:1.7b], [qwen3:1.7b], [*qwen3:8b*], [deepseek-r1:8b],
   ),
   caption: "Agent language model by configuration",
 ) <configurations>
@@ -1154,9 +1154,9 @@ A smaller configuration is defined for further comparison against the baseline.
 This baseline, a _larger_ configuration, leverages bigger language models for the strategy planner agent as introduced in the #ref(<limitations>, supplement: it => it.body) section.
 
 Qwen is a large language model family built by Alibaba Cloud#footnote("https://www.alibabacloud.com/en?_p_lc=7"). It offers tool-using abilities, reasoning and model size, making it the only currently available option on Ollama that is viable for running lightweight, yet capable agents.
-
 Deepseek models, on the other hand, are developed by Deepseek, a company funded by the High-Flyer#footnote("https://www.high-flyer.cn/en/fund/") hedge fund and whose models support similar capabilities to Qwen.
 The R1 model (8B parameters) serves as the evaluator for all LLM-as-a-judge benchmarking. Using a model from a different family than the those in the individual agents helps minimize potential bias in the assessment.
+#highlight("TODO: expliquer que aurait été intéressant de comparer d'autres modèles mais pas possible")
 
 The #ref(<comparison_test_human_llm>) presents the results, showing both the expert assessment and G-eval benchmarking scores for all nine prompts, side by side and for both configurations:
 #set table(
@@ -1206,7 +1206,64 @@ On the other hand, the scores per benchmarking criteria and per query _intent_ t
   image("figs/boxplots_criterion_intent.png", width: 100%),
   caption: "Boxplots per criterion score, by prompt intent.",
 )<boxplots_criterion>
+
+#set table(
+  stroke: (x, y) => {
+    if y == 2 {
+      (bottom: 0.7pt + black)
+    }
+    if x > 0 and y > 0 {
+      (left: 0.3pt + black)
+    }
+    if x == 1 and y == 0 {
+      0.3pt + black
+    }
+    if x == 2 and y == 2 {
+      (right: 0.3pt + black)
+    }
+    if (x == 1 or x == 3) and y == 3 {
+      (right: 0.3pt + black)
+      (bottom: 0.3pt + black)
+    }
+    if x == 0 and y == 4 {
+      (top: 0.3pt + black)
+    }
+  },
+  fill: (x, y) => {
+    if y < 4 and x == 0 { none } else {
+      if calc.odd(y) { rgb("F7F9FA") }
+    }
+  },
+  align: (x, _) => if x == 0 { left } else { center },
+)
+#figure(
+  table(
+    columns: 5,
+    table.header(
+      table.cell(rowspan: 3, []),
+      table.cell(rowspan: 3, colspan: 4, [Score (mean ± st.d.), 10 runs]),
+    ),
+    [], table.cell(colspan: 2, [Factual]), table.cell(colspan: 2, [Actionable]),
+    [*Criteria*], [Large], [Small], [Large], [Small],
+    [Data interpretation], [0.39 ± 0.21], [0.11 ± 0.13], [0.44 ± 0.25], [0.18 ± 0.12],
+    [Methodology alignment],
+    [0.30 ± 0.35],
+    [0.14 ± 0.13],
+    [0.52 ± 0.31],
+    [0.30 ± 0.21],
+    [Municipal relevance],
+    [0.63 ± 0.21],
+    [0.50 ± 0.00],
+    [0.48 ± 0.30],
+    [0.39 ± 0.26],
+    [Technical compliance], [0.20 ± 0.30], [0.15 ± 0.31], [0.34 ± 0.35], [0.33 ± 0.38],
+  ),
+  caption: "LLM-as-a-judge benchmark score on test dataset, per criteria and per query intent.",
+) <comparison_criteria>
+
 #highlight("TODO: donner quelque part les résultats raw, sinon pas valide??")
+#highlight("TODO: les remettre à l'échelle originale dans la table")
+#highlight("TODO: ou bien donner tabelle avec delta entre les deux, par configuration?")
 It is important to note that the distribution of prompts by intent is unbalanced as only two prompts from the test dataset (#ref(<test_dataset>)) are classified as "factual", while the seven remaining ones are classified as "actionable".
 
 These results summarize and introduce further comparison between the expert evaluation and G-eval benchmarking framework, assessing differences between the baseline configuration and a smaller one.
@@ -1258,17 +1315,54 @@ Besides that, it is non-parametric, making no assumptions about the underlying d
 Therefore, it is applied to the paired scores of the larger and smaller configurations with the one-sided alternative hypothesis that the larger configuration significantly outperforms the smaller one.
 The resulting p-value is 0.009 ($equiv$ 0.9%), indicating a statistically significant difference between the two configurations considering a 5% confidence level.
 
-The null hypothesis is hence rejected and confirms the alternative hypothesis: the larger configuration, indeed, outperforms the smaller configuration in a per-prompt basis and confirms the initial expectation that larger language models, incorporated into the AI agent solution, yield better results.
+The null hypothesis is hence rejected and confirms the alternative hypothesis: the larger configuration, indeed, outperforms the smaller configuration in a per-prompt basis and verifies the initial expectation that larger language models, incorporated into the AI agent solution, yield better results.
 
-Analyzing the per-criterion raw scores across each query intent (#ref(<boxplots_criterion>)) provides valuable insight into _why_, the larger configuration yields greater scores.
+Analyzing the per-criterion raw scores across each prompt intent (#ref(<boxplots_criterion>)) provides valuable insight into the specific areas in which the larger configuration surpasses the smaller one.
 #highlight("TODO: citer potentils résultats raw")
 
-// Analyzing the per-criteria scores across for each query intents (#ref(<comparison_criteria>)) provides a more detailed view of how the two configurations scores across specific queries and fields.
+Boxplots enable a visual comparison of the distributions of ordinal scores, assigned to each evaluation criterion.
+The results are further grouped by prompt intent, distinguishing between factual and actionable prompts, the latter of which involve strategy planning.
+
+The plot clearly demonstrates that the larger configuration is consistently ranked higher across all criteria, raising an important question: in which aspect of the qualitative evaluation does the larger configuration have the greatest impact ?
+
+Data interpretation and methodology alignment show the most significant improvement, in both factual and actionable contexts.
+This suggests that bigger models enhance the system's ability to interpret the geospatial data and provide actionable insights from various perspectives, identifying patterns and most importantly suggesting solutions.
+#highlight("TODO: lier avec papier dans limitations?")
+
+In contrast, municipal relevance and technical compliance only show minor differences between configurations, with the larger one demonstrating slight improvements.
+What is more interesting in this case is the overall performance of the solution, across all configurations in both criteria.
+
+While the municipal relevance criterion reveals the greatest score across individual criteria and a more pronounced decrease between configurations, the technical compliance criterion remains strikingly similar across both.
+
+These results are likely due to either: poor compliance with the formatting requirements, structural completeness and overall presentation of the response for both configurations or a deeper issue with the criterion itself.
+
+In reality, both go hand in hand as overly rigid criteria penalize small deviations from the requirements whilst loose criteria may overlook important details and yield higher scores.
+On the other hand, the criterion itself may be meaningless. A response that effectively addresses urban energy planning requirements, even lacking perfect formatting, is arguably better than one that is well-formatted but completely irrelevant.
+
+Another issue observed with this criterion is the high standard deviation over both intents
+
+
+Another global
+
+Rather
+
+// pas de l'opti nsm faut juste comparer p.r. à baseline
+
+#highlight("TODO: citer ou inclure tel quel le prompt ici?")
+
+// pas possible de comparer inter-critère
+
+#highlight("TODO: citer les chiffres a quel point mieux?")
+// pdv critere
+// pdv intent, quels meilleurs, ou est le plus grand drop -> biais benchmark
+// variabilité
+// suite: modeles plus grand et rework g-eval hand in hand pour assess jusqu'à ou on peut montre
 
 // expliquer pq telle différence dans les résultats
 // pros and cons
 // PAS ASSEZ DE SAMPLES POUR COMPARER SI EXPERT NOTE MIEUX SUR LES ACTIONABLE MAIS ASSESS INDICATEUR SUR G-EVAL
 // volatilité larger ??
+// donner exemples qualitatifs de jessen
 // est-ce que c'est la faute de g-eval et de ces critères ?
 // discuter qu'est-ce qui est faux quand expert met un mauvais score
 // EVALUER LES OBJECTIFS DU TRAVAIL
