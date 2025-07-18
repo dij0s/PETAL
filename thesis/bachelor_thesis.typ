@@ -961,7 +961,7 @@ A structured testing methodology is established, facilitating the evaluation of 
 
 == Evaluation Methodology
 
-To begin, it is essential to establish the methodology and criteria used to evaluate the system's performance.
+To begin, it is essential to define the methodology and criteria used to evaluate the system's performance.
 
 There is no definitive ground truth in energy planning, making it difficult to quantify the accuracy of the reported recommendations and strategies.
 Consequently, qualitative observations provide valuable insight into the practical effectiveness of the solution.
@@ -1008,15 +1008,16 @@ And evaluated according to the following scale, presented in #ref(<scoring_grid_
   caption: "Ordinal evaluation grid for criteria in the benchmarking framework",
 ) <scoring_grid_llm>
 
-These criteria are based on the most frequent types of errors, encountered during the weekly assessment of the solution.
+These criteria are based on the most frequent types of errors, encountered during the continuous assessment of the solution.
 
-These instructions are summarized and included in the #ref(<benchmark_system_prompt>). The accumulated context is included, helping the model to evaluate the accuracy of the generated response.
+These instructions are summarized and included in the #ref(<benchmark_system_prompt>). The conversational context is also included, helping the model to evaluate the accuracy of the generated response against the retrieved data points and guidelines.
 
 Finally, the individual benchmark scores are aggregated into a single score by calculating the arithmetic mean and then rescaled linearly to the [0,1] interval.
+This yields an easily interpretable overall performance metric, better known as G-eval.
 
 === Expert Assessment Framework
 
-The former human insight is naturally shaped by the domain knowledge and nuanced judgment of the expert, leading to a more informed assessment.
+Human insight is naturally shaped by the domain knowledge and nuanced judgment of the expert, leading to a more informed assessment.
 
 While the automated evaluation is constrained to a rigid scoring grid, the expert evaluation is richer as observations extend beyond these predefined criteria and reflects interpreted, context-specific priorities.
 As such, it is not feasible to enforce strict scoring rules to the expert.
@@ -1049,13 +1050,15 @@ However, the grid presented in #ref(<scoring_grid_expert>) acts as a reference p
   caption: "Ordinal evaluation grid for the expert",
 ) <scoring_grid_expert>
 
+=== Framework Interpretability
+
 It is important to note that the G-eval and expert scores cannot be interpreted and directly compared, each being grounded in a distinct evaluation framework.
 
 G-eval offers a standardized framework with set evaluation criteria, allowing for a more consistent and reliable benchmarking. This enables the comparison of different solutions under identical conditions.
 
 As G-eval relies on LLMs, scores may showcase some degree of randomness. This is mitigated by multiple runs and aggregated scores, offering a stable estimate.
 
-By presenting both evaluation methods, the objectivity of an automated scoring is complemented by the more practice-oriented expert judgment
+By presenting both evaluation methods, the objectivity of an automated scoring is complemented by the more practice-oriented expert judgment.
 This dual approach treats both methodological rigor and contextual relevance to assess the quality of the solution.
 
 For consistency, expert scores are also rescaled linearly to the [0, 1] interval.
@@ -1067,7 +1070,7 @@ However, the rescaled scores are treated as continuous variables for statistical
 === Test Dataset
 
 With the evaluation frameworks introduced, the next step is to define the test dataset.
-This dataset consists of nine prompts and establishes the basis for assessing the performance of the solution:
+This dataset consists of nine prompts and establishes the basis for assessing the performance of the solution (#ref(<test_dataset>)):
 #set table(
   fill: (x, y) => if calc.odd(y) { rgb("F7F9FA") },
   align: (x, _) => if x == 0 { center } else { left },
@@ -1097,16 +1100,13 @@ This dataset consists of nine prompts and establishes the basis for assessing th
 The dataset is aligned within the specific scope of available data sources, inherently restricting its size.
 It is crafted by Prof. Jessen Page to support energy planning for the municipality of Sion.
 
-With the groundwork established, the following tables present the results that will be discussed in the next section.
-Both the expert assessment and benchmarking are conducted using the version of the solution as of June 20, 2025#footnote[Code at commit `c2bea64` in the repository.].
+With the groundwork established, the following section presents the results that will be discussed in the next chapter.
+
+Both the expert assessment and benchmarking are conducted using the version of the solution as of June 20, 2025#footnote[Code at commit `c2bea64` in the repository.], ensuring consistency and reliability in the evaluation process.
 
 == Evaluation Results
 
 Two different configurations of the solution, each using different language models, are benchmarked.
-
-A smaller configuration is defined for further comparison against the baseline.
-This baseline, a _larger_ configuration, leverages bigger language models for the strategy planner agent as introduced in the #ref(<limitations>, supplement: it => it.body) section.
-
 The #ref(<configurations>) below breaks down their composition:
 
 #set table(
@@ -1149,13 +1149,15 @@ The #ref(<configurations>) below breaks down their composition:
   caption: "Agent language model by configuration",
 ) <configurations>
 
+A smaller configuration is defined for further comparison against the baseline.
+This baseline, a _larger_ configuration, leverages bigger language models for the strategy planner agent as introduced in the #ref(<limitations>, supplement: it => it.body) section.
+
 Qwen is a large language model family built by Alibaba Cloud#footnote("https://www.alibabacloud.com/en?_p_lc=7"). It offers tool-using abilities, reasoning and model size, making it the only currently available option on Ollama that is viable for running lightweight, yet capable agents.
 
 Deepseek models, on the other hand, are developed by Deepseek, a company funded by the High-Flyer#footnote("https://www.high-flyer.cn/en/fund/") hedge fund and whose models support similar capabilities to Qwen.
-The R1 model (8B), a strong general-purpose language model, is used as the evaluator across both configurations to clearly distinguish the model family from that of the agent components, reducing potential bias in the assessment.
+The R1 model (8B parameters) serves as the evaluator for all LLM-as-a-judge benchmarking. Using a model from a different family than the those in the individual agents helps minimize potential bias in the assessment.
 
-While the expert assessment and G-eval benchmarking are not comparable _as is_, the #ref(<comparison_test_human_llm>) presents their scores across the nine prompts, side by side, and offers an interesting perspective:
-
+The #ref(<comparison_test_human_llm>) below presents the results, showing both the expert assessment and G-eval benchmarking scores for all nine prompts, side by side and for both configurations:
 #set table(
   stroke: (x, y) => {
     if y == 2 {
@@ -1195,9 +1197,10 @@ While the expert assessment and G-eval benchmarking are not comparable _as is_, 
   caption: "Expert assessment and G-eval scores on test dataset, per prompt.",
 ) <comparison_test_human_llm>
 
-#highlight("TODO: inclure résultats testcase dans appendix??")
+While both frameworks are not directly comparable, this provides an interesting perspective for further analysis.
+#highlight("TODO: inclure RESULTATS testcase dans appendix??")
 
-Finally, the scores per benchmarking criteria and per query _intent_ type (#ref(<conversational_state>), either factual or actionable), for both configurations, are depicted in the #ref(<comparison_criteria>) below:
+On the other hand, the scores per benchmarking criteria and per query _intent_ type (#ref(<conversational_state>), either factual or actionable), for both configurations, are depicted in the #ref(<comparison_criteria>) below:
 #set table(
   stroke: (x, y) => {
     if y == 2 {
@@ -1258,6 +1261,7 @@ It is important to note that the distribution of prompts by intent is unbalanced
 These tables summarize and introduce further comparison between the expert evaluation and G-eval benchmarking framework, assessing differences between the baseline configuration and a smaller one.
 With the different results presented, the following chapter discusses their implications.
 #highlight("TODO: changer mot tables en plots??")
+#highlight("TODO: trop de sous-chapitres au dessus??")
 
 = Discussion
 
