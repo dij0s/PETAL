@@ -1218,20 +1218,20 @@ Finally, the scores per benchmarking criteria and per query _intent_ type (#ref(
       table.cell(rowspan: 3, []),
       table.cell(rowspan: 3, colspan: 4, [Score (mean ± st.d.), 10 runs]),
     ),
-    [], table.cell(colspan: 2, [*Large configuration*]), table.cell(colspan: 2, [Small configuration]),
-    [*Criteria*], [Factual], [Actionable], [Factual], [Actionable],
-    [Data interpretation], [0.39 ± 0.21], [0.44 ± 0.25], [0.11 ± 0.13], [0.18 ± 0.12],
+    [], table.cell(colspan: 2, [Factual]), table.cell(colspan: 2, [Actionable]),
+    [*Criteria*], [Large], [Small], [Large], [Small],
+    [Data interpretation], [0.39 ± 0.21], [0.11 ± 0.13], [0.44 ± 0.25], [0.18 ± 0.12],
     [Guideline application],
     [0.30 ± 0.35],
-    [0.52 ± 0.31],
     [0.14 ± 0.13],
+    [0.52 ± 0.31],
     [0.30 ± 0.21],
     [Municipal relevance],
     [0.63 ± 0.21],
-    [0.48 ± 0.30],
     [0.50 ± 0.00],
+    [0.48 ± 0.30],
     [0.39 ± 0.26],
-    [Source citations], [0.20 ± 0.30], [0.34 ± 0.35], [0.15 ± 0.31], [0.33 ± 0.38],
+    [Source citations], [0.20 ± 0.30], [0.15 ± 0.31], [0.34 ± 0.35], [0.33 ± 0.38],
   ),
   caption: "LLM-as-a-judge benchmark score on test dataset, per criteria and per query intent.",
 ) <comparison_criteria>
@@ -1239,9 +1239,9 @@ Finally, the scores per benchmarking criteria and per query _intent_ type (#ref(
 
 It is important to note that the distribution of prompts by intent is unbalanced as only two prompts from the test dataset (#ref(<test_dataset>)) are classified as "factual", while the seven remaining ones are classified as "actionable".
 
-
 These tables summarize and introduce further comparison between the expert evaluation and G-eval benchmarking framework, assessing differences between the baseline configuration and a smaller one.
 With the different results presented, the following chapter discusses their implications.
+#highlight("TODO: changer mot tables en plots??")
 
 = Discussion
 
@@ -1278,12 +1278,13 @@ The resulting p-value is 0.009, indicating a statistically significant differenc
 
 The null hypothesis is hence rejected and confirms the alternative hypothesis: the larger configuration, indeed, outperforms the smaller configuration in a per-prompt basis. This confirms the initial expectation that larger language models, incorporated into the AI agent solution, yield better results.
 
-With that in mind, it is interesting to
+Analyzing the per-criteria scores across for each query intents (#ref(<comparison_criteria>)) provides a more detailed view of how the two configurations scores across specific queries and fields.
 
 // expliquer pq telle différence dans les résultats
 // pros and cons
 // PAS ASSEZ DE SAMPLES POUR COMPARER SI EXPERT NOTE MIEUX SUR LES ACTIONABLE MAIS ASSESS INDICATEUR SUR G-EVAL
 // volatilité larger ??
+// est-ce que c'est la faute de g-eval et de ces critères ?
 // discuter qu'est-ce qui est faux quand expert met un mauvais score
 // EVALUER LES OBJECTIFS DU TRAVAIL
 // 9. *Discussion*: Interprets the results, discusses implications, and relates findings to the research question.
