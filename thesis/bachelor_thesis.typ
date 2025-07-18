@@ -9,7 +9,7 @@
   is-thesis: true,
   split-chapters: true,
 
-  thesis-supervisor: "Prof. Jessen Page",
+  thesis-supervisor: "Jessen Page",
   thesis-co-supervisor: "Florian Desmons", // Optional, use none if not needed
   thesis-expert: "Nils Schüler", // Optional, use none if not needed
   thesis-id: "ISC-ID-2501", // Your thesis ID (from the official project description) or none if not used
@@ -164,7 +164,7 @@ Besides that, all other aspects of this work are my own.
 = State of the Art <state_of_art>
 
 #highlight("TODO: CHECKER VIM TEMP!!")
-#highlight("TODO: parler état de l'art LLM tout court et décrire la technologie ou juste approcher")
+#highlight("TODO: parler état de l'art LLM tout court et décrire la technologie ou juste approcher -> MoE")
 
 Large language models are highly effective tools for natural language processing and offer various opportunities to enhance our day-to-day tasks and workflows.
 Ever since they have been introduced to the public, they have been adopted across a wide range of fields and applications.
@@ -1065,6 +1065,7 @@ For consistency, expert scores are also rescaled linearly to the [0, 1] interval
 
 Both frameworks are inherently ordinal with each value being _qualitatively_ described.
 However, the rescaled scores are treated as continuous variables for statistical purposes, enabling analytical comparisons.
+#highlight("TODO: revalider, que ordinal-safe atm")
 
 #pagebreak()
 === Test Dataset
@@ -1157,7 +1158,7 @@ Qwen is a large language model family built by Alibaba Cloud#footnote("https://w
 Deepseek models, on the other hand, are developed by Deepseek, a company funded by the High-Flyer#footnote("https://www.high-flyer.cn/en/fund/") hedge fund and whose models support similar capabilities to Qwen.
 The R1 model (8B parameters) serves as the evaluator for all LLM-as-a-judge benchmarking. Using a model from a different family than the those in the individual agents helps minimize potential bias in the assessment.
 
-The #ref(<comparison_test_human_llm>) below presents the results, showing both the expert assessment and G-eval benchmarking scores for all nine prompts, side by side and for both configurations:
+The #ref(<comparison_test_human_llm>) presents the results, showing both the expert assessment and G-eval benchmarking scores for all nine prompts, side by side and for both configurations:
 #set table(
   stroke: (x, y) => {
     if y == 2 {
@@ -1200,67 +1201,16 @@ The #ref(<comparison_test_human_llm>) below presents the results, showing both t
 While both frameworks are not directly comparable, this provides an interesting perspective for further analysis.
 #highlight("TODO: inclure RESULTATS testcase dans appendix??")
 
-On the other hand, the scores per benchmarking criteria and per query _intent_ type (#ref(<conversational_state>), either factual or actionable), for both configurations, are depicted in the #ref(<comparison_criteria>) below:
-#set table(
-  stroke: (x, y) => {
-    if y == 2 {
-      (bottom: 0.7pt + black)
-    }
-    if x > 0 and y > 0 {
-      (left: 0.3pt + black)
-    }
-    if x == 1 and y == 0 {
-      0.3pt + black
-    }
-    if x == 2 and y == 2 {
-      (right: 0.3pt + black)
-    }
-    if (x == 1 or x == 3) and y == 3 {
-      (right: 0.3pt + black)
-      (bottom: 0.3pt + black)
-    }
-    if x == 0 and y == 4 {
-      (top: 0.3pt + black)
-    }
-  },
-  fill: (x, y) => {
-    if y < 4 and x == 0 { none } else {
-      if calc.odd(y) { rgb("F7F9FA") }
-    }
-  },
-  align: (x, _) => if x == 0 { left } else { center },
-)
+On the other hand, the scores per benchmarking criteria and per query _intent_ type (either factual or actionable, per definition), for both configurations, are depicted in the #ref(<boxplots_criterion>):
 #figure(
-  table(
-    columns: 5,
-    table.header(
-      table.cell(rowspan: 3, []),
-      table.cell(rowspan: 3, colspan: 4, [Score (mean ± st.d.), 10 runs]),
-    ),
-    [], table.cell(colspan: 2, [Factual]), table.cell(colspan: 2, [Actionable]),
-    [*Criteria*], [Large], [Small], [Large], [Small],
-    [Data interpretation], [0.39 ± 0.21], [0.11 ± 0.13], [0.44 ± 0.25], [0.18 ± 0.12],
-    [Guideline application],
-    [0.30 ± 0.35],
-    [0.14 ± 0.13],
-    [0.52 ± 0.31],
-    [0.30 ± 0.21],
-    [Municipal relevance],
-    [0.63 ± 0.21],
-    [0.50 ± 0.00],
-    [0.48 ± 0.30],
-    [0.39 ± 0.26],
-    [Source citations], [0.20 ± 0.30], [0.15 ± 0.31], [0.34 ± 0.35], [0.33 ± 0.38],
-  ),
-  caption: "LLM-as-a-judge benchmark score on test dataset, per criteria and per query intent.",
-) <comparison_criteria>
-#highlight("TODO: en faire un plot??")
-
+  image("figs/boxplots_criterion_intent.png", width: 100%),
+  caption: "Boxplots per criterion score, by prompt intent.",
+)<boxplots_criterion>
+#highlight("TODO: donner quelque part les résultats raw, sinon pas valide??")
 It is important to note that the distribution of prompts by intent is unbalanced as only two prompts from the test dataset (#ref(<test_dataset>)) are classified as "factual", while the seven remaining ones are classified as "actionable".
 
-These tables summarize and introduce further comparison between the expert evaluation and G-eval benchmarking framework, assessing differences between the baseline configuration and a smaller one.
+These results summarize and introduce further comparison between the expert evaluation and G-eval benchmarking framework, assessing differences between the baseline configuration and a smaller one.
 With the different results presented, the following chapter discusses their implications.
-#highlight("TODO: changer mot tables en plots??")
 #highlight("TODO: trop de sous-chapitres au dessus??")
 
 = Discussion
@@ -1278,31 +1228,42 @@ The expert evaluation provides nuanced and domain-informed feedback while the G-
 
 The #ref(<comparison_test_human_llm>) presents both frameworks and their scores, side-by-side, against each prompt of the test dataset.
 
-The relationship between these two frameworks is assessed by leveraging Spearman's rank correlation coefficient (#ref(<spearman>).
+The relationship between these two frameworks is assessed by leveraging Spearman's rank correlation coefficient (#ref(<spearman>)).
 This coefficient measures the monotonic relationship between the rankings of two variables, indicating how well the order of one variable matches the order of the other. Like other correlation coefficients, it varies between -1 (perfect inverse correlation) and +1 (perfect correlation), with 0 implying no correlation at all.
 #highlight("TOOD: citer spearman?")
 
 This coefficient strictly applies to ordinal data. As both score distributions originate from a ranking, the coefficient is applicable to compare the relative ranking of prompts of the two frameworks.
 
 As such, the calculated Spearman correlation coefficient between the expert evaluation and the G-eval framework is -0.23 for the larger configuration and 0.36 for the smaller configuration, indicating no meaningful correlation between the two frameworks.
+
+Despite the smaller configuration showing a weak trend, it is not statistically significant as the sample size is too small.
 This divergence demonstrates that the frameworks capture distinct dimensions than those of the expert evaluation, validating the complementary nature of the evaluation methods.
 
-Although the smaller configuration shows a weak trend, it is not statistically significant as the sample size is too small. Consequently, the G-eval framework is, at most, a complementary tool to the expert evaluation.
+Interestingly, the correlations for the larger configuration and smaller configuration, against the expert evaluation, differ significantly.
+
+To further understand this difference, the Spearman correlation between the G-eval scores of the large and small configurations is calculated.
+The resulting coefficient of 0.09 suggests that the two configurations produce substantially different scores, opening up the possibility of exploring the reasons behind this discrepancy.
+
+Consequently, the G-eval framework is, at most, a complementary tool to the expert evaluation.
+#highlight("TODO: deux trois mots en plus pour transitionner")
 
 == Performance Analysis
 
 On top of that, the same #ref(<comparison_test_human_llm>) depicts the average G-eval scores for both configurations, per prompt. Visually, the larger configuration consistently outperforms the smaller configuration.
 
-This can be formally assessed by conducting a Wilcoxon signed-rank test, whose null hypothesis evaluates if two related samples (paired samples) come from the same distribution.
-Besides that, it does not assume an underlying normal distribution, making it more robust to outliers.
+This can be formally assessed by conducting a Wilcoxon signed-rank test, whose null hypothesis states that two randomly selected samples from two populations have the same distribution.
+Besides that, it is non-parametric, making no assumptions about the underlying distribution, making it more robust to outliers.
 #highlight("TODO: citer wilcoxon")
 
 Therefore, it is applied to the paired scores of the larger and smaller configurations with the one-sided alternative hypothesis that the larger configuration significantly outperforms the smaller one.
 The resulting p-value is 0.009 ($equiv$ 0.9%), indicating a statistically significant difference between the two configurations considering a 5% confidence level.
 
-The null hypothesis is hence rejected and confirms the alternative hypothesis: the larger configuration, indeed, outperforms the smaller configuration in a per-prompt basis. This confirms the initial expectation that larger language models, incorporated into the AI agent solution, yield better results.
+The null hypothesis is hence rejected and confirms the alternative hypothesis: the larger configuration, indeed, outperforms the smaller configuration in a per-prompt basis and confirms the initial expectation that larger language models, incorporated into the AI agent solution, yield better results.
 
-Analyzing the per-criteria scores across for each query intents (#ref(<comparison_criteria>)) provides a more detailed view of how the two configurations scores across specific queries and fields.
+Analyzing the per-criterion raw scores across each query intent (#ref(<boxplots_criterion>)) provides valuable insight into _why_, the larger configuration yields greater scores.
+#highlight("TODO: citer potentils résultats raw")
+
+// Analyzing the per-criteria scores across for each query intents (#ref(<comparison_criteria>)) provides a more detailed view of how the two configurations scores across specific queries and fields.
 
 // expliquer pq telle différence dans les résultats
 // pros and cons
