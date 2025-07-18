@@ -1196,6 +1196,10 @@ Finally, the scores per benchmarking criteria and per query _intent_ type (#ref(
     if x == 2 and y == 2 {
       (right: 0.3pt + black)
     }
+    if (x == 1 or x == 3) and y == 3 {
+      (right: 0.3pt + black)
+      (bottom: 0.3pt + black)
+    }
     if x == 0 and y == 4 {
       (top: 0.3pt + black)
     }
@@ -1231,6 +1235,7 @@ Finally, the scores per benchmarking criteria and per query _intent_ type (#ref(
   ),
   caption: "LLM-as-a-judge benchmark score on test dataset, per criteria and per query intent.",
 ) <comparison_criteria>
+#highlight("TODO: en faire un plot??")
 
 It is important to note that the distribution of prompts by intent is unbalanced as only two prompts from the test dataset (#ref(<test_dataset>)) are classified as "factual", while the seven remaining ones are classified as "actionable".
 
@@ -1271,10 +1276,11 @@ Besides that, it does not assume an underlying normal distribution, making it mo
 Therefore, it is applied to the paired scores of the larger and smaller configurations with the one-sided alternative hypothesis that the larger configuration significantly outperforms the smaller one.
 The resulting p-value is 0.009, indicating a statistically significant difference between the two configurations considering a 5% confidence level.
 
-The null hypothesis is hence rejected and confirms the alternative hypothesis: the larger configuration, indeed, outperforms the smaller configuration in a per-prompt basis. This confirms the initial expectation that larger language models, incorporated into the AI agent solution, yield higher quality scores.
+The null hypothesis is hence rejected and confirms the alternative hypothesis: the larger configuration, indeed, outperforms the smaller configuration in a per-prompt basis. This confirms the initial expectation that larger language models, incorporated into the AI agent solution, yield better results.
 
-// faire un test statistique démontrant que par critère meilleur pour large configuration
-// parler de sur-représentation des queries actionable
+With that in mind, it is interesting to
+
+// expliquer pq telle différence dans les résultats
 // pros and cons
 // PAS ASSEZ DE SAMPLES POUR COMPARER SI EXPERT NOTE MIEUX SUR LES ACTIONABLE MAIS ASSESS INDICATEUR SUR G-EVAL
 // volatilité larger ??
