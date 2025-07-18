@@ -873,7 +873,7 @@ This is because factual queries involve fewer agents in the workflow defined in 
 
 With that, the implementation details of the web interface are clarified. This highlights its role as being on par with the AI agent solution itself.
 
-== Limitations
+== Limitations <limitations>
 
 #highlight("TODO: en faire un chapitre par composant au dessus ou en dehors de la partie méthodologie?")
 #highlight("TODO: checker orthographe de tout le rapport!!")
@@ -949,7 +949,7 @@ This would enable the identification of subtle inconsistencies, leading to a mor
 
 In summary, these points illustrate some of the current limitations inherent to the system. The following chapter presents the results obtained from the implemented solution.
 
-= Results
+= Results <results>
 
 This chapter presents the empirical findings from the assessment of the implemented system.
 A structured testing methodology is established, facilitating the evaluation of the solution's primary objective: assisting users in municipal energy planning.
@@ -1049,6 +1049,9 @@ This dual approach treats both methodological rigor and contextual relevance to 
 
 For consistency, expert scores are also rescaled linearly to the [0, 1] interval.
 
+Both frameworks are inherently ordinal with each value being _qualitatively_ described.
+However, the rescaled scores are treated as continuous variables for statistical purposes, enabling analytical comparisons.
+
 With the evaluation frameworks introduced, the next step is to define the test dataset.
 This dataset consists of nine prompts and establishes the basis for assessing the performance of the solution:
 #set table(
@@ -1085,7 +1088,10 @@ Both the expert assessment and benchmarking are conducted using the version of t
 
 Two different configurations of the solution, each using different language models, are benchmarked.
 
-A smaller configuration is defined for further comparison against the baseline, larger configuration. The #ref(<configurations>) below breaks them down:
+A smaller configuration is defined for further comparison against the baseline.
+This baseline, a _larger_ configuration, leverages bigger language models for the strategy planner agent as introduced in the #ref(<limitations>, supplement: it => it.body) section.
+
+The #ref(<configurations>) below breaks down their composition:
 
 #set table(
   stroke: (x, y) => {
@@ -1173,7 +1179,40 @@ While the expert assessment and G-eval benchmarking are not comparable _as is_, 
   caption: "Expert assessment and G-eval scores on test dataset, per prompt.",
 ) <comparison_test_human_llm>
 
-Besides that, the #ref(<comparison_intent>) differentiates the G-eval score, per query _intent_ type (#ref(<conversational_state>)), for both configurations:
+Besides that, the #ref(<comparison_intent>) shows the expert assessment and G-eval results, per query _intent_ type (#ref(<conversational_state>)), for both configurations:
+#set table(
+  stroke: (x, y) => {
+    if y == 2 {
+      (bottom: 0.7pt + black)
+    }
+    if x > 0 and y > 0 {
+      (left: 0.3pt + black)
+    }
+    if x == 2 and y == 0 {
+      0.3pt + black
+    }
+    if x == 3 and y == 2 {
+      (right: 0.3pt + black)
+    }
+  },
+  align: (x, _) => if x == 0 { left } else { center },
+)
+#figure(
+  table(
+    columns: 4,
+    table.header(
+      table.cell(rowspan: 2, []),
+      table.cell(rowspan: 2, []),
+      table.cell(rowspan: 2, colspan: 2, [G-eval score (mean ± st.d.), 10 runs]),
+    ),
+    [Intent type], [*Expert Score*], [*Large configuration*], [Small configuration],
+    [Factual], [0.38 ± 0.18], [0.38 ± 0.18], [0.23 ± 0.08],
+    [Actionable], [0.46 ± 0.22], [0.44 ± 0.13], [0.30 ± 0.09],
+  ),
+  caption: "Expert assessment and G-eval scores on test dataset, per intent type.",
+) <comparison_intent>
+
+Finally, the scores per benchmarking criteria, for both configurations, are depicted in the #ref(<comparison_criteria>) below:
 #set table(
   stroke: (x, y) => {
     if y == 2 {
@@ -1196,22 +1235,6 @@ Besides that, the #ref(<comparison_intent>) differentiates the G-eval score, per
     columns: 3,
     table.header(
       table.cell(rowspan: 2, []),
-      table.cell(rowspan: 2, colspan: 2, [G-eval score (mean ± st.d.), 10 runs]),
-    ),
-    [Intent type], [*Large configuration*], [Small configuration],
-    [Factual], [0.38 ± 0.18], [0.23 ± 0.08],
-    [Actionable], [0.44 ± 0.13], [0.30 ± 0.09],
-  ),
-  caption: "G-eval scores per intent type (factual vs actionable) on test dataset across ten runs, for large and small configurations.",
-) <comparison_intent>
-
-Finally, the scores per benchmarking criteria, for both configurations, are depicted in the #ref(<comparison_criteria>) below:
-
-#figure(
-  table(
-    columns: 3,
-    table.header(
-      table.cell(rowspan: 2, []),
       table.cell(rowspan: 2, colspan: 2, [Score (mean ± st.d.), 10 runs]),
     ),
     [Criteria], [*Large configuration*], [Small configuration],
@@ -1220,7 +1243,7 @@ Finally, the scores per benchmarking criteria, for both configurations, are depi
     [Municipal relevance], [0.51 ± 0.28], [0.41 ± 0.23],
     [Source citations], [0.31 ± 0.34], [0.29 ± 0.37],
   ),
-  caption: "Score per benchmarking criteria on test dataset across ten runs, for large and small configurations.",
+  caption: "LLM-as-a-judge benchmark score on test dataset, per criteria.",
 ) <comparison_criteria>
 
 These tables summarize and introduce further comparison between the expert evaluation and G-eval benchmarking framework, assessing differences between the baseline configuration and a smaller one.
@@ -1228,9 +1251,45 @@ With the different results presented, the following chapter discusses their impl
 
 = Discussion
 
-// faire un test statistique démontrant que per benchmarks stables ? wilcoxon??
+Before analyzing the implications of the results, it is important to restate the research question: evaluating the effectiveness and reliability of AI agents for urban energy planning, along with an analysis of their strengths and weaknesses.
+
+This chapter addresses this objective by interpreting the results and connecting them to the research question.
+
+The #ref(<results>, supplement: it => it.body) chapter differentiates the two frameworks of evaluation: (1) the expert assessment framework and (2) the G-eval benchmarking framework.
+
+As both rely on different methods and criteria, they provide complementary insights rather than direct comparability.
+The expert evaluation provides nuanced and domain-informed feedback while the G-eval framework delivers a standardized and consistent assessment.
+
+The #ref(<comparison_test_human_llm>) presents both frameworks and their scores, side-by-side, against each prompt of the test dataset.
+
+The relationship between these two frameworks is assessed by leveraging Spearman's rank correlation coefficient (#ref(<spearman>).
+This coefficient measures the monotonic relationship between the rankings of two variables, indicating how well the order of one variable matches the order of the other. Like other correlation coefficients, it varies between -1 (perfect inverse correlation) and +1 (perfect correlation), with 0 implying no correlation at all.
+#highlight("TOOD: citer spearman?")
+
+This coefficient strictly applies to ordinal data. As both score distributions originate from a ranking, the coefficient is applicable to compare the relative ranking of prompts of the two frameworks.
+
+As such, the calculated Spearman correlation coefficient between the expert evaluation and the G-eval framework is -0.23 for the larger configuration and 0.36 for the smaller configuration, indicating no meaningful correlation between the two frameworks.
+This divergence demonstrates that the frameworks capture distinct dimensions than those of the expert evaluation, validating the complementary nature of the evaluation methods.
+
+Although the smaller configuration shows a weak trend, it is not statistically significant as the sample size is too small. Consequently, the G-eval framework is, at most, a complementary tool to the expert evaluation.
+
+On top of that, the same #ref(<comparison_test_human_llm>) depicts the average G-eval scores for both configurations, per prompt. Visually, the larger configuration consistently outperforms the smaller configuration and aligns with the initial expectation that larger language models would yield higher quality scores.
+
+This can be formally assessed by conducting a Wilcoxon signed-rank test, which evaluates if two related samples (paired samples) come from the same distribution (null hypothesis).
+Besides that, it does not assume an underlying normal distribution, making it more robust to outliers.
+#highlight("TODO: citer wilcoxon")
+
+Therefore, it is applied to the paired scores of the larger and smaller configurations with the one-sided alternative hypothesis that the larger configuration significantly outperforms the smaller one.
+The resulting p-value is 0.009, indicating a statistically significant difference between the two configurations considering a 5% confidence level.
+
+The null hypothesis is hence rejected and confirms the alternative hypothesis: the larger configuration, indeed, outperforms the smaller configuration in a per-prompt basis.
+
 // faire un test statistique démontrant que par critère meilleur pour large configuration
 // parler de sur-représentation des queries actionable
+// pros and cons
+// PAS ASSEZ DE SAMPLES POUR COMPARER SI EXPERT NOTE MIEUX SUR LES ACTIONABLE MAIS ASSESS INDICATEUR SUR G-EVAL
+// volatilité larger ??
+// discuter qu'est-ce qui est faux quand expert met un mauvais score
 // EVALUER LES OBJECTIFS DU TRAVAIL
 // 9. *Discussion*: Interprets the results, discusses implications, and relates findings to the research question.
 // 10. *Conclusion*: Summarizes the main findings, contributions, and suggests future work.
@@ -1430,7 +1489,8 @@ With the different results presented, the following chapter discusses their impl
 #heavy-title("Equations", top: 1em, bottom: 1em)
 
 #highlight("TODO: CHECKER les maths encore une fois")
-#highlight("TODO: citer la source wikipedia???")
+#highlight("TODO: juste citer la source wikipedia et enlever ça ???")
+#highlight("TODO: EN FAIRE UNE FIGURE!!")
 $
   overline(x) = frac(1, N)sum_(i=1)^N x_i && "where" overline(x) "is the sampled mean," N "the number of samples and" x_i "the" i_"th" "sample tile."
 $ <sample_mean>
@@ -1448,7 +1508,7 @@ $
 $ <confidence_interval>
 
 $
-  "Cosine similarity" & := cos(theta) = frac("A" dot "B", norm("A")norm("B")) = frac(sum_(i=1)^n A_i B_i, sqrt(sum_(i=1)^n A_i²) dot sqrt(sum_(i=1)^n B_i²))\
+  "cosine similarity" & := cos(theta) = frac("A" dot "B", norm("A")norm("B")) = frac(sum_(i=1)^n A_i B_i, sqrt(sum_(i=1)^n A_i²) dot sqrt(sum_(i=1)^n B_i²))\
   &"where" theta "is the angle between A and B, two" n"-dimensional vectors"\
   &"and" A_i, B_i "the" i_"th" "components of vectors A and B."
 $ <cosine_sim>
@@ -1458,6 +1518,13 @@ $
   & "where IQR is the interquartile range and" \
   & Q_1 "and" Q_3 "the first and third quartiles, respectively."
 $ <qcd>
+
+$
+  "Spearman coefficient of correlation" & = frac("cov"["R"[X]", R"[Y]], sigma_("R"[X])sigma_("R"[Y])) \
+  & "where R"[X] "and" "R"[Y] "are the ranks of raw scores" (X_i,Y_i), \
+  &"cov"["R"[X]", R"[Y]] "is the covariance of the rank variables"\
+  & "and" sigma_("R"[X]),sigma_("R"[Y]) "are the standard deviations of the rank variables."
+$ <spearman>
 
 #pagebreak()
 
