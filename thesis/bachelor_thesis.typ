@@ -110,12 +110,16 @@ Climate change and other environmental issues arise as a result of human-driven 
 Scientists have monitored this matter and proposed various frameworks to address and mitigate these problems. In Switzerland, these different frameworks are implemented in the legislation and guidelines (at federal and canton levels) to steer the country towards a more sustainable future.
 Municipalities may introduce in their regulations energy requirements that are more constraining than those set by the cantonal law as per article 12, al. 5 of #ref(<rdb6SC4eJbME>).
 
+== Context
+
 Municipalities in Switzerland are required to submit an energy planning document which outlines their future strategies to comply with those directives while also considering the characteristics of their energetical landscape.
 
 These different properties can be quantified and analyzed through the use of a very valuable resource: data.
 Data is emitted by various sources ; sensors, energy models or citizens' records for example all yield data points that help us assess different indicators we are willing to measure against our municipality. These indicators, _in fine_, help us evaluate our progress towards energy-related goals.
 
 Over the past few years, #acr("AI") has rapidly transformed our habits when interacting with information.
+
+== Problem
 
 #acrpl("LLM") allow users to interact with these systems in natural language facilitating the interface between humans and _machines_. They can provide insights into vast amounts of data at speed and scales which are beyond our capabilities.
 
@@ -124,6 +128,8 @@ This work tackles this exact problem that is the implementation of a solution wh
 This complex problem is approached by leveraging the power of _specialized_ AIs which each offer expertise into a variety of domains and are coordinated using an _orchestration_ AI to provide a solution. The expertise of the user interacting with the system tailors this solution to the specificities of the municipality.
 
 The key steps in the engineering of this implementation are identifying the key information and datasources that are relevant to this process, structure the different AIs into an architecture whose components and interfaces are well-defined and ultimately implementing the solution.
+
+== Objectives
 
 The main objective of this work is to investigate how effective and reliable such a solution is and to assess its strengths and weaknesses. Additional goals are also outlined:
 - Defining the important information in assisting user decision making.
@@ -140,10 +146,10 @@ The solution is designed to offer a user-friendly interface from which users can
 User behavior is analyzed to takeaway user preferences which gradually adapt the answers to better meet the user expectations.
 
 #highlight(
-  "TODO: provide a brief overview of the structure of the thesis (plan), add reference to extra scope in methodology?",
+  "TODO: parler de la structure du document et référencer methodologie?",
 )
 
-= Artificial intelligence notice
+= Artificial Intelligence notice
 
 While generative artificial intelligence is the core of this work, it has also been a great help in assisting the following tasks: prompt engineering (1) and thesis report rewording (2)#footnote("The language models used for these tasks are GPT-4.1 (OpenAI) and Claude 3.7 (Anthropic).").
 
@@ -158,7 +164,6 @@ Besides that, all other aspects of this work are my own.
 = State of the Art <state_of_art>
 
 #highlight("TODO: CHECKER VIM TEMP!!")
-
 #highlight("TODO: parler état de l'art LLM tout court et décrire la technologie ou juste approcher")
 
 Large language models are highly effective tools for natural language processing and offer various opportunities to enhance our day-to-day tasks and workflows.
@@ -954,6 +959,8 @@ In summary, these points illustrate some of the current limitations inherent to 
 This chapter presents the empirical findings from the assessment of the implemented system.
 A structured testing methodology is established, facilitating the evaluation of the solution's primary objective: assisting users in municipal energy planning.
 
+== Evaluation Methodology
+
 To begin, it is essential to establish the methodology and criteria used to evaluate the system's performance.
 
 There is no definitive ground truth in energy planning, making it difficult to quantify the accuracy of the reported recommendations and strategies.
@@ -966,6 +973,8 @@ These insights are provided by two sources:
 The latter leverages language models to mimic expert judgment, assessing the response against a set of predefined criteria.
 This approach provides a scalable and consistent alternative to human evaluation.
 
+=== LLM-as-a-judge Benchmarking Framework
+#highlight("TODO: vérif abus de langage g-eval dans discussions??")
 Unlike human experts which may emphasize different aspects depending on their interpretation or even mood, language model evaluation is driven by clear rules, ensuring consistency and uniformity across all cases. The G-Eval metric, as introduced in the #ref(<state_of_art>, supplement: it => it.body) section, summarizes the score of the criteria and quantifies the quality of the response.
 
 The criteria for the LLM-as-a-judge benchmarking framework are defined as follows:
@@ -1005,6 +1014,8 @@ These instructions are summarized and included in the #ref(<benchmark_system_pro
 
 Finally, the individual benchmark scores are aggregated into a single score by calculating the arithmetic mean and then rescaled linearly to the [0,1] interval.
 
+=== Expert Assessment Framework
+
 The former human insight is naturally shaped by the domain knowledge and nuanced judgment of the expert, leading to a more informed assessment.
 
 While the automated evaluation is constrained to a rigid scoring grid, the expert evaluation is richer as observations extend beyond these predefined criteria and reflects interpreted, context-specific priorities.
@@ -1038,7 +1049,7 @@ However, the grid presented in #ref(<scoring_grid_expert>) acts as a reference p
   caption: "Ordinal evaluation grid for the expert",
 ) <scoring_grid_expert>
 
-It is important to note that the G-eval and expert scores cannot be interpreted and as directly comparable, each being grounded in a distinct evaluation framework.
+It is important to note that the G-eval and expert scores cannot be interpreted and directly compared, each being grounded in a distinct evaluation framework.
 
 G-eval offers a standardized framework with set evaluation criteria, allowing for a more consistent and reliable benchmarking. This enables the comparison of different solutions under identical conditions.
 
@@ -1051,6 +1062,9 @@ For consistency, expert scores are also rescaled linearly to the [0, 1] interval
 
 Both frameworks are inherently ordinal with each value being _qualitatively_ described.
 However, the rescaled scores are treated as continuous variables for statistical purposes, enabling analytical comparisons.
+
+#pagebreak()
+=== Test Dataset
 
 With the evaluation frameworks introduced, the next step is to define the test dataset.
 This dataset consists of nine prompts and establishes the basis for assessing the performance of the solution:
@@ -1085,6 +1099,8 @@ It is crafted by Prof. Jessen Page to support energy planning for the municipali
 
 With the groundwork established, the following tables present the results that will be discussed in the next section.
 Both the expert assessment and benchmarking are conducted using the version of the solution as of June 20, 2025#footnote[Code at commit `c2bea64` in the repository.].
+
+== Evaluation Results
 
 Two different configurations of the solution, each using different language models, are benchmarked.
 
@@ -1249,7 +1265,9 @@ Before analyzing the implications of the results, it is important to restate the
 
 This chapter addresses this objective by interpreting the results and connecting them to the research question.
 
-The #ref(<results>, supplement: it => it.body) chapter differentiates the two frameworks of evaluation: (1) the expert assessment framework and (2) the G-eval benchmarking framework.
+== Evaluation Paradigms
+
+The #ref(<results>, supplement: it => it.body) chapter differentiates the two evaluation frameworks: (1) the expert assessment framework and (2) the G-eval benchmarking framework.
 
 As both rely on different methods and criteria, they provide complementary insights rather than direct comparability.
 The expert evaluation provides nuanced and domain-informed feedback while the G-eval framework delivers a standardized and consistent assessment.
@@ -1267,14 +1285,16 @@ This divergence demonstrates that the frameworks capture distinct dimensions tha
 
 Although the smaller configuration shows a weak trend, it is not statistically significant as the sample size is too small. Consequently, the G-eval framework is, at most, a complementary tool to the expert evaluation.
 
+== Performance Analysis
+
 On top of that, the same #ref(<comparison_test_human_llm>) depicts the average G-eval scores for both configurations, per prompt. Visually, the larger configuration consistently outperforms the smaller configuration.
 
-This can be formally assessed by conducting a Wilcoxon signed-rank test, which evaluates if two related samples (paired samples) come from the same distribution (null hypothesis).
+This can be formally assessed by conducting a Wilcoxon signed-rank test, whose null hypothesis evaluates if two related samples (paired samples) come from the same distribution.
 Besides that, it does not assume an underlying normal distribution, making it more robust to outliers.
 #highlight("TODO: citer wilcoxon")
 
 Therefore, it is applied to the paired scores of the larger and smaller configurations with the one-sided alternative hypothesis that the larger configuration significantly outperforms the smaller one.
-The resulting p-value is 0.009, indicating a statistically significant difference between the two configurations considering a 5% confidence level.
+The resulting p-value is 0.009 ($equiv$ 0.9%), indicating a statistically significant difference between the two configurations considering a 5% confidence level.
 
 The null hypothesis is hence rejected and confirms the alternative hypothesis: the larger configuration, indeed, outperforms the smaller configuration in a per-prompt basis. This confirms the initial expectation that larger language models, incorporated into the AI agent solution, yield better results.
 
