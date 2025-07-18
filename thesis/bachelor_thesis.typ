@@ -223,7 +223,7 @@ These initial requirements established the basis for the project. As the solutio
   (bottom: 0.7pt + black)
 })
 #set table(
-  fill: (x, y) => { if calc.odd(y) { rgb("EAF2F5") } },
+  fill: (x, y) => { if calc.odd(y) { rgb("F7F9FA") } },
   align: (x, _) => if x == 0 { center } else { left },
 )
 These requirements are summarized in the #ref(<requirements_table>) below:
@@ -465,7 +465,7 @@ Consequently, identifying them requires breaking down the search area into small
 This has been implemented by first clipping settlements and centres of larger cities onto the municipality's geometry, optimizing the search area and applying a spatial tiling on top. Different layers obviously require different tiling sizes, depending on the number and resolution of features.
 
 #set table(
-  fill: (x, y) => { if calc.odd(y) and x != 0 { rgb("EAF2F5") } },
+  fill: (x, y) => { if calc.odd(y) and x != 0 { rgb("F7F9FA") } },
   stroke: (x, y) => {
     if y == 0 {
       (bottom: 0.7pt + black)
@@ -1078,7 +1078,7 @@ This dataset consists of nine prompts and establishes the basis for assessing th
     [9], [Can you provide me with a map of heat/cold demand density and potential sources of heat/cold?],
   ),
   caption: "Test dataset prompts for municipal energy planning in Sion",
-)
+) <test_dataset>
 
 The dataset is aligned within the specific scope of available data sources, inherently restricting its size.
 It is crafted by Prof. Jessen Page to support energy planning for the municipality of Sion.
@@ -1179,40 +1179,9 @@ While the expert assessment and G-eval benchmarking are not comparable _as is_, 
   caption: "Expert assessment and G-eval scores on test dataset, per prompt.",
 ) <comparison_test_human_llm>
 
-Besides that, the #ref(<comparison_intent>) shows the expert assessment and G-eval results, per query _intent_ type (#ref(<conversational_state>)), for both configurations:
-#set table(
-  stroke: (x, y) => {
-    if y == 2 {
-      (bottom: 0.7pt + black)
-    }
-    if x > 0 and y > 0 {
-      (left: 0.3pt + black)
-    }
-    if x == 2 and y == 0 {
-      0.3pt + black
-    }
-    if x == 3 and y == 2 {
-      (right: 0.3pt + black)
-    }
-  },
-  align: (x, _) => if x == 0 { left } else { center },
-)
-#figure(
-  table(
-    columns: 4,
-    table.header(
-      table.cell(rowspan: 2, []),
-      table.cell(rowspan: 2, []),
-      table.cell(rowspan: 2, colspan: 2, [G-eval score (mean ± st.d.), 10 runs]),
-    ),
-    [Intent type], [*Expert Score*], [*Large configuration*], [Small configuration],
-    [Factual], [0.38 ± 0.18], [0.38 ± 0.18], [0.23 ± 0.08],
-    [Actionable], [0.46 ± 0.22], [0.44 ± 0.13], [0.30 ± 0.09],
-  ),
-  caption: "Expert assessment and G-eval scores on test dataset, per intent type.",
-) <comparison_intent>
+#highlight("TODO: inclure résultats testcase dans appendix??")
 
-Finally, the scores per benchmarking criteria, for both configurations, are depicted in the #ref(<comparison_criteria>) below:
+Finally, the scores per benchmarking criteria and per query _intent_ type (#ref(<conversational_state>), either factual or actionable), for both configurations, are depicted in the #ref(<comparison_criteria>) below:
 #set table(
   stroke: (x, y) => {
     if y == 2 {
@@ -1227,24 +1196,44 @@ Finally, the scores per benchmarking criteria, for both configurations, are depi
     if x == 2 and y == 2 {
       (right: 0.3pt + black)
     }
+    if x == 0 and y == 4 {
+      (top: 0.3pt + black)
+    }
+  },
+  fill: (x, y) => {
+    if y < 4 and x == 0 { none } else {
+      if calc.odd(y) { rgb("F7F9FA") }
+    }
   },
   align: (x, _) => if x == 0 { left } else { center },
 )
 #figure(
   table(
-    columns: 3,
+    columns: 5,
     table.header(
-      table.cell(rowspan: 2, []),
-      table.cell(rowspan: 2, colspan: 2, [Score (mean ± st.d.), 10 runs]),
+      table.cell(rowspan: 3, []),
+      table.cell(rowspan: 3, colspan: 4, [Score (mean ± st.d.), 10 runs]),
     ),
-    [Criteria], [*Large configuration*], [Small configuration],
-    [Data interpretation], [0.43 ± 0.24], [0.16 ± 0.13],
-    [Guideline application], [0.47 ± 0.33], [0.26 ± 0.20],
-    [Municipal relevance], [0.51 ± 0.28], [0.41 ± 0.23],
-    [Source citations], [0.31 ± 0.34], [0.29 ± 0.37],
+    [], table.cell(colspan: 2, [*Large configuration*]), table.cell(colspan: 2, [Small configuration]),
+    [*Criteria*], [Factual], [Actionable], [Factual], [Actionable],
+    [Data interpretation], [0.39 ± 0.21], [0.44 ± 0.25], [0.11 ± 0.13], [0.18 ± 0.12],
+    [Guideline application],
+    [0.30 ± 0.35],
+    [0.52 ± 0.31],
+    [0.14 ± 0.13],
+    [0.30 ± 0.21],
+    [Municipal relevance],
+    [0.63 ± 0.21],
+    [0.48 ± 0.30],
+    [0.50 ± 0.00],
+    [0.39 ± 0.26],
+    [Source citations], [0.20 ± 0.30], [0.34 ± 0.35], [0.15 ± 0.31], [0.33 ± 0.38],
   ),
-  caption: "LLM-as-a-judge benchmark score on test dataset, per criteria.",
+  caption: "LLM-as-a-judge benchmark score on test dataset, per criteria and per query intent.",
 ) <comparison_criteria>
+
+It is important to note that the distribution of prompts by intent is unbalanced as only two prompts from the test dataset (#ref(<test_dataset>)) are classified as "factual", while the seven remaining ones are classified as "actionable".
+
 
 These tables summarize and introduce further comparison between the expert evaluation and G-eval benchmarking framework, assessing differences between the baseline configuration and a smaller one.
 With the different results presented, the following chapter discusses their implications.
@@ -1273,7 +1262,7 @@ This divergence demonstrates that the frameworks capture distinct dimensions tha
 
 Although the smaller configuration shows a weak trend, it is not statistically significant as the sample size is too small. Consequently, the G-eval framework is, at most, a complementary tool to the expert evaluation.
 
-On top of that, the same #ref(<comparison_test_human_llm>) depicts the average G-eval scores for both configurations, per prompt. Visually, the larger configuration consistently outperforms the smaller configuration and aligns with the initial expectation that larger language models would yield higher quality scores.
+On top of that, the same #ref(<comparison_test_human_llm>) depicts the average G-eval scores for both configurations, per prompt. Visually, the larger configuration consistently outperforms the smaller configuration.
 
 This can be formally assessed by conducting a Wilcoxon signed-rank test, which evaluates if two related samples (paired samples) come from the same distribution (null hypothesis).
 Besides that, it does not assume an underlying normal distribution, making it more robust to outliers.
@@ -1282,7 +1271,7 @@ Besides that, it does not assume an underlying normal distribution, making it mo
 Therefore, it is applied to the paired scores of the larger and smaller configurations with the one-sided alternative hypothesis that the larger configuration significantly outperforms the smaller one.
 The resulting p-value is 0.009, indicating a statistically significant difference between the two configurations considering a 5% confidence level.
 
-The null hypothesis is hence rejected and confirms the alternative hypothesis: the larger configuration, indeed, outperforms the smaller configuration in a per-prompt basis.
+The null hypothesis is hence rejected and confirms the alternative hypothesis: the larger configuration, indeed, outperforms the smaller configuration in a per-prompt basis. This confirms the initial expectation that larger language models, incorporated into the AI agent solution, yield higher quality scores.
 
 // faire un test statistique démontrant que par critère meilleur pour large configuration
 // parler de sur-représentation des queries actionable
