@@ -1206,7 +1206,7 @@ On the other hand, the scores per benchmarking criteria and per query _intent_ t
   image("figs/boxplots_criterion_intent.png", width: 100%),
   caption: "Boxplots per criterion score, by prompt intent.",
 )<boxplots_criterion>
-
+#highlight("TODO: FAIRE REMARQUER LES OUTLIERS DANS LA PARTIE DISCUSSION?")
 #set table(
   stroke: (x, y) => {
     if y == 2 {
@@ -1261,10 +1261,10 @@ On the other hand, the scores per benchmarking criteria and per query _intent_ t
   caption: "LLM-as-a-judge benchmark score on test dataset, per criteria and per query intent.",
 ) <comparison_criteria>
 
-#highlight("TODO: donner quelque part les résultats raw, sinon pas valide??")
+#highlight("TODO: REMPLACER STD. PAR ENTROPIE??")
 #highlight("TODO: les remettre à l'échelle originale dans la table")
-#highlight("TODO: ou bien donner tabelle avec delta entre les deux, par configuration?")
-#highlight("TODO: définir comment considéré un intent ou l'autre?")
+#highlight("TODO: définir comment considerer un intent ou l'autre?")
+#highlight("TODO: donner quelque part les résultats raw, par prompt, sinon pas valide??")
 It is important to note that the distribution of prompts by intent is unbalanced as only two prompts from the test dataset (#ref(<test_dataset>)) are classified as "factual", while the seven remaining ones are classified as "actionable".
 
 These results summarize and introduce further comparison between the expert evaluation and G-eval benchmarking framework, assessing differences between the baseline configuration and a smaller one.
@@ -1273,10 +1273,6 @@ With the different results presented, the following chapter discusses their impl
 
 = Discussion
 
-// Before analyzing the implications of the results, it is important to restate the research question: evaluating the effectiveness and reliability of AI agents for urban energy planning, along with an analysis of their strengths and weaknesses.
-
-// This chapter addresses this objective by interpreting the results and connecting them to the research question.
-//
 This chapter addresses the results presented in the #ref(<results>) and connects them to the research question: evaluating the effectiveness and reliability of AI agents for urban energy planning, along with an analysis of their strengths and weaknesses.
 
 == Evaluation Paradigms <eval_paradigm>
@@ -1351,6 +1347,7 @@ More generally, high standard deviations are measured throughout all criteria, s
 
 This volatility reflects stochastic fluctuations across the repeated benchmarks on the same set of prompts, rather than differences caused by prompt diversity.
 While evaluating scores across a large and varied set of prompts provides insight into the robustness and generalization of the AI solution, the setup presented here focuses on the consistency and reliability of the benchmarking framework itself.
+#highlight("TODO: comparer la volatilité d'un pdv changement LLM -> donne des mauvais score mais également meilleurs")
 
 Consequently, this fluctuation may point to (1) a lack of robustness in certain criteria or (2) a statistical artifact of the limited number of benchmark runs.
 
@@ -1360,37 +1357,27 @@ If the _intra-prompt_ variability remains, it points out an issue with the bench
 
 This would also help explain why the technical compliance criterion is ranked this low across all dimensions, supporting the need to refine its definition.
 
-When interpreting the results from a per-intent perspective, a clear trend emerges as the larger configuration. The larger configuration outperforms the smaller one on actionable prompts, especially in criteria that involve increased reasoning and multi-step tasks, such as data interpretation and methodolgy alignment.
+When interpreting the results from a per-intent perspective, a clear trend emerges as the larger configuration outperforms the smaller one on actionable prompts, especially in criteria that involve increased reasoning and multi-step tasks, such as data interpretation and methodology alignment.
+The sole criterion that is scored higher in factual contexts is the municipal relevance criterion.
 
-Beyond that, the larger configuration is also ranked higher on actionable prompts compared to factual ones, across almost every criterion. For instance, only the municipal relevance criterion is scored higher in factual contexts.
-This hints at the model's ability to perform well in less constrained, strategy-oriented tasks, rather than factual ones.
+This hints at the ability of the system to perform better in less constrained, strategy-oriented tasks, rather than factual ones.
+However, this may also allude to an asymmetry in how the evaluation criteria are interpreted over intent types.
 
-However, this may also allude to an asymmetry in how the evaluation criteria are applied across prompt intent types. Data interpretation and methodology alignment may be inherently biased towards actionable prompts due to their nature of requiring more nuanced reasoning and context understanding, reinforcing previous concerns regarding how the criteria are defined.
+Data interpretation and methodology alignment may be inherently biased towards actionable prompts due to their nature of requiring more nuanced reasoning and context understanding, reinforcing previous concerns regarding the definition of the criteria.
 
-#highlight("TODO: nouvelle section?")
+Alongside the qualitative scoring of the expert, annotations were also collected.
 #highlight("TODO: vérifier abus de langage variables qualitatives -> ordinales OK mais quantitatives?")
 
-Alongside the quantitative expert scores presented in the #ref(<comparison_test_human_llm>), supporting the dual-framework evaluation approach, qualitative expert annotations were also collected.
-#highlight("TODO: quantitative mmh?")
-
 #highlight("TODO: référencer dans appendix résultats du testcase, markdown tel quel")
-This feedback highlights recurring issues observed in the testcase:
+The feedback highlights recurring issues observed in the testcase, emphasizing certain systematic weaknesses in the solution:
 - Unsupported conclusions and takeaways, often delivered with high confidence.
+- Mix of municipal data and unscaled cantonal data, leading to inconsistent or misleading figures.
 - Misinterpretation of request, such as discussing production when only demand was requested.
-- Mix of municipal and unscaled cantonal data, leading to inconsistent or misleading numbers.
 
-These annotations emphasize certain systematic weaknesses in the solution.
+While informed users might identify these inconsistencies and filter them out to extract meaningful insights, unfamiliar users may be deceived.
+Overall, these observations highlight both the potential and the current limitations of this work, as demonstrated through this analysis.
 
-With this, the overall evaluation of the AI agent's performance is closed. The different observations are summarized in the #ref(<close>) and most importantly, brought back to the initial research question.
-
-#highlight("TODO: suggérer plus de runs benchmark et grands modeles, wtf faire un résumé ici ?")
-// The various observations highlight the multi-dimensional nature of performance differences between configurations, when analyzed across evaluation criteria and prompt intent.
-
-// While the larger model demonstrates consistent advantages, especially in actionable prompts, weaknesses persist, particularly in technical compliance and factual precision.
-// Moreover, the variability in some criteria suggests that both the solution’s robustness and the evaluation methodology require further work.
-
-// Taken together, these findings warrant a broader reflection on the overall effectiveness and reliability of the AI agent, which the following section now addresses.
-
+The implications are further discussed in the #ref(<close>) and most importantly, brought back to the initial research question.
 
 == Research Takeaways <close>
 
@@ -1438,7 +1425,7 @@ In practice, this means the agent lacks the robustness that is required for stra
 
 #highlight("TODO: donner pdv expert ?")
 
-=== Implications
+=== Implications <implications>
 
 The AI agent solution for energy planning shows effectiveness in high-level reasoning and qualitative analysis, particularly when used for broad requests.
 On the other hand, it is not yet reliable for producing precise and verifiable outputs.
@@ -1455,6 +1442,15 @@ At this stage, the solution shows promise but remains fragile.
 #highlight("TODO: ajouter assess humain améliore la solution au cours du temps ?")
 #highlight("TODO: ajouter que limité aux données qu'il peut retrieve, contexte, ... ?")
 #highlight("TODO: reprendre points dans l'ensemble du rapport ?")
+
+#highlight("TODO: suggérer plus de runs benchmark et grands modeles, wtf faire un résumé ici ?")
+// The various observations highlight the multi-dimensional nature of performance differences between configurations, when analyzed across evaluation criteria and prompt intent.
+
+// While the larger model demonstrates consistent advantages, especially in actionable prompts, weaknesses persist, particularly in technical compliance and factual precision.
+// Moreover, the variability in some criteria suggests that both the solution’s robustness and the evaluation methodology require further work.
+
+// Taken together, these findings warrant a broader reflection on the overall effectiveness and reliability of the AI agent, which the following section now addresses.
+
 
 // suite: modeles plus grand et rework g-eval hand in hand pour assess jusqu'à ou on peut montre
 
