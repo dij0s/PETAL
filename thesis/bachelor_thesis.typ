@@ -41,40 +41,42 @@
 #cleardoublepage()
 #heavy-title("Abstract")
 
-The abstract of a bachelor thesis should provide a concise summary of the entire work. It typically includes:
+This work investigates the implementation and evaluation of an AI-powered solution to assist municipalities in energy planning.
+As municipalities are required to develop energy planning documents to comply with federal and cantonal sustainability objectives and regulations, there is a growing need for tools that can process various energy sources of data and provide actionable insights to support human decision-making.
 
-- The context and motivation for the research.
-- The main objective or research question.
-- A brief description of the methodology or approach used.
-- The key results or findings.
-- The main conclusion or implications of the work.
+The main objective is to assess the strengths and weaknesses of a multi-agent AI system that coordinates specialized AI agents through an orchestration layer to provide comprehensive energy planning assistance.
+Public geospatial data sources and regulatory frameworks are leveraged to support recommendations.
 
-The abstract should be self-contained, clear and usually does not exceed 250-300 words. It allows readers to quickly understand the purpose and outcomes of the thesis without reading the full document.
+The solution implements a modular architecture consisting of specialized AI agents (_Intent Router_, _Geocontext Retriever_, _Guidelines Retriever_, _Strategy Planner_ and _Critic_) coordinated by an orchestration layer.
+It is evaluated using a dual approach: domain expert assessment and an automated LLM-as-a-judge benchmarking framework (G-eval) that measures performance across four criteria: data interpretation, methodology alignment, municipal relevance and technical compliance.
 
-The abstract *must* be written in both French and English.
+Results demonstrate that larger language models in key agents consistently outperform smaller ones across all evaluation criteria, with statistically significant improvements.
+The system shows particular strengths in contextual reasoning and structured planning for actionable energy planning tasks.
+However, the evaluation reveals significant limitations including unsupported claims, inconsistent data interpretation and high variability in automated scoring, indicating reliability concerns.
 
-Please also insert your project git/github URL HERE if your project is not confidential.
-
-#lorem(150)
+In conclusion, while the solution shows promise for assisting users in municipal energy planning by effectively retrieving, contextualizing and presenting geospatial data through natural language queries, it requires further refinement to achieve industrial-grade robustness.
+The system demonstrates potential for supporting expert users in their planning processes but poses risks for uninformed users who may be misled by confident yet unsupported recommendations.
 
 #abstract-footer("en")
 
 #cleardoublepage()
 #heavy-title("Résumé")
 
-Le résumé d’un mémoire de bachelor doit fournir un aperçu concis de l’ensemble du travail. Il inclut généralement :
+Ce travail étudie l'implémentation et l'évaluation d'une solution basée sur l'intelligence artificielle pour assister les communes dans la planification énergétique.
+Les communes étant tenues de développer des documents de planification énergétique pour se conformer aux objectifs et réglementations de durabilité fédéraux et cantonaux, il existe un besoin croissant d'outils capables de traiter diverses sources de données énergétiques et de fournir des informations exploitables pour soutenir la prise de décision humaine.
 
-- Le contexte et la motivation de la recherche.
-- L’objectif principal ou la question de recherche.
-- Une brève description de la méthodologie ou de l’approche utilisée.
-- Les principaux résultats ou découvertes.
-- La conclusion principale ou les implications du travail.
+L'objectif principal est d'évaluer les forces et faiblesses d'un système d'IA multi-agents qui coordonne des agents IA spécialisés à travers une couche d'orchestration pour fournir une assistance complète en planification énergétique.
+Des sources de données géospatiales publiques et des réglementations sont exploités pour soutenir les recommandations.
 
-Le résumé doit être autonome, clair et ne pas dépasser habituellement 250 à 300 mots. Il permet aux lecteurs de comprendre rapidement le but et les résultats du mémoire sans lire l’intégralité du document.
+La solution implémente une architecture modulaire constituée d'agents IA spécialisés (_Intent Router_, _Geocontext Retriever_, _Guidelines Retriever_, _Strategy Planner_ et _Critic_) coordonnés par une couche d'orchestration.
+Elle est évaluée selon une approche duale: évaluation par des experts du domaine et un framework d'évaluation automatisée utilisant un LLM comme juge (G-eval) qui mesure la performance selon quatre critères: interprétation des données, alignement méthodologique, pertinence communale et conformité technique.
 
-Le résumé doit être rédigé en français *et* en anglais.
+Les résultats démontrent que les modèles de langage plus grands dans les agents majeurs surpassent constamment les plus petits sur tous les critères d'évaluation, avec des améliorations statistiquement significatives.
+Le système montre des forces particulières dans le raisonnement contextuel et la planification structurée pour les tâches de planification énergétique actionnables.
+Cependant, l'évaluation révèle des limitations significatives incluant des affirmations non supportées, une interprétation irrégulière des données et une haute variabilité dans la notation automatisée, indiquant des inquiétudes quant à la fiabilité.
 
-Veuillez également ajouter l'URL de votre git/github ici si le projet n'est pas confidential.
+En conclusion, bien que la solution montre du potentiel pour assister les utilisateurs dans la planification énergétique communale en récupérant, contextualisant et présentant efficacement des données géospatiales à travers des requêtes en langage naturel, elle nécessite un raffinement supplémentaire pour atteindre une robustesse de niveau industriel.
+Le système démontre un potentiel pour soutenir les utilisateurs experts dans leurs processus de planification mais pose des risques pour les utilisateurs non informés qui pourraient être induits en erreur par des recommandations confiantes mais non supportées.
 
 #lorem(150)
 
@@ -84,16 +86,9 @@ Veuillez également ajouter l'URL de votre git/github ici si le projet n'est pas
 // Get the proper title for acknowledgements if not written in English
 #heavy-title(context i18n(inc.global-language.get(), "acknowledgements"))
 
-The *Acknowledgements* section of a bachelor thesis is where you express gratitude to those who supported you during your research and writing process. It is an *OPTIONAL* section. It may include:
-
-- Academic supervisors or advisors who provided guidance.
-- Professors or instructors who offered feedback or resources.
-- Family and friends for emotional or practical support.
-- Institutions or organizations that provided funding, facilities, or data.
-- Anyone else who contributed significantly to your work.
-
-Keep this section concise and sincere. It is typically placed after the abstract and before the main content of your thesis.
-
+Thank you to Jessen Page, Florian Desmons and Cédric Travelletti for their expertise and insight into this work.
+#v(2cm)
+And to those who sacrificed so much for us, THANK YOU.
 
 #table-of-contents(depth: 2)
 // Enable headers and footers from this point on
@@ -953,7 +948,9 @@ By doing so, the agent could evaluate the accuracy of the values presented in th
 This would enable the identification of subtle inconsistencies, leading to a more robust and reliable implementation.
 
 In summary, these points illustrate some of the current limitations inherent to the system. The following chapter presents the results obtained from the implemented solution.
-#highlight("TODO: ajouter que limité aux données qu'il peut retrieve, contexte, ... ou bien parle ici uniquement des problemes performance wise?")
+#highlight(
+  "TODO: ajouter que limité aux données qu'il peut retrieve, contexte, ... ou bien parle ici uniquement des problemes performance wise?",
+)
 
 = Results <results>
 
@@ -1410,7 +1407,7 @@ In contrast, while expert users can effectively retrieve and refine the suggesti
 
 Aside of the architectural and implementation-specific limitations presented in #ref(<limitations>), extended testing that includes more benchmark runs and the use of larger, more capable, language models is necessary to validate the assumptions regarding ranking variability across responses to isolate more granular issues.
 
-At this stage, the solution shows promise and supports the potential for AI agents in urban energy planning. However, it remains fragile and requires further refinement to achieve production-grade robustness.
+At this stage, the solution shows promise and supports the potential for AI agents in urban energy planning. However, it remains fragile and requires further refinement to achieve industrial-grade robustness.
 
 = Conclusion
 
