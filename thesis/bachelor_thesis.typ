@@ -1273,20 +1273,23 @@ With the different results presented, the following chapter discusses their impl
 
 = Discussion
 
-Before analyzing the implications of the results, it is important to restate the research question: evaluating the effectiveness and reliability of AI agents for urban energy planning, along with an analysis of their strengths and weaknesses.
+// Before analyzing the implications of the results, it is important to restate the research question: evaluating the effectiveness and reliability of AI agents for urban energy planning, along with an analysis of their strengths and weaknesses.
 
-This chapter addresses this objective by interpreting the results and connecting them to the research question.
+// This chapter addresses this objective by interpreting the results and connecting them to the research question.
+//
+This chapter addresses the results presented in the #ref(<results>) and connects them to the research question: evaluating the effectiveness and reliability of AI agents for urban energy planning, along with an analysis of their strengths and weaknesses.
 
 == Evaluation Paradigms <eval_paradigm>
 
-The #ref(<results>, supplement: it => it.body) chapter differentiates the two evaluation frameworks: (1) the expert assessment framework and (2) the G-eval benchmarking framework.
+The #ref(<results>) differentiates the two evaluation frameworks: (1) the expert assessment framework and (2) the G-eval benchmarking framework.
 
 As both rely on different methods and criteria, they provide complementary insights rather than direct comparability.
-The expert evaluation provides nuanced and domain-informed feedback while the G-eval framework delivers a standardized and consistent assessment.
+The expert evaluation provides nuanced and domain-informed feedback while the G-eval framework delivers a standardized and consistent assessment based on predefined criteria.
 
 The #ref(<comparison_test_human_llm>) presents both frameworks and their scores, side-by-side, against each prompt of the test dataset.
 
 The relationship between these two frameworks is assessed by leveraging Spearman's rank correlation coefficient (#ref(<spearman>)).
+
 This coefficient measures the monotonic relationship between the rankings of two variables, indicating how well the order of one variable matches the order of the other. Like other correlation coefficients, it varies between -1 (perfect inverse correlation) and +1 (perfect correlation), with 0 implying no correlation at all.
 #highlight("TOOD: citer spearman?")
 
@@ -1295,12 +1298,12 @@ This coefficient strictly applies to ordinal data. As both score distributions o
 As such, the calculated Spearman correlation coefficient between the expert evaluation and the G-eval framework is -0.23 for the larger configuration and 0.36 for the smaller configuration, indicating no meaningful correlation between the two frameworks.
 
 Despite the smaller configuration showing a weak trend, it is not statistically significant as the sample size is too small.
-This divergence demonstrates that the frameworks capture distinct dimensions than those of the expert evaluation, validating the complementary nature of the evaluation methods.
+This divergence demonstrates that the G-eval framework captures distinct dimensions than those of the expert evaluation, validating the complementary nature of the evaluation methods.
 
 Interestingly, the correlations for the larger configuration and smaller configuration, against the expert evaluation, differ significantly.
 
 To further understand this difference, the Spearman correlation between the G-eval scores of the large and small configurations is calculated.
-The resulting coefficient of 0.09 suggests that the two configurations produce substantially different scores, opening up the possibility of exploring the reasons behind this discrepancy.
+The resulting coefficient of 0.09 suggests that the resulting responses of the two configurations are ranked substantially differently, opening up the possibility of exploring the reasons behind this discrepancy.
 
 Consequently, the G-eval framework is, at most, a complementary tool to the expert evaluation.
 #highlight("TODO: deux trois mots en plus pour transitionner")
@@ -1328,29 +1331,34 @@ The plot clearly demonstrates that the larger configuration is consistently rank
 #highlight("TODO: citer les chiffres a quel point mieux?")
 
 Data interpretation and methodology alignment show the most significant improvement, in both factual and actionable contexts.
-This suggests that bigger models enhance the system's ability to interpret the geospatial data and provide actionable insights from various perspectives, identifying patterns and most importantly suggesting solutions.
+This suggests that bigger models enhance the system's ability to interpret the geospatial data and provide actionable insights from various perspectives, identifying patterns and most importantly suggesting measures.
 #highlight("TODO: lier avec papier dans limitations?")
 
 In contrast, municipal relevance and technical compliance only show minor differences between configurations, with the larger one demonstrating slight improvements.
-What is more interesting in this case is the overall performance of the solution, across all configurations in both criteria.
+What is more interesting in this case is the overall performance of the solution, across all configurations in these two criteria.
 
 While the municipal relevance criterion reveals the greatest score across individual criteria and a more pronounced decrease between configurations, the technical compliance criterion remains strikingly similar across both.
 
-These results are likely due to either: poor compliance with the formatting requirements, structural completeness and overall presentation of the response for both configurations or a deeper issue with the criterion itself.
+These results are likely due to either: poor compliance with the formatting requirements, structural completeness and overall presentation of the response for both configurations (as defined by the criterion) or a more fundamental problem with the criterion itself.
 
 In reality, both go hand in hand as overly rigid criteria penalize small deviations from the requirements whilst loose criteria may overlook important details and yield higher scores.
-On the other hand, the criterion itself may be meaningless. A response that effectively addresses urban energy planning requirements, even lacking perfect formatting, is arguably better than one that is well-formatted but completely irrelevant.
+On the other hand, the criterion may be irrelevant. A response that effectively addresses urban energy planning requirements, even lacking perfect formatting, is arguably better than one that is well-formatted but completely meaningless.
 #highlight("TODO: citer ou inclure tel quel le prompt ici?")
 
-Another issue observed with this criterion is the strong variability in the scores that are assigned, over both query intents.
-Notably, high standard deviations are also measured across other criteria, suggesting a broader issue.
+Another issue that is observed with it is the strong variability in the scores that are assigned, over both query intents.
+More generally, high standard deviations are measured throughout all criteria, suggesting a broader issue.
+#highlight("TODO: quantifier la variabilité, coef variation ou bien repmlacer par entropie?")
 
-This variability reflects stochastic fluctuations across the repeated benchmarks on the same set of prompts, rather than differences caused by prompt diversity.
-Evaluating score variability across a large set of prompts provides insight into the robustness of the solution and its ability to generalize, while the results presented here focus on the consistency and reliability of the benchmarking framework.
+This volatility reflects stochastic fluctuations across the repeated benchmarks on the same set of prompts, rather than differences caused by prompt diversity.
 While evaluating scores across a large and varied set of prompts provides insight into the robustness and generalization of the AI solution, the setup presented here focuses on the consistency and reliability of the benchmarking framework itself.
 
 Consequently, this fluctuation may point to (1) a lack of robustness in certain criteria or (2) a statistical artifact of the limited number of benchmark runs.
-Further experimentation through additional runs or a broader test dataset is needed to distinguish between these possibilities.
+
+Further experimentation through additional benchmark runs is needed to distinguish between these possibilities.
+If the _intra-prompt_ variability remains, it points out an issue with the benchmarking framework and its ability to capture and nuance the criteria requirements inside responses. Conversely, if it decreases, it can then be attributed to a statistical irregularity due to few benchmark iterations.
+#highlight("TODO: expliquer pq je fais pas plus de benchmarks dans l'étude")
+
+This would also help explain why the technical compliance criterion is ranked this low across all dimensions, supporting the need to refine its definition.
 
 When interpreting the results from a per-intent perspective, a clear trend emerges as the larger configuration. The larger configuration outperforms the smaller one on actionable prompts, especially in criteria that involve increased reasoning and multi-step tasks, such as data interpretation and methodolgy alignment.
 
