@@ -925,11 +925,11 @@ Furthermore, a strong limitation of the solution is the inability of the user to
 This might be seen as a good thing, as it guarantees consistency in the output but this also means that the system is less flexible and adaptable to the individual preferences, explained in the #ref(<intent_router>, supplement: it => it.body) section.
 While this ensures consistent output, it also reduces the flexibility and adaptability of the system to put into service all user preferences.
 
-These instructions are distinguished into two categories: presentation directives (1) and custom data instructions (2).
+These instructions are distinguished into two categories: presentation directives (1) and effective instructions (2).
 
 Presentation directives define how the data should be formatted (table, bullet points...) and which aspects of the data should be prioritized or highlighted. This structures the response and emphasizes specific details that are key to the users.
 
-Custom data instructions, on the other hand, attempt to substitute the official data sources retrieved by the system with user-provided knowledge.
+Effective instructions, on the other hand, may attempt to substitute the official data sources retrieved by the system with user-provided knowledge or simply refine and guide the output of the system to better align with user needs.
 Informed users may provide more accurate and precise figures regarding the datasets referenced in #ref(<datasets_table>) but their contributions are completely ignored as the solution prioritizes its own retrieved data.
 #highlight("TODO: mettre un exemple de bias data qui marche pas")
 
@@ -953,6 +953,7 @@ By doing so, the agent could evaluate the accuracy of the values presented in th
 This would enable the identification of subtle inconsistencies, leading to a more robust and reliable implementation.
 
 In summary, these points illustrate some of the current limitations inherent to the system. The following chapter presents the results obtained from the implemented solution.
+#highlight("TODO: ajouter que limité aux données qu'il peut retrieve, contexte, ... ou bien parle ici uniquement des problemes performance wise?")
 
 = Results <results>
 
@@ -1352,7 +1353,8 @@ While evaluating scores across a large and varied set of prompts provides insigh
 Consequently, this fluctuation may point to (1) a lack of robustness in certain criteria or (2) a statistical artifact of the limited number of benchmark runs.
 
 Further experimentation through additional benchmark runs is needed to distinguish between these possibilities.
-If the _intra-prompt_ variability remains, it points out an issue with the benchmarking framework and its ability to capture and nuance the criteria requirements inside responses. Conversely, if it decreases, it can then be attributed to a statistical irregularity due to few benchmark iterations.
+If the _intra-prompt_ variability remains, it points out an issue with the benchmarking framework and its evaluator model in its ability to capture and nuance the criteria requirements inside responses.
+Conversely, if it decreases, it can then be attributed to a statistical irregularity due to few benchmark iterations.
 #highlight("TODO: expliquer pq je fais pas plus de benchmarks dans l'étude")
 
 This would also help explain why the technical compliance criterion is ranked this low across all dimensions, supporting the need to refine its definition.
@@ -1385,8 +1387,6 @@ The implications are further discussed in the #ref(<close>) and most importantly
 By drawing from the results of both expert assessment and LLM-as-a-judge benchmarking, this section evaluates the ability of the proposed solution to assist users into urban energy planning tasks.
 The analysis states the main strengths and weaknesses of the system in terms of (1) effectiveness and (2) reliability.
 
-=== Effectiveness
-
 Contextual reasoning and structured planning are typical tasks, encountered in energy planning. They involve the synthesis of diverse data and context into a strategy that aligns with the municipality and ensures compliance with regulatory frameworks.
 
 The solution shows clear strengths in those areas, more particularly in contexts requiring proper analysis and the establishment of clear strategies.
@@ -1396,55 +1396,26 @@ This verifies the core assumption that greater models result in greater quality 
 
 While the system is effective in delivering meaningful and interpretable energy planning guidance, this does not guarantee its reliability.
 
-=== Reliability
-
 The reported strategies often present unsupported claims, variable interpretations or ambiguous assumptions; critical flaws that undermine the agent's reliability.
 These issues are observed and noted from the ongoing assessment of the solution and comments on the resulting recommendations.
 
 Besides that, the evaluation methodology falls short in the distinction of what may be an architectural issue with the benchmarking framework and its criteria or simply areas of the responses that need improvement.
-This effect is further inflated by the stochastic nature of language models, introducing challenges for repeatability and quality assurance.
+This effect is further amplified by the stochastic nature of language models, introducing challenges for repeatability and quality assurance.
 
-Although the system lacks the robustness needed for reliable decision-making, it does show assistance capabilities.
+Although the system lacks the robustness needed for reliable decision-making, it does show assistance capacities.
 
-=== Implications <implications>
+The retrieval, contextualization and presentation of geospatial data from different perspectives, driven from a simple natural language query, fulfills a key feature that is expected of an assistant, supporting users in typical energy planning tasks.
 
-The AI agent solution for energy planning shows effectiveness in high-level reasoning and qualitative analysis, particularly when used for broad requests.
-On the other hand, it is not yet reliable for producing precise and verifiable outputs.
+In contrast, while expert users can effectively retrieve and refine the suggestions of the agent for practical planning, uninformed users are at greater risk of being misled.
 
-By structuring complex inputs and synthesizing diverse data sources and guidelines into plausible strategies, the system effectively fulfills its role as an assistant, supporting users in typical energy planning challenges.
+Aside of the architectural and implementation-specific limitations presented in #ref(<limitations>), extended testing that includes more benchmark runs and the use of larger, more capable, language models is necessary to validate the assumptions regarding ranking variability across responses to isolate more granular issues.
 
-Informed users, aware of the limitations of the system, may be able to recognize inaccuracies in the responses and adjust or refine them to extract valuable information.
-However, less informed users may be misled by these errors, drawing incorrect conclusions.
-
-#highlight("TODO: finir la conclusion!!")
-At this stage, the solution shows promise but remains fragile.
-
-#highlight("TODO: ajouter que expert de l'application peut facilement retrieve des données ?")
-#highlight("TODO: ajouter assess humain améliore la solution au cours du temps ?")
-#highlight(
-  "TODO: ajouter que limité aux données qu'il peut retrieve, contexte, ... ou bien parle ici uniquement des problemes performance wise?",
-)
-#highlight("TODO: citer limitations architecturales en plus??")
-#highlight("TODO: reprendre points dans l'ensemble du rapport ?")
-#highlight("TODO: suggérer plus de runs benchmark et grands modeles, wtf faire un résumé ici ?")
-
-// The various observations highlight the multi-dimensional nature of performance differences between configurations, when analyzed across evaluation criteria and prompt intent.
-
-// While the larger model demonstrates consistent advantages, especially in actionable prompts, weaknesses persist, particularly in technical compliance and factual precision.
-// Moreover, the variability in some criteria suggests that both the solution’s robustness and the evaluation methodology require further work.
-
-// Taken together, these findings warrant a broader reflection on the overall effectiveness and reliability of the AI agent, which the following section now addresses.
-
-
-// suite: modeles plus grand et rework g-eval hand in hand pour assess jusqu'à ou on peut montre
-
-// donner exemples qualitatifs de jessen
-// pros and cons
-// EVALUER LES OBJECTIFS DU TRAVAIL
-// 9. *Discussion*: Interprets the results, discusses implications, and relates findings to the research question.
-// 10. *Conclusion*: Summarizes the main findings, contributions, and suggests future work.
+At this stage, the solution shows promise and supports the potential for AI agents in urban energy planning. However, it remains fragile and requires further refinement to achieve production-grade robustness.
 
 = Conclusion
+
+// 9. *Discussion*: Interprets the results, discusses implications, and relates findings to the research question.
+// 10. *Conclusion*: Summarizes the main findings, contributions, and suggests future work.
 
 // future work: 1) plus grands modeles, greater scale benchmark, 2) sucres solution
 // amélioration graphe
