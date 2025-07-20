@@ -42,12 +42,11 @@
 #heavy-title("Abstract")
 
 This work investigates the implementation and evaluation of an AI-powered solution to assist municipalities in energy planning.
-As municipalities are required to develop energy planning documents to comply with federal and cantonal sustainability objectives and regulations, there is a growing need for tools that can process various energy sources of data and provide actionable insights to support human decision-making.
+As municipalities are required to develop energy planning documents to comply with federal and cantonal sustainability objectives and regulations, there is a growing need for tools that can process various energy sources of data and provide actionable insight to support human decision making.
 
 The main objective is to assess the strengths and weaknesses of a multi-agent AI system that coordinates specialized AI agents through an orchestration layer to provide comprehensive energy planning assistance.
 Public geospatial data sources and regulatory frameworks are leveraged to support recommendations.
 
-The solution implements a modular architecture consisting of specialized AI agents (_Intent Router_, _Geocontext Retriever_, _Guidelines Retriever_, _Strategy Planner_ and _Critic_) coordinated by an orchestration layer.
 It is evaluated using a dual approach: domain expert assessment and an automated LLM-as-a-judge benchmarking framework (G-eval) that measures performance across four criteria: data interpretation, methodology alignment, municipal relevance and technical compliance.
 
 Results demonstrate that larger language models in key agents consistently outperform smaller ones across all evaluation criteria, with statistically significant improvements.
@@ -68,7 +67,6 @@ Les communes étant tenues de développer des documents de planification énerg�
 L'objectif principal est d'évaluer les forces et faiblesses d'un système d'IA multi-agents qui coordonne des agents IA spécialisés à travers une couche d'orchestration pour fournir une assistance complète en planification énergétique.
 Des sources de données géospatiales publiques et des réglementations sont exploités pour soutenir les recommandations.
 
-La solution implémente une architecture modulaire constituée d'agents IA spécialisés (_Intent Router_, _Geocontext Retriever_, _Guidelines Retriever_, _Strategy Planner_ et _Critic_) coordonnés par une couche d'orchestration.
 Elle est évaluée selon une approche duale: évaluation par des experts du domaine et un framework d'évaluation automatisée utilisant un LLM comme juge (G-eval) qui mesure la performance selon quatre critères: interprétation des données, alignement méthodologique, pertinence communale et conformité technique.
 
 Les résultats démontrent que les modèles de langage plus grands dans les agents majeurs surpassent constamment les plus petits sur tous les critères d'évaluation, avec des améliorations statistiquement significatives.
@@ -77,8 +75,6 @@ Cependant, l'évaluation révèle des limitations significatives incluant des af
 
 En conclusion, bien que la solution montre du potentiel pour assister les utilisateurs dans la planification énergétique communale en récupérant, contextualisant et présentant efficacement des données géospatiales à travers des requêtes en langage naturel, elle nécessite un raffinement supplémentaire pour atteindre une robustesse apte à la production.
 Le système démontre un potentiel pour soutenir les utilisateurs experts dans leurs processus de planification mais pose des risques pour les utilisateurs non informés qui pourraient être induits en erreur par des recommandations confiantes mais non supportées.
-
-#lorem(150)
 
 #abstract-footer("fr")
 
