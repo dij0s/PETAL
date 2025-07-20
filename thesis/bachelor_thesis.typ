@@ -1442,7 +1442,7 @@ These issues are observed and noted from the ongoing assessment of the solution 
 Besides that, the evaluation methodology falls short in the distinction of what may be an architectural issue with the benchmarking framework and its criteria or simply areas of the responses that need improvement.
 This effect is further amplified by the stochastic nature of language models, introducing challenges for repeatability and quality assurance.
 
-Although the system lacks the robustness needed for reliable decision-making, it does show assistance capacities.
+Although the system lacks the reliability needed for reliable decision-making, it does show assistance capacities.
 
 The retrieval, contextualization and presentation of geospatial data from different perspectives, driven from a simple natural language query, fulfills a key feature that is expected of an assistant, supporting users in typical energy planning tasks.
 
@@ -1450,13 +1450,14 @@ In contrast, while expert users can effectively retrieve and refine the suggesti
 
 Aside of the architectural and implementation-specific limitations presented in #ref(<limitations>), extended testing that includes more benchmark runs and the use of larger, more capable, language models is necessary to validate the assumptions regarding ranking variability across responses to isolate more granular issues.
 
-At this stage, the solution shows promise and supports the potential for AI agents in urban energy planning. However, it remains fragile and requires further refinement to achieve production-grade robustness.
+At this stage, the solution shows promise and supports the potential for AI agents in urban energy planning. However, it remains fragile and requires further development to achieve production-grade robustness.
 
 = Conclusion
 
 // 9. *Discussion*: Interprets the results, discusses implications, and relates findings to the research question.
 // 10. *Conclusion*: Summarizes the main findings, contributions, and suggests future work.
 
+// REPRENDRE UN PAR UN LES POINTS DE LA DONNEE -> pq j'ai pas entraîné, ...
 // future work: 1) plus grands modeles, greater scale benchmark, 2) sucres solution
 // amélioration graphe
 // MCP
