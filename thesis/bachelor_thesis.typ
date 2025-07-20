@@ -360,6 +360,7 @@ Accordingly, the conversational context is modeled as a single object that is up
 ) <conversational_state>
 
 #highlight("TODO: PARLER OLLAMA MGL")
+#highlight("TODO: virer double définition ?")
 
 The different agents leverage #acrpl("RLM"), a type of LLM designed to tackle problems by breaking them into logical steps, mimicking human reasoning.
 Compared to standard language models, they are particularly valuable for tasks that require logical deduction and planning but come with notable drawbacks as they are typically more computationally intensive, leading to higher operational costs and increasing latency in response times.
@@ -511,7 +512,7 @@ The #ref(<datasets_table>) presents the data sources incorporated in the solutio
       cell
     }
     table(
-      columns: (3cm, 7cm, 8cm, 3cm, 3cm),
+      columns: (3cm, 7cm, 8cm, 2.5cm, 3cm),
       table.header([Category], [Layer ID], [Description], [Unit], [Discretization]),
       [*Needs*],
       [ch.bfe.fernwaerme-nachfrage_industrie],
@@ -569,6 +570,7 @@ The #ref(<datasets_table>) presents the data sources incorporated in the solutio
   }),
   caption: "Public datasets",
 ) <datasets_table>
+#pagebreak()
 
 #highlight("TODO: mieux décrire ce qu'il y a dans le tableau?")
 #highlight("TODO: mettre les sources, liens vers datasets?")
@@ -898,9 +900,6 @@ With that, the implementation details of the web interface are clarified. This h
 
 == Limitations <limitations>
 
-#highlight("TODO: en faire un chapitre par composant au dessus ou en dehors de la partie méthodologie?")
-#highlight("TODO: checker orthographe de tout le rapport!!")
-
 Every technical solution, regardless of how well designed and implemented, is subject to different limitations.
 These constraints often stem from underlying assumptions made during the design process or specific implementation details.
 
@@ -929,9 +928,9 @@ However, a bigger, more capable model was used in the strategy planner agent.
 
 Although not quantified in this context, larger models are generally better at processing complex accumulated context and providing more coherent interpretations.
 Recent research highlights that larger language models demonstrate superior emergent reasoning and contextual integration abilities.
-This is shown in the paper _Emergent Abilities of Large Language Models_, published in the _Transactions of Machine Learning Research_, in 2022.
+
+This is shown in the paper _Emergent Abilities of Large Language Models_#ref(<weiEmergentAbilitiesLarge2022>), published in the _Transactions of Machine Learning Research_, in 2022.
 These capabilities are relevant for the strategy planner agent which must synthesize large context to deduce energy planning insights and recommendations.
-#highlight("TODO: citer proprement")
 
 To support this, greater models run on _Calypso_, a sandbox infrastructure designed and reserved for students of the bachelor program.
 Nevertheless, the largest model that fits on this infrastructure (around 8 billion parameters) remains relatively small compared to state-of-the-art large language models (>150 billion parameters).
@@ -959,7 +958,9 @@ Finally, a stronger limitation is induced by the choice of agentic paradigm.
 Lately, coding agents, AI agents capable of autonomously generating and executing code, have gained popularity.
 
 Leveraging them broadens the scope of tasks that can be handled by the agents. General use cases for these agents include data processing and analysis, interaction with APIs and arithmetics.
-The retrieveal, processing and aggregation of the data sources presented in the #ref(<geocontext_retriever>, supplement: it => it.body) section would be an excellent application of their capabilities.
+
+The retrieval, processing and aggregation of the data sources presented in the #ref(<geocontext_retriever>, supplement: it => it.body) section would be an excellent application of their capabilities.
+Rather than relying on static, predefined procedures for data retrieval, agents could dynamically generate and execute code to access and process data from larger and more diverse datasets, naturally expanding the range of available data sources.
 
 The classic agent architecture adopted in this work ensures a more transparent and traceable workflow where the role and interface of each agent is clearly defined.
 While this design choice facilitates maintainability and allows for a more reliable and structured handling of complex geospatial data, it would still be interesting to explore the paradigm shift towards coding agents.
@@ -971,9 +972,6 @@ By doing so, the agent could evaluate the accuracy of the values presented in th
 This would enable the identification of subtle inconsistencies, leading to a more robust and reliable implementation.
 
 In summary, these points illustrate some of the current limitations inherent to the system. The following chapter presents the results obtained from the implemented solution.
-#highlight(
-  "TODO: ajouter que limité aux données qu'il peut retrieve, contexte, ... ou bien parle ici uniquement des problemes performance wise?",
-)
 
 = Results <results>
 
@@ -1077,16 +1075,12 @@ It is important to note that the G-eval and expert scores cannot be interpreted 
 
 G-eval offers a standardized framework with set evaluation criteria, allowing for a more consistent and reliable benchmarking. This enables the comparison of different solutions under identical conditions.
 
-As G-eval relies on LLMs, scores may showcase some degree of randomness. This is mitigated by multiple runs and aggregated scores, offering a stable estimate.
+As G-eval relies on language models, scores may showcase some degree of randomness. This is mitigated by multiple runs and aggregated scores, offering a stable estimate.
 
 By presenting both evaluation methods, the objectivity of an automated scoring is complemented by the more practice-oriented expert judgment.
 This dual approach treats both methodological rigor and contextual relevance to assess the quality of the solution.
 
-For consistency, expert scores are also rescaled linearly to the [0, 1] interval.
-
-Both frameworks are inherently ordinal with each value being _qualitatively_ described.
-However, the rescaled scores are treated as continuous variables for statistical purposes, enabling analytical comparisons.
-#highlight("TODO: revalider, que ordinal-safe atm")
+For consistency and easier interpretation, expert scores are also rescaled linearly to the [0, 1] interval.
 
 #pagebreak()
 === Test Dataset
@@ -1311,7 +1305,6 @@ The mean and entropy of the score distributions, per benchmarking criterion and 
 ) <entropy_criteria>
 
 #highlight("TODO: mettre les maths entropie ET INDIQUER QUE C'EST EN NATS?")
-#highlight("TODO: FAIRE REMARQUER LES OUTLIERS DANS LA PARTIE DISCUSSION?")
 #highlight("TODO: inclure RESULTATS testcase dans appendix -> renommer criterions??")
 #highlight("TODO: définir comment considerer un intent ou l'autre?")
 #highlight("TODO: donner quelque part les résultats raw, par prompt, sinon pas valide??")
@@ -1319,7 +1312,6 @@ It is important to note that the distribution of prompts by intent is unbalanced
 
 These results summarize and introduce further comparison between the expert evaluation and G-eval benchmarking framework, assessing differences between the baseline configuration and a smaller one.
 With the different results presented, the following chapter discusses their implications.
-#highlight("TODO: trop de sous-chapitres au dessus??")
 
 = Discussion
 
@@ -1352,7 +1344,7 @@ To further understand this difference, the Spearman correlation between the G-ev
 The resulting coefficient of 0.09 suggests that the resulting responses of the two configurations are ranked substantially differently, opening up the possibility of exploring the reasons behind this discrepancy.
 
 Consequently, the G-eval framework is, at most, a complementary tool to the expert evaluation.
-#highlight("TODO: deux trois mots en plus pour transitionner")
+With that in mind, the results can now be compared in depth to gain additional insight into the performance of the solution.
 
 == Performance Analysis <perf>
 
@@ -1377,7 +1369,6 @@ The plot clearly demonstrates that the larger configuration is consistently rank
 
 The mean scores, reported in #ref(<comparison_criteria>) support that the data interpretation (+76% and +61%) and methodology alignment (+42% and +40%) show the most significant improvement, in both factual and actionable contexts.
 This suggests that bigger models enhance the system's ability to interpret the geospatial data and provide actionable insights from various perspectives, identifying patterns and most importantly suggesting measures.
-#highlight("TODO: lier avec papier dans limitations?")
 
 In contrast, municipal relevance and technical compliance only show slight improvements (< +17%) between configurations.
 What is more interesting is the overall performance of the solution, across all configurations for these two specific criteria.
