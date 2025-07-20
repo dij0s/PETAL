@@ -54,7 +54,7 @@ Results demonstrate that larger language models in key agents consistently outpe
 The system shows particular strengths in contextual reasoning and structured planning for actionable energy planning tasks.
 However, the evaluation reveals significant limitations including unsupported claims, inconsistent data interpretation and high variability in automated scoring, indicating reliability concerns.
 
-In conclusion, while the solution shows promise for assisting users in municipal energy planning by effectively retrieving, contextualizing and presenting geospatial data through natural language queries, it requires further refinement to achieve industrial-grade robustness.
+In conclusion, while the solution shows promise for assisting users in municipal energy planning by effectively retrieving, contextualizing and presenting geospatial data through natural language queries, it requires further refinement to achieve production-grade robustness.
 The system demonstrates potential for supporting expert users in their planning processes but poses risks for uninformed users who may be misled by confident yet unsupported recommendations.
 
 #abstract-footer("en")
@@ -75,7 +75,7 @@ Les résultats démontrent que les modèles de langage plus grands dans les agen
 Le système montre des forces particulières dans le raisonnement contextuel et la planification structurée pour les tâches de planification énergétique actionnables.
 Cependant, l'évaluation révèle des limitations significatives incluant des affirmations non supportées, une interprétation irrégulière des données et une haute variabilité dans la notation automatisée, indiquant des inquiétudes quant à la fiabilité.
 
-En conclusion, bien que la solution montre du potentiel pour assister les utilisateurs dans la planification énergétique communale en récupérant, contextualisant et présentant efficacement des données géospatiales à travers des requêtes en langage naturel, elle nécessite un raffinement supplémentaire pour atteindre une robustesse de niveau industriel.
+En conclusion, bien que la solution montre du potentiel pour assister les utilisateurs dans la planification énergétique communale en récupérant, contextualisant et présentant efficacement des données géospatiales à travers des requêtes en langage naturel, elle nécessite un raffinement supplémentaire pour atteindre une robustesse apte à la production.
 Le système démontre un potentiel pour soutenir les utilisateurs experts dans leurs processus de planification mais pose des risques pour les utilisateurs non informés qui pourraient être induits en erreur par des recommandations confiantes mais non supportées.
 
 #lorem(150)
@@ -1176,35 +1176,37 @@ The #ref(<comparison_test_human_llm>) presents the results, showing both the exp
 )
 #figure(
   table(
-    columns: 4,
+    columns: (2.5cm, 4cm, 4cm, 4cm),
+    align: center,
     table.header(
       table.cell(rowspan: 2, []),
       table.cell(rowspan: 2, []),
       table.cell(rowspan: 2, colspan: 2, [G-eval (mean ± st.d.), 10 runs]),
     ),
-    [Prompt No°], [*Expert score*], [*Large configuration*], [Small configuration],
-    [1], [0.50], [0.39 ± 0.15], [0.23 ± 0.08],
-    [2], [0.25], [0.43 ± 0.11], [0.26 ± 0.10],
-    [3], [0.50], [0.44 ± 0.11], [0.36 ± 0.06],
-    [4], [0.25], [0.37 ± 0.22], [0.23 ± 0.08],
-    [5], [0.75], [0.39 ± 0.17], [0.38 ± 0.00],
-    [6], [0.50], [0.41 ± 0.15], [0.23 ± 0.08],
-    [7], [0.75], [0.44 ± 0.10], [0.28 ± 0.10],
-    [8], [0.25], [0.49 ± 0.13], [0.38 ± 0.00],
-    [9], [0.25], [0.50 ± 0.11], [0.21 ± 0.06],
+    [Prompt No°], [*Expert score*], [Small configuration], [*Large configuration*],
+    [1], [0.50], [0.23 ± 0.08], [0.39 ± 0.15],
+    [2], [0.25], [0.26 ± 0.10], [0.43 ± 0.11],
+    [3], [0.50], [0.36 ± 0.06], [0.44 ± 0.11],
+    [4], [0.25], [0.23 ± 0.08], [0.37 ± 0.22],
+    [5], [0.75], [0.38 ± 0.00], [0.39 ± 0.17],
+    [6], [0.50], [0.23 ± 0.08], [0.41 ± 0.15],
+    [7], [0.75], [0.28 ± 0.10], [0.44 ± 0.10],
+    [8], [0.25], [0.38 ± 0.00], [0.49 ± 0.13],
+    [9], [0.25], [0.21 ± 0.06], [0.50 ± 0.11],
   ),
   caption: "Expert assessment and G-eval scores on test dataset, per prompt.",
 ) <comparison_test_human_llm>
 
 While both frameworks are not directly comparable, this provides an interesting perspective for further analysis.
-#highlight("TODO: inclure RESULTATS testcase dans appendix??")
 
-On the other hand, the scores per benchmarking criteria and per query _intent_ type (either factual or actionable, per definition), for both configurations, are depicted in the #ref(<boxplots_criterion>):
+On the other hand, the scores per benchmarking criterion and per query _intent_ type (either factual or actionable, per definition), for both configurations, are depicted in the #ref(<boxplots_criterion>):
 #figure(
   image("figs/boxplots_criterion_intent.png", width: 100%),
   caption: "Boxplots per criterion score, by prompt intent.",
 )<boxplots_criterion>
-#highlight("TODO: FAIRE REMARQUER LES OUTLIERS DANS LA PARTIE DISCUSSION?")
+
+The mean and entropy of the score distributions, per benchmarking criterion and per query _intent_ type are reported in the #ref(<comparison_criteria>) and #ref(<entropy_criteria>):
+
 #set table(
   stroke: (x, y) => {
     if y == 2 {
@@ -1234,33 +1236,59 @@ On the other hand, the scores per benchmarking criteria and per query _intent_ t
   },
   align: (x, _) => if x == 0 { left } else { center },
 )
+
 #figure(
   table(
     columns: 5,
     table.header(
       table.cell(rowspan: 3, []),
-      table.cell(rowspan: 3, colspan: 4, [Score (mean ± st.d.), 10 runs]),
+      table.cell(rowspan: 3, colspan: 4, [Mean score, 10 runs]),
     ),
     [], table.cell(colspan: 2, [Factual]), table.cell(colspan: 2, [Actionable]),
-    [*Criteria*], [Large], [Small], [Large], [Small],
-    [Data interpretation], [0.39 ± 0.21], [0.11 ± 0.13], [0.44 ± 0.25], [0.18 ± 0.12],
+    [*Criterion*], [Small], [*Large*], [Small], [*Large*],
+    [Data interpretation], [1.45], [2.55], [1.70], [2.74],
     [Methodology alignment],
-    [0.30 ± 0.35],
-    [0.14 ± 0.13],
-    [0.52 ± 0.31],
-    [0.30 ± 0.21],
+    [1.55],
+    [2.20],
+    [2.19],
+    [3.07],
     [Municipal relevance],
-    [0.63 ± 0.21],
-    [0.50 ± 0.00],
-    [0.48 ± 0.30],
-    [0.39 ± 0.26],
-    [Technical compliance], [0.20 ± 0.30], [0.15 ± 0.31], [0.34 ± 0.35], [0.33 ± 0.38],
+    [3.00],
+    [3.50],
+    [2.54],
+    [2.93],
+    [Technical compliance], [1.60], [1.80], [2.33], [2.34],
   ),
-  caption: "LLM-as-a-judge benchmark score on test dataset, per criteria and per query intent.",
+  caption: "LLM-as-a-judge benchmark mean score on test dataset, per criteria and per query intent.",
 ) <comparison_criteria>
 
-#highlight("TODO: REMPLACER STD. PAR ENTROPIE??")
-#highlight("TODO: les remettre à l'échelle originale dans la table")
+#figure(
+  table(
+    columns: 5,
+    table.header(
+      table.cell(rowspan: 3, []),
+      table.cell(rowspan: 3, colspan: 4, [Entropy, 10 runs]),
+    ),
+    [], table.cell(colspan: 2, [Factual]), table.cell(colspan: 2, [Actionable]),
+    [*Criterion*], [Small], [*Large*], [Small], [*Large*],
+    [Data interpretation], [0.69], [1.19], [0.69], [1.38],
+    [Methodology alignment],
+    [0.69],
+    [1.25],
+    [1.14],
+    [1.54],
+    [Municipal relevance],
+    [0.00],
+    [1.11],
+    [1.00],
+    [1.50],
+    [Source citations], [0.50], [0.95], [0.69], [1.16],
+  ),
+  caption: "LLM-as-a-judge benchmark score entropy on test dataset, per criteria and per query intent.",
+) <entropy_criteria>
+
+#highlight("TODO: FAIRE REMARQUER LES OUTLIERS DANS LA PARTIE DISCUSSION?")
+#highlight("TODO: inclure RESULTATS testcase dans appendix -> renommer criterions??")
 #highlight("TODO: définir comment considerer un intent ou l'autre?")
 #highlight("TODO: donner quelque part les résultats raw, par prompt, sinon pas valide??")
 It is important to note that the distribution of prompts by intent is unbalanced as only two prompts from the test dataset (#ref(<test_dataset>)) are classified as "factual", while the seven remaining ones are classified as "actionable".
@@ -1315,15 +1343,16 @@ The resulting p-value is 0.009 ($equiv$ 0.9%), indicating a statistically signif
 
 The null hypothesis is hence rejected and confirms the alternative hypothesis: the larger configuration, indeed, outperforms the smaller configuration in a per-prompt basis and verifies the initial expectation that larger language models, incorporated into the AI agent solution, yield better results.
 
-Analyzing the per-criterion raw scores across each prompt intent (#ref(<boxplots_criterion>)) provides valuable insight into the specific areas in which the larger configuration surpasses the smaller one.
+Analyzing the per-criterion score distribution across prompt intent (#ref(<boxplots_criterion>)) provides valuable insight into the specific areas in which the larger configuration surpasses the smaller one.
 #highlight("TODO: citer potentils résultats raw")
 
 Boxplots enable a visual comparison of the distributions of ordinal scores, assigned to each evaluation criterion.
-The results are further grouped by prompt intent, distinguishing between factual and actionable prompts, the latter of which involve strategy planning.
+The results are further grouped by prompt intent, distinguishing between factual and actionable prompts, the latter of which involve strategy planning and greater analysis.
 
 The plot clearly demonstrates that the larger configuration is consistently ranked higher across all criteria, raising an important question: in which aspect of the qualitative evaluation does the larger configuration have the greatest impact ?
 #highlight("TODO: citer les chiffres a quel point mieux?")
 
+The mean scores, reported in #ref(<comparison_criteria>)
 Data interpretation and methodology alignment show the most significant improvement, in both factual and actionable contexts.
 This suggests that bigger models enhance the system's ability to interpret the geospatial data and provide actionable insights from various perspectives, identifying patterns and most importantly suggesting measures.
 #highlight("TODO: lier avec papier dans limitations?")
@@ -1407,7 +1436,7 @@ In contrast, while expert users can effectively retrieve and refine the suggesti
 
 Aside of the architectural and implementation-specific limitations presented in #ref(<limitations>), extended testing that includes more benchmark runs and the use of larger, more capable, language models is necessary to validate the assumptions regarding ranking variability across responses to isolate more granular issues.
 
-At this stage, the solution shows promise and supports the potential for AI agents in urban energy planning. However, it remains fragile and requires further refinement to achieve industrial-grade robustness.
+At this stage, the solution shows promise and supports the potential for AI agents in urban energy planning. However, it remains fragile and requires further refinement to achieve production-grade robustness.
 
 = Conclusion
 
