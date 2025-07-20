@@ -1209,7 +1209,7 @@ The mean and entropy of the score distributions, per benchmarking criterion and 
 
 #set table(
   stroke: (x, y) => {
-    if y == 2 {
+    if y == 4 {
       (bottom: 0.7pt + black)
     }
     if x > 0 and y > 0 {
@@ -1225,8 +1225,8 @@ The mean and entropy of the score distributions, per benchmarking criterion and 
       (right: 0.3pt + black)
       (bottom: 0.3pt + black)
     }
-    if x == 0 and y == 4 {
-      (top: 0.3pt + black)
+    if x == 4 and y == 4 {
+      (right: 0.3pt + black)
     }
   },
   fill: (x, y) => {
@@ -1284,9 +1284,10 @@ The mean and entropy of the score distributions, per benchmarking criterion and 
     [1.50],
     [Source citations], [0.50], [0.95], [0.69], [1.16],
   ),
-  caption: "LLM-as-a-judge benchmark score entropy on test dataset, per criteria and per query intent.",
+  caption: "LLM-as-a-judge benchmark entropy of scores on test dataset, per criteria and per query intent.",
 ) <entropy_criteria>
 
+#highlight("TODO: mettre les maths entropie ET INDIQUER QUE C'EST EN NATS?")
 #highlight("TODO: FAIRE REMARQUER LES OUTLIERS DANS LA PARTIE DISCUSSION?")
 #highlight("TODO: inclure RESULTATS testcase dans appendix -> renommer criterions??")
 #highlight("TODO: définir comment considerer un intent ou l'autre?")
@@ -1350,40 +1351,53 @@ Boxplots enable a visual comparison of the distributions of ordinal scores, assi
 The results are further grouped by prompt intent, distinguishing between factual and actionable prompts, the latter of which involve strategy planning and greater analysis.
 
 The plot clearly demonstrates that the larger configuration is consistently ranked higher across all criteria, raising an important question: in which aspect of the qualitative evaluation does the larger configuration have the greatest impact ?
-#highlight("TODO: citer les chiffres a quel point mieux?")
 
-The mean scores, reported in #ref(<comparison_criteria>)
-Data interpretation and methodology alignment show the most significant improvement, in both factual and actionable contexts.
+The mean scores, reported in #ref(<comparison_criteria>) support that the data interpretation (+76% and +61%) and methodology alignment (+42% and +40%) show the most significant improvement, in both factual and actionable contexts.
 This suggests that bigger models enhance the system's ability to interpret the geospatial data and provide actionable insights from various perspectives, identifying patterns and most importantly suggesting measures.
 #highlight("TODO: lier avec papier dans limitations?")
 
-In contrast, municipal relevance and technical compliance only show minor differences between configurations, with the larger one demonstrating slight improvements.
-What is more interesting in this case is the overall performance of the solution, across all configurations in these two criteria.
+In contrast, municipal relevance and technical compliance only show slight improvements (< +17%) between configurations.
+What is more interesting is the overall performance of the solution, across all configurations for these two specific criteria.
 
-While the municipal relevance criterion reveals the greatest score across individual criteria and a more pronounced decrease between configurations, the technical compliance criterion remains strikingly similar across both.
+While the municipal relevance criterion reveals the greatest score across all criteria and a more pronounced increase (+17% and +15%) between configurations, the technical compliance criterion remains strikingly similar across both (+13% and +1%).
 
-These results are likely due to either: poor compliance with the formatting requirements, structural completeness and overall presentation of the response for both configurations (as defined by the criterion) or a more fundamental problem with the criterion itself.
+The technical compliance results are likely due to either: poor compliance with the formatting requirements, structural completeness and overall presentation of the response for both configurations (as defined by the criterion) or a more fundamental problem with the criterion itself.
 
 In reality, both go hand in hand as overly rigid criteria penalize small deviations from the requirements whilst loose criteria may overlook important details and yield higher scores.
 On the other hand, the criterion may be irrelevant. A response that effectively addresses urban energy planning requirements, even lacking perfect formatting, is arguably better than one that is well-formatted but completely meaningless.
 #highlight("TODO: citer ou inclure tel quel le prompt ici?")
 
 Another issue that is observed with it is the strong variability in the scores that are assigned, over both query intents.
-More generally, high standard deviations are measured throughout all criteria, suggesting a broader issue.
-#highlight("TODO: quantifier la variabilité, coef variation ou bien repmlacer par entropie?")
+More generally, high variability is measured throughout all criteria, suggesting a broader issue.
 
+The score distributions in #ref(<boxplots_criterion>) display a large visual spread and clear outliers in criteria such as methodology alignment and technical compliance.
+Moreover, this is assessed from the information theory entropy, a measure that quantifies the average level of uncertainty around the potential states of a variable, here, every criterion across configurations and prompt intents.
+#highlight("TODO: citer entropie wikipedia")
+
+If a criterion is consistently scored the same, then each occurrence of that score is highly predictable and conveys no information (low entropy).
+Conversely, when the distribution of scores of a criterion is more diverse, each result is more _surprising_ and therefore carries greater information.
+
+When the scores are distributed uniformly, entropy reaches its maximum, where each score is equally likely. For the 1-to-5 ranking scale used here, the maximum entropy is 1.61 nats.
+
+With that in mind, the entropies in #ref(<entropy_criteria>) validate the visual feeling of diversity with almost all criteria reaching absurd levels of uncertainty.
+The methodology alignment and municipal relevance for the large configuration, for example, show entropies of respectively 1.54 nats and 1.50 nats, very close to what would be the results of a fair 5-faced dice.
+#highlight("TODO: citer équation upper bound")
+#highlight("TODO: parler de conditional entropy")
+
+Globally, the larger configuration shows higher entropy over all criteria, suggesting that its responses vary more widely in their compliance with the evaluation standards.
 This volatility reflects stochastic fluctuations across the repeated benchmarks on the same set of prompts, rather than differences caused by prompt diversity.
-While evaluating scores across a large and varied set of prompts provides insight into the robustness and generalization of the AI agent, the setup presented here focuses on the consistency and reliability of the benchmarking framework itself, as it is the foundation of all automated evaluations.
-#highlight("TODO: comparer la volatilité d'un pdv changement LLM -> donne des mauvais score mais également meilleurs")
 
-Consequently, this fluctuation may point to (1) a lack of robustness in certain criteria or (2) a statistical artifact of the limited number of benchmark runs.
+While evaluating scores across a large and varied set of prompts provides insight into the robustness and generalization of the AI agent, the setup presented here focuses on the consistency and reliability of the benchmarking framework itself, as it is the foundation of more ambitious and extensive automated evaluations.
 
-Further experimentation through additional benchmark runs is needed to distinguish between these possibilities.
-If the _intra-prompt_ variability remains, it points out an issue with the benchmarking framework and its evaluator model in its ability to capture and nuance the criteria requirements inside responses.
+By always setting the temperature parameter of the language models to zero, the models always select the most probable next word when generating responses. This maximizes the consistency of the results in both benchmark scoring and response generation.
+
+Consequently, this fluctuation may point to (1) a lack of robustness in the benchmarking framework or (2) a statistical artifact of the limited number of benchmark runs.
+
+During this work, only few benchmarks runs were conducted (10) as a result of time and resources constraints.
+Therefore, further experimentation through additional runs is needed to distinguish between these possibilities.
+
+If the _intra-prompt_ variability remains, it points out to an issue with the benchmarking framework and its evaluator model, unable to grasp and apply the evaluation criteria with nuance. Models may lack the semantic sensitivity needed to assess complex requirements.
 Conversely, if it decreases, it can then be attributed to a statistical irregularity due to few benchmark iterations.
-#highlight("TODO: expliquer pq je fais pas plus de benchmarks dans l'étude")
-
-This would also help explain why the technical compliance criterion is ranked this low across all dimensions, supporting the need to refine its definition.
 
 When interpreting the results from a per-intent perspective, a clear trend emerges as the larger configuration outperforms the smaller one on actionable prompts, especially in criteria that involve increased reasoning and multi-step tasks, such as data interpretation and methodology alignment.
 The sole criterion that is scored higher in factual contexts is the municipal relevance criterion.
