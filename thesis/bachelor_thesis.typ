@@ -25,7 +25,7 @@
 
   authors: "Dion Osmani",
 
-  date: datetime(year: 2025, month: 6, day: 24), // or datetime.today()
+  date: datetime.today(), // or datetime.today()
   language: doc_language, // en or fr
   version: none, // or for instance "1.0", for the version of your thesis],
   code-theme: "bluloco-light",
@@ -92,14 +92,12 @@ And to those who sacrificed so much for us, THANK YOU.
 
 = Introduction
 
-#highlight("TODO: diviser en sections? contexte, problématique...")
-
 Over the past few decades, society has been sensitized and slowly became more aware of significant problems that we are likely to face in the coming years.
 
 Climate change and other environmental issues arise as a result of human-driven activities.
 
 Scientists have monitored this matter and proposed various frameworks to address and mitigate these problems. In Switzerland, these different frameworks are implemented in the legislation and guidelines (at federal and canton levels) to steer the country towards a more sustainable future.
-Municipalities may introduce in their regulations energy requirements that are more constraining than those set by the cantonal law as per article 12, al. 5 of #ref(<rdb6SC4eJbME>).
+Municipalities may introduce in their regulations energy requirements that are more constraining than those set by the cantonal law as per article 12, al. 5 of #ref(<RS7301Loia>).
 
 == Context
 
@@ -130,17 +128,15 @@ The main objective of this work is to investigate how effective and reliable suc
 - Simplifying the user interface by handling the communication between the orchestration AI and the specialized AIs.
 
 The project is scoped to municipalities within the canton of Valais/Wallis and strictly relies on publicly available data.
-Certain measures are taken to ensure the privacy and security of data that would not be of public order considering the future implementation of extra datasources.
 
-The solution is designed to offer a user-friendly interface from which users can interact with the system in a conversational manner and visualize a map of the municipality with different layers.
+A user-friendly interface enables users to interact with the system in a conversational manner and visualize a map of the municipality with different layers.
 
-User behavior is analyzed to takeaway user preferences which gradually adapt the answers to better meet the user expectations.
+Finally, user behavior is analyzed to takeaway user preferences which gradually adapt the answers to better meet the user expectations.
 
-#highlight(
-  "TODO: parler de la structure du document et référencer methodologie?",
-)
+This document outlines the methodology used to design and implement the solution, details the evaluation framework and presents the results, in relation to the research question.
 
-= Artificial Intelligence notice
+#cleardoublepage()
+#heavy-title("Artificial Intelligence notice")
 
 While generative artificial intelligence is the core of this work, it has also been a great help in assisting the following tasks: prompt engineering (1) and thesis report rewording (2)#footnote("The language models used for these tasks are GPT-4.1 (OpenAI) and Claude 3.7 (Anthropic).").
 
@@ -155,12 +151,44 @@ Besides that, all other aspects of this work are my own.
 = State of the Art <state_of_art>
 
 #highlight("TODO: CHECKER VIM TEMP!!")
-#highlight("TODO: parler état de l'art LLM tout court et décrire la technologie ou juste approcher -> MoE")
+#highlight("TODO: virer les définitions à double!!")
 
-Large language models are highly effective tools for natural language processing and offer various opportunities to enhance our day-to-day tasks and workflows.
-Ever since they have been introduced to the public, they have been adopted across a wide range of fields and applications.
+Before exploring the methodological approach of the solution, it is necessary to introduce and understand the key concepts of the underlying technologies.
+On top of that, related work in the field of AI-assisted urban planning is presented, positioning this thesis within the broader landscape of such applications.
 
-The AI Institute at ITMO University published a paper in 2025 titled _LLM Agents for Smart City Management: Enhancing Decision Support Through Multi-Agent AI Systems_ #ref(<kalyuzhnayaLLMAgentsSmart2025>). The study examines how the natural language processing strengths of LLMs, combined with the distributed problem-solving abilities of multi-agent systems, can enhance urban decision-making processes.
+== Technological Background
+
+#acrpl("LLM") represent a major breakthrough in the field of natural language processing#ref(<vaswaniAttentionAllYou2023>).
+These models, at their heart, are designed to predict the next word in a sequence, based on previous ones.
+
+By processing sequential text data, they are able to understand context and generate coherent text in response.
+Modern language models are trained on large amounts of text data prior to the integration of human feedback, aligning their outputs with human preferences#ref(<ouyangTrainingLanguageModels2022>).
+
+Since their introduction to the public, significant evolutions in their architectures and capabilities have been observed.
+
+Notably, #acrpl("RLM") enable more systematic problem-solving and logical deduction by incorporating explicit reasoning steps into their generation process, at the cost of increased computational resources and latency.
+
+#acr("RAG"), on the other hand, addresses a fundamental limitation of language models#ref(<lewisRetrievalAugmentedGenerationKnowledgeIntensive2021>). As LLMs are trained on static datasets, they lack knowledge in domain-specific information.
+Therefore, RAG systems overcome this limitation by combining the generative capabilities of these models with external knowledge retrieval, enabling them to ground their responses in up-to-date, factual information.
+
+The RAG pipeline consists of three components:
+1. Retrieval: relevant documents or data points are identified using semantic similarity search, implemented through vector embeddings.
+2. Augmentation: retrieved information is incorporated into the context of the model.
+3. Generation: responses are produced based on both the original query and retrieved knowledge.
+
+Vector embeddings play a crucial role in these implementations, transforming documents into high-dimensional mathematical representations that capture semantic meaning and enable efficient search#ref(<mikolovEfficientEstimationWord2013>).
+
+Furthermore, AI agents represent autonomous software systems that perceive their environment, make decisions and take actions to achieve specified goals.
+In the context of LLM-based applications, these agents leverage natural language understanding to perform complex multi-step tasks with minimal to no human intervention.
+
+Multi-agent systems coordinate multiple specialized agents, each responsible for specific tasks of a broader problem.
+In response, orchestration frameworks have emerged to manage the complexity of these solutions, providing abstraction to define agent workflows.
+
+With the technological foundation established, the next section reviews related work to situate this thesis within the context of current research and applications.
+
+== Related Work
+
+The AI Institute at ITMO University published a paper in 2025 titled _LLM Agents for Smart City Management: Enhancing Decision Support Through Multi-Agent AI Systems_#ref(<kalyuzhnayaLLMAgentsSmart2025>). The study examines how the natural language processing strengths of LLMs, combined with the distributed problem-solving abilities of multi-agent systems, can enhance urban decision-making processes.
 
 The research focused on the testing of three hypotheses: (1) evaluating the capability of LLM agents to effectively route and process diverse urban queries against existing urban information systems, (2) the effectiveness of #acr("RAG") technology in improving response accuracy when working with local knowledge and regulations and (3) the impact of integrating LLM agents with existing urban information-systems - increasing efficiency and decreasing the decision making process time.
 
@@ -624,13 +652,12 @@ Once the relevant data is gathered, the next stage is for the strategy planner a
 
 The sole difference between enumerating the data, as collected in the geocontext retriever and proper energy planning lies in the measures that are taken in response to identified issues. Those measures are conditioned by guidelines, broken down into multiple sources.
 
-The primary document called _Vision 2060 et objectifs 2035_ has been adopted in 2019 and sets intermediate targets for 2035 that take into account the energetical landscape of Valais/Wallis, current knowledge, as well as federal energy and climate policies with the ultimate goal of achieving a 100% renewable and indigenous energy supply in 2060.
+The primary document called _Vision 2060 et objectifs 2035_#ref(<StrategieEnergetiqueEnergie>) has been adopted in 2019 and sets intermediate targets for 2035 that take into account the energetical landscape of Valais/Wallis, current knowledge, as well as federal energy and climate policies with the ultimate goal of achieving a 100% renewable and indigenous energy supply in 2060.
 
-Moreover, the _Plan directeur 2019_ adopted by the federal council on the 1st of May 2019, states the strategy for the canton's territorial development in the form of 49 information sheets, distributed across the five activity sectors: (1) _Agriculture, forest, landscape and nature_, (2) _Tourism and leisure_, (3) _Urbanization_, (4) _Mobility and transport infrastructure_ and (5) _Supply and other infrastructure_.
+Moreover, the _Plan directeur 2019_#ref(<PlanDirecteurCantonala>) adopted by the federal council on the 1st of May 2019, states the strategy for the canton's territorial development in the form of 49 information sheets, distributed across the five activity sectors: (1) _Agriculture, forest, landscape and nature_, (2) _Tourism and leisure_, (3) _Urbanization_, (4) _Mobility and transport infrastructure_ and (5) _Supply and other infrastructure_.
 
-Finally, the legal framework is defined by two key legislative documents. Notably, the _RS 705.1 - Loi sur les constructions (LC)_ establishes the regulations for construction activities, while the _RS 730.1 - Loi sur l'énergie (LcEne)_ defines the objectives and requirements for sustainable energy supply.
-#highlight("TODO: citer autrement rs -> bib?")
-#highlight("TODO: citer autrement vision et plan directeur -> bib?")
+Finally, the legal framework is defined by two key legislative documents. Notably, the _RS 705.1 - Loi sur les constructions (LC)_#ref(<RS7051Loia>) establishes the regulations for construction activities, while the _RS 730.1 - Loi sur l'énergie (LcEne)_#ref(<RS7301Loia>) defines the objectives and requirements for sustainable energy supply.
+#highlight("J'AI PAS CITE UNE FOIS LE MOT RAG")
 
 These documents are specifically designed and structured to convey information to the public and come in a single #acr("PDF") and are available in both french and german. They are organized into sections, subsections or paragraphs which reference figures, tables, plots, past paragraphs and so on.
 
@@ -682,7 +709,7 @@ With the relevant guidelines retrieved and rescaled, the query is routed to the 
 #highlight("TODO: citer comment traiter données communales")
 #highlight("TODO: inclure prompts dans bibliographie")
 
-==== Municipal citizen profile
+==== Municipal Citizen Profile
 
 Before delving into the strategy planner agent, it is necessary to assess how the solution could be enhanced by incorporating additional municipal data.
 This section is deliberately included in the #ref(<system_design>, supplement: it => it.body) chapter, as this aspect of the solution was envisioned from the start and a proof of concept has been developed.
