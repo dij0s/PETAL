@@ -170,6 +170,9 @@ Since their introduction to the public, significant evolutions in their architec
 
 Notably, #acrpl("RLM") enable more systematic problem-solving and logical deduction by incorporating explicit reasoning steps into their generation process, at the cost of increased computational resources and latency.
 
+Language models are available in any shape, form and size, ranging from small to large models. Their number of parameters range from a few million to hundreds of billions for the largest.
+More parameters enable more complex and nuanced language understanding and generation, at the cost of greater computational demand.
+
 #acr("RAG"), on the other hand, addresses a fundamental limitation of language models#ref(<lewisRetrievalAugmentedGenerationKnowledgeIntensive2021>). As LLMs are trained on static datasets, they lack knowledge in domain-specific information.
 Therefore, RAG systems overcome this limitation by combining the generative capabilities of these models with external knowledge retrieval, enabling them to ground their responses in up-to-date, factual information.
 
@@ -682,17 +685,15 @@ This issue is addressed by exploiting the power of embeddings.
 
 An embedding is a mathematical representation of data in a high-dimensional vector space where semantically similar information are mapped to nearby points.
 This enables the system to embed the descriptions of the different tools and easily retrieve them semantically. On top of that, it is more efficient computation-wise than prompting the language model to choose them.
-#highlight("TODO: définition terminologie? prompting")
-#highlight("TODO: parler de reranking?")
 
 When retrieving tools, the system computes the cosine similarity between both embeddings to quantify the semantic similarity (#ref(<cosine_sim>)).
-Finally, the quartile coefficient of dispersion is measured against the distribution of retrieved scores (#ref(<qcd>)). This indicator provides a measure of the uniformity of the retrieved tools that is less sensitive to outliers than measures such as the coefficient of variation.
-As such, uniform tools are provided to a language model, which is then prompted to choose the appropriate ones (#ref(<geocontext_retriever_system_prompt>)).
+Finally, the quartile coefficient of dispersion is measured against the distribution of retrieved similarity scores (#ref(<qcd>)).
+
+This indicator provides a measure of the uniformity of the retrieved tools that is less sensitive to outliers than measures such as the coefficient of variation.
+As such, if the distribution of scores is too uniform, the tools are provided to a language model that leverages its capabilities to only distinguish the appropriate ones, in the given context (#ref(<geocontext_retriever_system_prompt>)).
 
 This approach reduces the overall computational cost while increasing the quality of tool selection.
-#highlight("TODO: METTRE UNE AI NOTICE ET CHECKER VIM TEMP!!")
-
-#highlight("TODO: faire un schéma détaillé du processus de l'agent?")
+#highlight("TODO: CHECKER VIM TEMP!!")
 
 With the appropriate tools chosen, the system can effectively retrieve the data. It is simply added to the _context_tools_ field in the conversational state (#ref(<conversational_state>)), as presented in the #ref(<geocontext_retriever_design>) below:
 #figure(
@@ -710,11 +711,6 @@ In the section #ref(<intent_router>, supplement: it => it.body), the validity of
 
 Once the relevant data is gathered, the next stage is for the strategy planner agent to analyze this information to conduct proper planning.
 
-#highlight("TODO: citer external services database")
-#highlight("TODO: dire requêtes API concurrent")
-#highlight("TODO: parler spécifique map et système coordonnées?")
-#highlight("TODO: ajouter tool energy needs, heuristique et détailler planification énergétique?")
-
 ==== Guidelines Retriever <guidelines_retriever>
 
 The sole difference between enumerating the data, as collected in the geocontext retriever and proper energy planning lies in the measures that are taken in response to identified issues. Those measures are conditioned by guidelines, broken down into multiple sources.
@@ -724,34 +720,51 @@ The primary document called _Vision 2060 et objectifs 2035_#ref(<StrategieEnerge
 Moreover, the _Plan directeur 2019_#ref(<PlanDirecteurCantonala>) adopted by the federal council on the 1st of May 2019, states the strategy for the canton's territorial development in the form of 49 information sheets, distributed across the five activity sectors: (1) _Agriculture, forest, landscape and nature_, (2) _Tourism and leisure_, (3) _Urbanization_, (4) _Mobility and transport infrastructure_ and (5) _Supply and other infrastructure_.
 
 Finally, the legal framework is defined by two key legislative documents. Notably, the _RS 705.1 - Loi sur les constructions (LC)_#ref(<RS7051Loia>) establishes the regulations for construction activities, while the _RS 730.1 - Loi sur l'énergie (LcEne)_#ref(<RS7301Loia>) defines the objectives and requirements for sustainable energy supply.
-#highlight("J'AI PAS CITE UNE FOIS LE MOT RAG")
 
 These documents are specifically designed and structured to convey information to the public and come in a single #acr("PDF") and are available in both french and german. They are organized into sections, subsections or paragraphs which reference figures, tables, plots, past paragraphs and so on.
 
 Visual structure does not necessarily imply a logical flow of information. A document can look and feel organized but still lack a proper machine readable structure.
 In practice, it is neither realistic nor scalable to expect a human to manually extract all the key information needed for energy planning from such complex documents. Therefore, it becomes essential to delegate this task to the computer, enabling automated extraction and processing of documents.
 
-When data lacks clear structure, it becomes difficult to extract information using algorithms or systematic procedures. However, advances in #acrpl("MLLM") offer a solution as these models are designed to process and understand information presented in various modalities such as text, images, audio and video. Paired with existing methods that are able to extract raw text from these documents, it has become easier to extract precise information from visually organized and heterogeneous documents by understanding not only the way information is displayed but also its underlying semantic meaning.
+When data lacks clear structure, it becomes difficult to extract information using algorithms or systematic procedures. However, advances in #acrpl("MLLM") offer a solution as these models are designed to process and understand information presented in various modalities such as text, images, audio and video.
+
+Paired with existing methods that are able to extract raw text from these documents, it has become easier to extract precise information from visually organized and heterogeneous documents by understanding not only the way information is displayed but also its underlying semantic meaning.
 
 As such, a systematic approach is applied when extracting information from these documents:
 - Raw text is extracted from the documents on a per-page basis.
 - Each page is rendered into an image.
-- Each rendered page and associated text are processed using MLLMs to retrieve key insights and interpret the information within the page.
+- Each rendered page and associated text are processed using MLLMs to retrieve key insights and interpret the information within the page (#ref(<guidelines_retriever_data_extraction>)).
 
-This is supported by the #ref(<guidelines_retriever_data_extraction>).
+Qwen2.5-VL is a vision-language language model (multimodal) developed by Alibaba Cloud#footnote("https://www.alibabacloud.com/"), particularly well-suited for processing these complex documents.
 
-The extracted information is formatted in markdown, utilizing headings to structure the summary. It is then broken down into smaller chunks, each chunk being a "chapter" derived from the markdown content. Since only individual chunks are considered in subsequent steps, there is no need to perform an analysis across neighboring pages to ensure that the information is retrieved from its full context.
+Introduced in March 2025, the model demonstrates strong performance, competing that of leading proprietary models in document parsing, structured data extraction and visual reasoning#ref(<baiQwen25VLTechnicalReport2025>).
+Consequently, it is able to interpret and analyze figures, plots, tables, etc.
+
+In addition, Qwen2.5-VL is completely open-source and available in compact versions (under 7 billion parameters), making it a great fit for the computational resources that are available.
+
+The extracted information is then formatted in markdown, utilizing headings to structure the summary. It is then broken down into smaller chunks, each chunk being a "chapter" derived from the markdown content. Since only individual chunks are considered in subsequent steps, there is no need to perform an analysis across neighboring pages to ensure that the information is retrieved from its full context.
+These chunks are also translated into english, during the preprocessing step, by the language model.
 
 Finally, the extracted information from each page is encoded into an embedding and stored in the local database, along with its associated chunks and metadata.
 
-With clear guidelines extracted from documents in any format, it is necessary to identify those that are relevant to the user's query. Since those are already embedded, the related guidelines are simply those that are closest to the embedded request, as described in the #ref(<geocontext_retriever>, supplement: it => it.body) section is applied.
-#highlight("TODO: revoir déf?")
+Generating embeddings also comes with its own costs, requiring specialized models capable of producing vector representations from text.
+As a result, the model nomic-embed-text, developed by Nomic AI#footnote("https://www.nomic.ai/"), is used for used high-performance english text embeddings#ref(<nussbaumNomicEmbedTraining2025>).
+
+It is capable of handling large context windows (the number of tokens that can be processed at once by the model, here 2000), enhancing its ability to capture semantic meaning and improve the quality of information retrieval.
+On top of that, it is open-source and available in Ollama, facilitating local deployment.
+
+With clear guidelines now extracted from documents of any format, it is necessary to identify those that are relevant to the user's query. Since those are already embedded, the related guidelines are simply those that are closest to the embedded request in the vector space, as described in the #ref(<geocontext_retriever>, supplement: it => it.body) section is applied.
+
+Preprocessing these documents and storing them in a database enables the RAG pattern to be leveraged as the agent may now retrieve the relevant information at query time to ground and align its responses with guidelines.
 
 An issue still lies in how the guidelines themselves are _designed_. While the objectives and figures outlined inside these documents concern the entire canton, this solution is only scoped to municipalities.
-Therefore, these quantitative targets must be scaled down to reflect the municipality’s specific context and expectations.
-#highlight("TODO: mettre un exemple?")
 
-Identifying these key figures which need rescaling is not a simple task as broader context is required to assess that.
+Quantitative targets are typically described as such:
+#set quote(block: true)
+#quote(attribution: [Page 7, _Vision 2060 et objectifs 2035_#ref(<StrategieEnergetiqueEnergie>)])[Ces objectifs de consommation sont multipliés par le  nombre d’habitants pour obtenir la consommation pour  l’ensemble du canton, sans les besoins des grands sites industriels. La consommation d’énergie finale pourrait rester stable jusqu’en 2020 (7’960 GWh/a), puis diminuer de 23 % jusqu’en 2035 pour atteindre 6’095 GWh/a. La consommation d’énergie fossile sera amenée à diminuer drastiquement.]
+Therefore, they must be scaled down to reflect the municipality’s specific context and expectations.
+
+Identifying which ones require rescaling is a challenging task, as it demands a comprehensive understanding of the broader context.
 In order to achieve this, a language model is prompted with the task of identifying key figures that need rescaling (#ref(<guidelines_retriever_system_prompt>)).
 
 Finally, they are multiplied by a factor corresponding to the ratio of the municipality's number of residents to the total population of the canton.
@@ -769,12 +782,7 @@ These interfaces are shown in the #ref(<guidelines_retriever_design>) below:
 With the relevant guidelines retrieved and rescaled, the query is routed to the strategy planner agent (#ref(<ai_agent_design>), transition 7) which will use them as clear constraints.
 
 #highlight("TODO: mettre un premier chapitre preprocessing?")
-#highlight("TODO: cite plus tard que Retrieve multiple chunks recreate the context")
 #highlight("TODO: reformuler et enlever les formulations 'we' ?")
-#highlight("TODO: dire que je traduis en anglais ou pas, pff")
-#highlight("TODO: citer modèle utilisé MLLM et embeddings ?")
-#highlight("TODO: citer comment traiter données communales")
-#highlight("TODO: inclure prompts dans bibliographie")
 
 ==== Municipal Citizen Profile
 
@@ -1224,8 +1232,8 @@ The #ref(<configurations>) below breaks down their composition:
       [*Strategy planner*],
       [*G-eval Evaluator*],
     ),
-    [*Small*], [qwen3:1.7b], [qwen3:1.7b], [qwen3:1.7b], [qwen3:1.7b], [deepseek-r1:8b],
-    [*Large (Baseline)*], [qwen3:1.7b], [qwen3:1.7b], [qwen3:1.7b], [*qwen3:8b*], [deepseek-r1:8b],
+    [*Small*], [qwen3:1.7B], [qwen3:1.7B], [qwen3:1.7B], [qwen3:1.7B], [deepseek-r1:8B],
+    [*Large (Baseline)*], [qwen3:1.7B], [qwen3:1.7B], [qwen3:1.7B], [*qwen3:8B*], [deepseek-r1:8B],
   ),
   caption: "Agent language model by configuration",
 ) <configurations>
@@ -1233,9 +1241,9 @@ The #ref(<configurations>) below breaks down their composition:
 A smaller configuration is defined for further comparison against the baseline.
 This baseline, a _larger_ configuration, leverages bigger language models for the strategy planner agent as introduced in the #ref(<limitations>, supplement: it => it.body) section.
 
-Qwen is a large language model family built by Alibaba Cloud#footnote("https://www.alibabacloud.com/en?_p_lc=7"). It offers tool-using abilities, reasoning and model size, making it the only currently available option on Ollama that is viable for running lightweight, yet capable agents.
-Deepseek models, on the other hand, are developed by Deepseek, a company funded by the High-Flyer#footnote("https://www.high-flyer.cn/en/fund/") hedge fund and whose models support similar capabilities to Qwen.
-The R1 model (8B parameters) serves as the evaluator for all LLM-as-a-judge benchmarking. Using a model from a different family than the those in the individual agents helps minimize potential bias in the assessment.
+The general-purpose Qwen series offers tool-using abilities, reasoning and model size, making it the only currently available option in Ollama that is viable for running lightweight, yet capable agents.
+Deepseek models, on the other hand, are developed by Deepseek, a company funded by the High-Flyer#footnote("https://www.high-flyer.cn/") hedge fund and whose models support similar capabilities to Qwen.
+The R1 model (8 billion parameters) serves as the evaluator for all LLM-as-a-judge benchmarking. Using a model from a different family than the those in the individual agents helps minimize potential bias in the assessment.
 #highlight("TODO: expliquer que aurait été intéressant de comparer d'autres modèles mais pas possible")
 
 The #ref(<comparison_test_human_llm>) presents the results, showing both the expert assessment and G-eval benchmarking scores for all nine prompts, side by side and for both configurations:
