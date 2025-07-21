@@ -27,7 +27,7 @@
 
   date: datetime.today(), // or datetime.today()
   language: doc_language, // en or fr
-  version: none, // or for instance "1.0", for the version of your thesis],
+  version: "1.0", // or for instance "1.0", for the version of your thesis],
   code-theme: "bluloco-light",
 )
 #highlight("TODO: check ortographe")
@@ -1295,7 +1295,7 @@ On the other hand, the scores per benchmarking criterion and per query _intent_ 
   caption: "Boxplots per criterion score, by prompt intent.",
 )<boxplots_criterion>
 
-The mean score and entropy (#ref(<entropy>)) of the scores distribution, per benchmarking criterion and per query _intent_ type are reported in the #ref(<comparison_criteria>) and #ref(<entropy_criteria>):
+The mean score and entropy of the scores distribution, per benchmarking criterion and per query _intent_ type are reported in the #ref(<comparison_criteria>) and #ref(<entropy_criteria>):
 
 #set table(
   stroke: (x, y) => {
@@ -1377,11 +1377,7 @@ The mean score and entropy (#ref(<entropy>)) of the scores distribution, per ben
   caption: "LLM-as-a-judge benchmark entropy of scores on test dataset, per criteria and per query intent.",
 ) <entropy_criteria>
 
-#highlight("TODO: mettre les maths entropie ET INDIQUER QUE C'EST EN NATS?")
-#highlight("TODO: inclure RESULTATS testcase dans appendix -> renommer criterions??")
-#highlight("TODO: définir comment considerer un intent ou l'autre?")
-#highlight("TODO: donner quelque part les résultats raw, par prompt, sinon pas valide??")
-It is important to note that the distribution of prompts by intent is unbalanced as only two prompts from the test dataset (#ref(<test_dataset>)) are classified as "factual", while the seven remaining ones are classified as "actionable".
+It is important to note that the distribution of prompts by intent is unbalanced as only two prompts from the test dataset (#ref(<test_dataset>)) are classified as "factual" (no° 1 and 4), while the seven remaining ones are classified as "actionable".
 
 These results summarize and introduce further comparison between the expert evaluation and G-eval benchmarking framework, assessing differences between the baseline configuration and a smaller one.
 With the different results presented, the following chapter discusses their implications.
@@ -1402,7 +1398,6 @@ The #ref(<comparison_test_human_llm>) presents both frameworks and their scores,
 The relationship between these two frameworks is assessed by leveraging Spearman's rank correlation coefficient (#ref(<spearman>)).
 
 This coefficient measures the monotonic relationship between the rankings of two variables, indicating how well the order of one variable matches the order of the other. Like other correlation coefficients, it varies between -1 (perfect inverse correlation) and +1 (perfect correlation), with 0 implying no correlation at all.
-#highlight("TOOD: citer spearman?")
 
 This coefficient strictly applies to ordinal data. As both score distributions originate from a ranking, the coefficient is applicable to compare the relative ranking of prompts of the two frameworks.
 
@@ -1433,7 +1428,6 @@ The resulting p-value is 0.009 ($equiv$ 0.9%), indicating a statistically signif
 The null hypothesis is hence rejected and confirms the alternative hypothesis: the larger configuration, indeed, outperforms the smaller configuration in a per-prompt basis and verifies the initial expectation that larger language models, incorporated into the AI agent solution, yield better results.
 
 Analyzing the per-criterion score distribution across prompt intent (#ref(<boxplots_criterion>)) provides valuable insight into the specific areas in which the larger configuration surpasses the smaller one.
-#highlight("TODO: citer potentils résultats raw")
 
 Boxplots enable a visual comparison of the distributions of ordinal scores, assigned to each evaluation criterion.
 The results are further grouped by prompt intent, distinguishing between factual and actionable prompts, the latter of which involve strategy planning and greater analysis.
@@ -1443,33 +1437,29 @@ The plot clearly demonstrates that the larger configuration is consistently rank
 The mean scores, reported in #ref(<comparison_criteria>) support that the data interpretation (+76% and +61%) and methodology alignment (+42% and +40%) show the most significant improvement, in both factual and actionable contexts.
 This suggests that bigger models enhance the system's ability to interpret the geospatial data and provide actionable insights from various perspectives, identifying patterns and most importantly suggesting measures.
 
-In contrast, municipal relevance and technical compliance only show slight improvements (< +17%) between configurations.
+In contrast, municipal relevance and technical compliance only show slight improvements (<\17%) between configurations.
 What is more interesting is the overall performance of the solution, across all configurations for these two specific criteria.
 
 While the municipal relevance criterion reveals the greatest score across all criteria and a more pronounced increase (+17% and +15%) between configurations, the technical compliance criterion remains strikingly similar across both (+13% and +1%).
 
-The technical compliance results are likely due to either: poor compliance with the formatting requirements, structural completeness and overall presentation of the response for both configurations (as defined by the criterion) or a more fundamental problem with the criterion itself.
+The technical compliance results are likely due to either: poor compliance with the formatting requirements, structural completeness and overall presentation of the response for both configurations (as defined by the criterion, #ref(<benchmark_system_prompt>)) or a more fundamental problem with the criterion itself.
 
 In reality, both go hand in hand as overly rigid criteria penalize small deviations from the requirements whilst loose criteria may overlook important details and yield higher scores.
 On the other hand, the criterion may be irrelevant. A response that effectively addresses urban energy planning requirements, even lacking perfect formatting, is arguably better than one that is well-formatted but completely meaningless.
-#highlight("TODO: citer ou inclure tel quel le prompt ici?")
 
 Another issue that is observed with it is the strong variability in the scores that are assigned, over both query intents.
 More generally, high variability is measured throughout all criteria, suggesting a broader issue.
 
 The score distributions in #ref(<boxplots_criterion>) display a large visual spread and clear outliers in criteria such as methodology alignment and technical compliance.
-Moreover, this is assessed from the information theory entropy, a measure that quantifies the average level of uncertainty around the potential states of a variable, here, every criterion across configurations and prompt intents.
-#highlight("TODO: citer entropie wikipedia")
+Moreover, this is assessed from the information theory entropy (#ref(<entropy>)), a measure that quantifies the average level of uncertainty around the potential states of a variable, here, every criterion across configurations and prompt intents.
 
 If a criterion is consistently scored the same, then each occurrence of that score is highly predictable and conveys no information (low entropy).
 Conversely, when the distribution of scores of a criterion is more diverse, each result is more _surprising_ and therefore carries greater information.
 
-When the scores are distributed uniformly, entropy reaches its maximum, where each score is equally likely. For the 1-to-5 ranking scale used here, the maximum entropy is 1.61 nats.
+When the scores are distributed uniformly, entropy reaches its maximum, where each score is equally likely. For the 1-to-5 ranking scale used here, the maximum entropy is 1.61 nats (#ref(<entropy_upper_bound>)).
 
 With that in mind, the entropies in #ref(<entropy_criteria>) validate the visual feeling of diversity with almost all criteria reaching absurd levels of uncertainty.
-The methodology alignment and municipal relevance for the large configuration, for example, show entropies of respectively 1.54 nats and 1.50 nats, very close to what would be the results of a fair 5-faced dice.
-#highlight("TODO: citer équation upper bound")
-#highlight("TODO: parler de conditional entropy")
+The methodology alignment and municipal relevance for the large configuration, for example, show entropies of respectively 1.54 nats and 1.50 nats, very close to what would be the results of a fair 5-faced dice, nearly fully random.
 
 Globally, the larger configuration shows higher entropy over all criteria, suggesting that its responses vary more widely in their compliance with the evaluation standards.
 This volatility reflects stochastic fluctuations across the repeated benchmarks on the same set of prompts, rather than differences caused by prompt diversity.
@@ -1807,6 +1797,14 @@ $
          & "which may be any member" x "within the set" cal(X) "and is distributed" \
          & "according to" p: cal(X) arrow [0,1].
 $ <entropy>
+
+$
+  "Let" X & "be a discrete random variable that takes value in the set" \
+  & cal(X):={1,2,3,4,5} "and suppose" X "is uniformly distributed over" \
+  & cal(X) ==> p(x) = frac(1, 5) forall x in cal(X). \
+  "Then, the entropy of" X "is": \
+  & "H"(X) = -sum_(x in cal(X))p(x)"ln"p(x)=-5 dot frac(1, 5)"ln"(frac(1, 5))="ln"(5) approx 1.61 "nats".
+$ <entropy_upper_bound>
 
 $
   "Spearman coefficient of correlation" & = frac("cov"["R"[X]", R"[Y]], sigma_("R"[X])sigma_("R"[Y])) \
