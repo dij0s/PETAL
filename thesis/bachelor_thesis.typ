@@ -1487,8 +1487,6 @@ Data interpretation and methodology alignment may be inherently biased towards a
 Alongside the qualitative scoring of the expert, annotations were also collected.
 #highlight("TODO: vérifier abus de langage variables qualitatives -> ordinales OK mais quantitatives?")
 
-#highlight("TODO: référencer dans appendix résultats du testcase, markdown tel quel")
-#highlight("TODO: éval dataset tel quel aussi??")
 The feedback highlights recurring issues observed in the testcase, emphasizing certain systematic weaknesses in the solution:
 - Unsupported conclusions and takeaways, often delivered with high confidence.
 - Mix of municipal data and unscaled cantonal data, leading to inconsistent or misleading figures.
@@ -1547,9 +1545,6 @@ At this stage, the solution shows promise and supports the potential for AI agen
 #heavy-title(i18n(doc_language, "bibliography-title"), mult: 1, top: 0.5em, bottom: 0.3em)
 // generate bib file RIS script (https://www.bruot.org/ris2bib/)
 #bibliography("bibliography.bib", full: true, style: "ieee", title: none)
-#highlight("TODO: reexport bookmarks")
-#highlight("TODO: mettre une deuxième bib. technique uniquement!!")
-// #bibliography(("bibliography.bib", "technical_reference.bib"), full: true, style: "ieee", title: none)
 
 //////////////
 // Appendices
