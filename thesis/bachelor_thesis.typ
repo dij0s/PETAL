@@ -158,6 +158,8 @@ On top of that, related work in the field of AI-assisted urban planning is prese
 
 == Technological Background
 
+#highlight("TODO: dire que ne fait que présenter overview")
+
 #acrpl("LLM") represent a major breakthrough in the field of natural language processing#ref(<vaswaniAttentionAllYou2023>).
 These models, at their heart, are designed to predict the next word in a sequence, based on previous ones.
 
@@ -319,11 +321,11 @@ The following chapter covers both the design and the implementation aspects of t
 
 #figure(image("figs/system_design_global.svg", height: 5cm), caption: "Global system design")<global_system_design>
 
-The global architecture in its most simplified form is presented in the #ref(<global_system_design>) above. The system is broken down into three distinct layers:
+The global architecture in its most simplified form is presented in the #ref(<global_system_design>). The system is broken down into three distinct layers:
 - The frontend layer manages user interaction and presentation of data, providing an intuitive interface for users to communicate with the system.
 - The backend layer is responsible for business logic, orchestrating AI agents, processing data, managing a database and handling requests from the frontend.
 - The external services layer provides access to third-party #acrpl("API"), a set of protocols and tools that allows different software components to communicate with each other, enabling the system to retrieve data from external platforms and services.
-#highlight("TODO: spécifier que database est redis ??")
+
 The layers are made up of various components. The basic dataflow between them is presented in the #ref(<global_dataflow>) below:
 #figure(
   table(
@@ -369,13 +371,15 @@ Accordingly, the conversational context is modeled as a single object that is up
   caption: "Conversation state",
 ) <conversational_state>
 
-#highlight("TODO: PARLER OLLAMA MGL")
 #highlight("TODO: virer double définition ?")
 
 The different agents leverage #acrpl("RLM"), a type of LLM designed to tackle problems by breaking them into logical steps, mimicking human reasoning.
 Compared to standard language models, they are particularly valuable for tasks that require logical deduction and planning but come with notable drawbacks as they are typically more computationally intensive, leading to higher operational costs and increasing latency in response times.
 
-By constraining the conversational state and narrowing the scope of each agent, it is possible to reduce the computational load and latency by simply swapping out these large reasoning models by smaller, better-suited models.
+To address this challenge, the architecture is intentionally designed to reduce the number of language model calls whenever possible.
+Although these models show very strong capabilities, their usage can be excessive for certain tasks and lead to increased costs and latency.
+
+By constraining the conversational state and narrowing the scope of each agent, it is also possible to reduce the computational load and latency by simply swapping out these large reasoning models by smaller, better-suited models.
 Doing so, it becomes possible to select reasoning models that are better suited to specific tasks while reducing the computational costs.
 
 #figure(image("figs/ai_agent_system_design.svg", width: 100%), caption: "AI agent architecture")<ai_agent_design>
@@ -384,22 +388,46 @@ Doing so, it becomes possible to select reasoning models that are better suited 
 The architecture in the #ref(<ai_agent_design>) above is modeled after a #acr("FSM"), where each node represents an agent and each edge represents a transition that is either always executed (solid) or conditionally executed (dashed). The dynamic flow of control between agents is guided by the evolving conversational state. It is finite, per definition, as the state takes value in a discrete set.
 
 On the implementation-side, LangGraph#footnote("https://www.langchain.com/langgraph"), an open-source Python framework, is used to implement the AI agent architecture. Unlike linear pipelines, LangGraph uses a graph abstraction by default, which is particularly well-suited for this state machine architecture.
-This graph-based structure brings determinism to the system’s behavior as the flow between agents is defined by the architecture itself, rather than being dynamically determined by agent-to-agent conversations as in frameworks like Microsoft's AutoGen#footnote("https://www.microsoft.com/en-us/research/project/autogen/"). Another framework that had been considered was PydanticAI#footnote("https://ai.pydantic.dev/") which offers a structured, type-safe approach to building agent systems by leveraging Pydantic models for inter-agent communication and behavior definitions. However, it lacks the built-in support for complex state transitions.
+
+This graph-based structure brings determinism to the system’s behavior as the flow between agents is defined by the architecture itself, rather than being dynamically determined by agent-to-agent conversations as in frameworks like Microsoft's AutoGen#footnote("https://www.microsoft.com/en-us/research/project/autogen/").
+
+Another framework that had been considered was PydanticAI#footnote("https://ai.pydantic.dev/") which offers a structured, type-safe approach to building agent systems by leveraging Pydantic models for inter-agent communication and behavior definitions. However, it lacks the built-in support for complex state transitions.
 
 All of the available multi-agent AI frameworks are relatively novel and in constant evolution. LangGraph benefits from being built on top of the already renowned LangChain#footnote("https://www.langchain.com/") ecosystem which adds to its reliability and ease of integration with other technologies.
 Pydantic’s type safety will still be implemented within the project to enhance data validation and error handling.
 
-The main responsibility of each agent is as follows:
-- The *Intent Router* routes the user's query to the appropriate agents and accumulates query context.
-- The *Clarify Query* clarifies the user's query if it is ambiguous or incomplete.
-- The *Geocontext Retriever* retrieves the geospatial data relevant to the request.
-- The *Guidelines Retriever* retrieves the relevant energy planning guidelines relevant to the query.
-- The *Strategy Planner* plans the energy strategy based on the retrieved data and guidelines.
-- The *Critic Answer* evaluates the proposed energy planning strategy and possibly restarts the whole process.
-#highlight("TODO: plus en détails ?")
+Naturally, the framework requires integration with a language model provider to operate effectively and exploit their capabilities.
 
-The various prompts are included in the appendix.
-#highlight("TODO: mettre autre part cette info?")
+The system leverages Ollama#footnote("https://ollama.com/"), a lightweight, open-source platform designed for running language models on a local machine.
+It offers a wide range of pre-built models, facilitating the integration and experimentation with models of different sizes and capabilities.
+
+While other solutions such as VLLM#footnote("https://docs.vllm.ai/en/latest/") may offer greater performance and reduce overall latency in the application, Ollama stands out with its support for hot-swapping models, a feature that enables the dynamic switching between models, _on-the-fly_.
+This is particularly valuable in the scenario of multi-agents architectures, where different agents may need models with specific abilities.
+
+On the counterpart, only open-source models are supported, naturally limiting the selection of models, although it also prevents vendor lock-in.
+
+Overall, it provides an easy-to-use and flexible approach for experimenting with language models.
+
+Finally, the choice of database, in the system architectures (#ref(<global_system_design>) and #ref(<ai_agent_design>)) is primarily influenced by the nature of the data to be stored and the more general use-case.
+
+In this work, the database is used to store and retrieve structured documents. It holds user preferences, usage statistics and vector embeddings for documents, enabling the retrieval of semantically related information.
+
+The choice was made towards Redis OSS#footnote("https://redis.io/"), an open-source, in-memory data store especially known for its versatility and performance.
+Redis supports a variety of data structures, including documents which provide a flexible schema for structured data and the newly introduced vectors.
+
+Its memory-first approach and indexing capabilities enable low latency, ideal for multi-agent systems where information must be retrieved in real-time.
+
+Unlike more specialized databases like Pinecone#footnote("https://www.pinecone.io/") or Qdrant#footnote("https://qdrant.tech/qdrant-vector-database/"), Redis provides a unified, mature and versatile architecture suitable for multiple purposes.
+
+Now that the general technological tools have been covered, the next sections provide an in-depth explanation of the multi-agent architecture.
+
+Before that, the main responsibilities of each agent are as follows:
+- The _intent router_ routes the user's query to the appropriate agents and accumulates query context.
+- The _clarify query_ clarifies the user's query if it is ambiguous or incomplete.
+- The _geocontext retriever_ retrieves the geospatial data relevant to the request.
+- The _guidelines retriever_ retrieves the relevant energy planning guidelines relevant to the query.
+- The _strategy planner_ plans the energy strategy based on the retrieved data and guidelines.
+- The _critic_ evaluates the proposed energy planning strategy and possibly restarts the whole process.
 
 With the overall solution defined, the following sections dig in the details of each agent and their implementation.
 
@@ -411,15 +439,16 @@ Upon receiving a user prompt, the agent analyzes the query to extract its underl
 - The intent: specifies whether the query is "factual" (for e.g. requesting data) or "actionable" (seeking planning guidance, recommendations, or strategic advice).
 - The location: the municipality name mentioned in the user request, if available.
 - The aggregated query: a summary that combines all available context from the current conversation and the previous query into a single one.
-- The conversation type: identifies the conversational context ; "new_analysis" (fresh query), "correction_request" (user questions the accuracy of a previous response) or 'follow_up' (user requests additional detail or expansion on the same topic).
+- The conversation type: identifies the conversational context ; "new_analysis" (fresh query), "correction_request" (user questions the accuracy of a previous response) or "follow_up" (user requests additional detail or expansion on the same topic).
 - The need for clarification: defines whether more information is needed to understand what users wants (e.g., missing location, unclear intent, or vague request).
 - The needs for memoization: specifies if the user provided explicit preferences, corrections to assumptions, or scope refinements that should be remembered for future queries (for e.g. the format used to summarize the retrieved data or only considering a single aspect from certain data points).
 
 Implementation-wise, the output of the language model is constrained to a single Pydantic#footnote("https://docs.pydantic.dev/latest/") data schema.
-While these models typically generate natural language responses, these complex multi-agent systems benefit from a structured output format that can easily be further processed.
-This is possible thanks to OpenAI#footnote("https://openai.com/"), introducing the support for structured outputs in late 2024, a feature that has since been adopted by many providers.
+While language models typically generate natural language responses, these complex multi-agent systems benefit from a structured output format that can easily be further processed.
 
-The instructions #ref(<intent_router_prompt_system>) and #ref(<intent_router_prompt_user>) are designed to guide the language model on how to generate the correct output.
+This is possible thanks to OpenAI#footnote("https://openai.com/"), introducing the support for structured outputs in late 2024, a feature that has since been adopted by many providers. Pydantic enables this by providing a simple way to define data models and validate data, ensuring the output format is consistent.
+
+The instructions #ref(<intent_router_prompt_system>) and #ref(<intent_router_prompt_user>) are designed to guide the language model on how to generate the correct output#footnote("All prompts are included in the appendix.").
 Few-shot prompting helps the language model by providing examples on how to complete the task, helping it generalize to subsequent prompts.
 In this context, it facilitates the definition of the _aggregated_query_ and _needs_memoization_ fields.
 
@@ -439,20 +468,15 @@ When there is a need for memoization, the system stores both the previous query 
 This highlights the interfaces of the intent router, as detailed in the #ref(<intent_router_design>) below:
 #figure(image("figs/intent_router_design.svg", width: 80%), caption: "Intent router, interfaces")<intent_router_design>
 
-#highlight("TODO: détail déf pydantic ??")
-#highlight("TODO: parler que store parallèle ??")
-#highlight("TODO: parler quelque part d'async??")
-#highlight("TODO: parler au dessus coûte cher de faire un appel LLM")
-
 An assumption still lies in the nature of the field _location_ as it is assumed to either be set or unset. A set location does not necessarily imply that it is a valid municipality, inscribed in the published Swiss official commune register#footnote("https://www.bfs.admin.ch/bfs/en/home/basics/swiss-official-commune-register.html").
 A solution is proposed in the section #ref(<geocontext_retriever>, supplement: it => it.body).
 
 Finally, the query is routed according to the #ref(<ai_agent_design>):
 - If clarification is needed (either because the need for clarification is explicitly requested, or fields are missing), the request is sent to the clarify query agent (2).
-- If the conversation type is a correction request, the query is sent to the geocontext retriever agent (4).
-- If the intent is said to be actionable, the request is sent to both the geocontext retriever and the guidelines retriever agents, concurrently - (4) and (5).
+- If the conversation type is a correction request, the query is sent to the geocontext retriever agent (4) as it implies a re-assessment of the response without extra information.
+- If the intent is said to be actionable, the request is sent to both the geocontext retriever and the guidelines retriever agents, concurrently -(4) and (5)- enabling guideline-compliant responses.
 - Otherwise, the query is sent to the geocontext retriever agent (4).
-#highlight("TODO: mieux expliquer routing et pourquoi comme ça")
+
 With the aim of the user's query now clearly defined, the next step is to address any ambiguities or missing information with the clarification agent.
 
 ==== Clarify Query
@@ -787,7 +811,7 @@ At this stage, every bit of information that is needed to establish a proper ene
 The user's prompt has been broken down and analyzed with relevant data points and guidelines retrieved and processed.
 
 In the #ref(<intent_router>, supplement: it => it.body) section, the _intent_ field is defined to either be factual (requesting data) or actionable (seeking planning guidance, recommendations, or strategic advice).
-This distinction is crucial as it allows the agent to differentiate between the two tasks, the latter being more expensive because of the extra complexity of correlating guidelines and data to concretize a strategy.
+This distinction is crucial as it allows the agent to differentiate between the two tasks, the latter being more expensive in computational resources because of the extra complexity of correlating guidelines and data to concretize a strategy.
 
 Factual queries still contribute to the final goal of establishing an energy planning strategy as it enables users to assess the profile of the municipality and subsequently refine and guide the system into a more effective and informed strategy.
 
