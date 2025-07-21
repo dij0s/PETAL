@@ -107,17 +107,15 @@ And to those who sacrificed so much for us, THANK YOU.
 
 Human-driven activities are the principal cause of climate change and global warming #ref(<EvidenceNASAScience2022>).
 
-Climate change and other environmental issues arise as a result of human-driven activities.
-
 Scientists have monitored this matter and proposed various frameworks to address and mitigate these problems. In Switzerland, these different frameworks are implemented in the legislation and guidelines (at federal and canton levels) to steer the country towards a more sustainable future.
-Municipalities may introduce in their regulations energy requirements that are more constraining than those set by the cantonal law as per article 12, al. 5 of #ref(<RS7301Loia>).
+Municipalities may introduce in their regulations energy requirements that are more constraining than those set by the cantonal law as per article 12, al. 5 #ref(<RS7301Loia>).
 
 == Context
 
 Municipalities in Switzerland are required to submit an energy planning document which outlines their future strategies to comply with those directives while also considering the characteristics of their energetical landscape.
 
-These different properties can be quantified and analyzed through the use of a very valuable resource: data.
-Data is emitted by various sources ; sensors, energy models or citizens' records for example all yield data points that help us assess different indicators we are willing to measure against our municipality. These indicators, _in fine_, help us evaluate our progress towards energy-related goals.
+These different properties can be quantified and analyzed through the use of very valuable resources: data.
+Data are emitted by various sources ; sensors, energy models or citizens' records for example all yield data points that help us assess different indicators we are willing to measure against our municipality. These indicators, _in fine_, help us evaluate our progress towards energy-related goals.
 
 Over the past few years, #acr("AI") has rapidly transformed our habits when interacting with information.
 
@@ -353,7 +351,7 @@ The layers are made up of various components. The basic dataflow between them is
   caption: "Global system dataflow",
 ) <global_dataflow>
 
-The nature and type of data that is exchanged between the AI agent and both the local database and third-party APIs will be later discussed.
+The nature and type of data that are exchanged between the AI agent and both the local database and third-party APIs will be later discussed.
 
 Components are designed as modular and independent services, each containerized using Docker#footnote("https://www.docker.com/"), first released in 2013 by Docker Incorporated.
 
@@ -475,7 +473,7 @@ Since the application must offer a conversational experience, the previously det
 Past fields are only updated if they differ from the new ones. As such, context and knowledge is properly accumulated over time.
 Once the municipality is provided, for example, it is not needed anymore as the request is assumed to concern the same municipality.
 
-On the other hand, when a request treats a different municipality, both the _context_tools_ and _context_constraints_ defined in #ref(<conversational_state>) are reset. This way, the data associated with the previously discussed municipality is cleared.
+On the other hand, when a request treats a different municipality, both the _context_tools_ and _context_constraints_ defined in #ref(<conversational_state>) are reset. This way, the data associated with the previously discussed municipality are cleared.
 To ensure correct implementation, whenever a request concerns a different municipality, both the _context_tools_ and _context_constraints_ defined in #ref(<conversational_state>) are reset. This means the geospatial data and guidelines previously associated with the conversation are cleared.
 
 On top of that, user-provided feedback and corrections shape the system's behavior allowing it to adapt to the user's preferences.
@@ -516,7 +514,7 @@ Energy planning as defined in the solution requires assessing the energy resourc
 Before profiling the municipality, it is essential to identify the different public datasources that are available.
 Throughout its federal and cantonal institutions, Switzerland provides a wide range of public data such as GeoAdmin#footnote("geo.admin.ch"), the geographic information platform of the Confederation which offers direct access to geospatial data and maps.
 
-The data originates from various offices commissioned by the Confederation:
+The data originate from various offices commissioned by the Confederation:
 - Swiss Federal Office of Energy (SFOE)
 - Federal Office for Spatial Development (ARE)
 - Federal Office of Topography (swisstopo)
@@ -526,7 +524,7 @@ The data originates from various offices commissioned by the Confederation:
 The GeoAdmin API#footnote("https://api3.geo.admin.ch/index.html") provides a standardized interface for querying and manipulating geospatial data and relies on fair usage policies (20 requests per minute on a 24/7 average).
 The datasets are also available for download.
 
-The choice has been made to use the GeoAdmin API instead of downloading and maintaining local datasets as it ensures (1) that the data is always up to date and (2) removes the need for additional setup and maintenance of a dedicated geospatial database, a task that is particularly time-consuming in such a short time frame.
+The choice has been made to use the GeoAdmin API instead of downloading and maintaining local datasets as it ensures (1) that the data are always up to date and (2) removes the need for additional setup and maintenance of a dedicated geospatial database, a task that is particularly time-consuming in such a short time frame.
 
 In a real-world scenario, exploiting data locally allows for preprocessing and aggregation which significantly reduces latency during user interactions.
 
@@ -535,7 +533,7 @@ On the other hand, periodic updates would be necessary to ensure the data remain
 
 Although the solution does not require such implementations, it remains essential to understand how geographical data is structured and the key concepts behind it.
 
-Datasets are labeled as layers, as the data is organized according to the geospatial paradigm. Data is discretized into points, meshes, polygons and other spatial representations, all collectively referred to as features.
+Datasets are labeled as layers, as the data are organized according to the geospatial paradigm. Data are discretized into points, meshes, polygons and other spatial representations, all collectively referred to as features.
 
 Those features are independent geometries located in the space, without inherent relationships.
 Thus, identifying relevant features within a municipality implies searching them inside its geographic boundaries, since no relation lies between these entities.
@@ -649,7 +647,7 @@ The #ref(<datasets_table>) presents the datasets incorporated in the solution an
 
 Leveraging these datasets provides the necessary information to assess the energy needs, potential, and infrastructure within the municipality and establish a baseline profile for energy planning.
 
-The discretization of the different datasources showcases the importance of spatial tiling when dealing with this data.
+The discretization of the different datasources showcases the importance of spatial tiling when dealing with these data.
 
 In the average municipality, certain features are few and easily assessable whereas it is impossible to retrieve meaningful insights from the greater-resolution datasets (for e.g. the suitability of roofs, per roof pane) without additional processing or aggregation.
 
@@ -676,7 +674,7 @@ Choosing the sampling size and confidence level is important for a proper statis
 
 As such, only the suitability of roofs and facades for use of solar energy is estimated using this technique as they are both datasets which showcase potential of exploitation rather than precise measurements on top of being well distributed in the geographic space. The confidence level in this case is set to 80%.
 
-With the data standardized and properly aggregated, the geocontext retriever agent must now be able to interact with it.
+With the data standardized and properly aggregated, the geocontext retriever agent must now be able to interact with them.
 
 Previously, AI agents were described as autonomous systems able to operate and make decisions independently. These operations rely on tools.
 
@@ -714,7 +712,7 @@ In the section #ref(<intent_router>, supplement: it => it.body), the validity of
 - If the location is non-valid, retrieving data raises an error and the request is routed to the clarify query agent (6).
 - Otherwise, the query is sent to the strategy planner agent (7).
 
-Once the relevant data is gathered, the next stage is for the strategy planner agent to analyze this information to conduct proper planning.
+Once the relevant data are gathered, the next stage is for the strategy planner agent to analyze this information to conduct proper planning.
 
 ==== Guidelines Retriever <guidelines_retriever>
 
@@ -733,7 +731,7 @@ These documents are specifically designed and structured to convey information t
 Visual structure does not necessarily imply a logical flow of information. A document can look and feel organized but still lack a proper machine readable structure.
 In practice, it is neither realistic nor scalable to expect a human to manually extract all the key information needed for energy planning from such complex documents. Therefore, it becomes essential to delegate this task to the computer, enabling automated extraction and processing of documents.
 
-When data lacks clear structure, it becomes difficult to extract information using algorithms or systematic procedures. However, advances in #acrpl("MLLM") offer a solution as these models are designed to process and understand information presented in various modalities such as text, images, audio and video.
+When data lack clear structure, it becomes difficult to extract information using algorithms or systematic procedures. However, advances in #acrpl("MLLM") offer a solution as these models are designed to process and understand information presented in various modalities such as text, images, audio and video.
 
 Paired with existing methods that are able to extract raw text from these documents, it has become easier to extract precise information from visually organized and heterogeneous documents by understanding not only the way information is displayed but also its underlying semantic meaning.
 
@@ -1013,7 +1011,7 @@ This might be seen as a good thing, as it guarantees consistency in the output b
 While this ensures consistent output, it also reduces the flexibility and adaptability of the system to put into service all user preferences.
 These instructions are distinguished into two categories: presentation directives (1) and effective instructions (2).
 
-Presentation directives define how the data should be formatted (table, bullet points, etc.) and which aspects of the data should be prioritized or highlighted. This structures the response and emphasizes specific details that are key to the users.
+Presentation directives define how the data shall be formatted (table, bullet points, etc.) and which aspects of the data shall be prioritized or highlighted. This structures the response and emphasizes specific details that are key to the users.
 
 Effective instructions, on the other hand, may attempt to substitute the official data sources retrieved by the system with user-provided knowledge or simply refine and guide the output of the system to better align with user needs.
 
@@ -1485,6 +1483,7 @@ However, this may also allude to an asymmetry in how the evaluation criteria are
 Data interpretation and methodology alignment may be inherently biased towards actionable prompts due to their nature of requiring more nuanced reasoning and context understanding, reinforcing previous concerns regarding the definition of the criteria.
 
 Alongside the qualitative scoring of the expert, annotations were also collected.
+#highlight("TODO: donner résultats raw expert + benchmarking?")
 #highlight("TODO: vérifier abus de langage variables qualitatives -> ordinales OK mais quantitatives?")
 
 The feedback highlights recurring issues observed in the testcase, emphasizing certain systematic weaknesses in the solution:
