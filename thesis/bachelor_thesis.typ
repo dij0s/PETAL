@@ -160,11 +160,11 @@ On top of that, related work in the field of AI-assisted urban planning is prese
 
 #highlight("TODO: dire que ne fait que présenter overview")
 
-#acrpl("LLM") represent a major breakthrough in the field of natural language processing#ref(<vaswaniAttentionAllYou2023>).
+#acrpl("LLM") represent a major breakthrough in the field of natural language processing #ref(<vaswaniAttentionAllYou2023>).
 These models, at their heart, are designed to predict the next word in a sequence, based on previous ones.
 
 By processing sequential text data, they are able to understand context and generate coherent text in response.
-Modern language models are trained on large amounts of text data prior to the integration of human feedback, aligning their outputs with human preferences#ref(<ouyangTrainingLanguageModels2022>).
+Modern language models are trained on large amounts of text data prior to the integration of human feedback, aligning their outputs with human preferences #ref(<ouyangTrainingLanguageModels2022>).
 
 Since their introduction to the public, significant evolutions in their architectures and capabilities have been observed.
 
@@ -173,7 +173,7 @@ Notably, #acrpl("RLM") enable more systematic problem-solving and logical deduct
 Language models are available in any shape, form and size, ranging from small to large models. Their number of parameters range from a few million to hundreds of billions for the largest.
 More parameters enable more complex and nuanced language understanding and generation, at the cost of greater computational demand.
 
-#acr("RAG"), on the other hand, addresses a fundamental limitation of language models#ref(<lewisRetrievalAugmentedGenerationKnowledgeIntensive2021>). As LLMs are trained on static datasets, they lack knowledge in domain-specific information.
+#acr("RAG"), on the other hand, addresses a fundamental limitation of language models #ref(<lewisRetrievalAugmentedGenerationKnowledgeIntensive2021>). As LLMs are trained on static datasets, they lack knowledge in domain-specific information.
 Therefore, RAG systems overcome this limitation by combining the generative capabilities of these models with external knowledge retrieval, enabling them to ground their responses in up-to-date, factual information.
 
 The RAG pipeline consists of three components:
@@ -181,7 +181,7 @@ The RAG pipeline consists of three components:
 2. Augmentation: retrieved information is incorporated into the context of the model.
 3. Generation: responses are produced based on both the original query and retrieved knowledge.
 
-Vector embeddings play a crucial role in these implementations, transforming documents into high-dimensional mathematical representations that capture semantic meaning and enable efficient search#ref(<mikolovEfficientEstimationWord2013>).
+Vector embeddings play a crucial role in these implementations, transforming documents into high-dimensional mathematical representations that capture semantic meaning and enable efficient search #ref(<mikolovEfficientEstimationWord2013>).
 
 Furthermore, AI agents represent autonomous software systems that perceive their environment, make decisions and take actions to achieve specified goals.
 In the context of LLM-based applications, these agents leverage natural language understanding to perform complex multi-step tasks with minimal to no human intervention.
@@ -193,7 +193,7 @@ With the technological foundation established, the next section reviews related 
 
 == Related Work
 
-The AI Institute at ITMO University published a paper in 2025 titled _LLM Agents for Smart City Management: Enhancing Decision Support Through Multi-Agent AI Systems_#ref(<kalyuzhnayaLLMAgentsSmart2025>). The study examines how the natural language processing strengths of LLMs, combined with the distributed problem-solving abilities of multi-agent systems, can enhance urban decision-making processes.
+The AI Institute at ITMO University published a paper in 2025 titled _LLM Agents for Smart City Management: Enhancing Decision Support Through Multi-Agent AI Systems_ #ref(<kalyuzhnayaLLMAgentsSmart2025>). The study examines how the natural language processing strengths of LLMs, combined with the distributed problem-solving abilities of multi-agent systems, can enhance urban decision-making processes.
 
 The research focused on the testing of three hypotheses: (1) evaluating the capability of LLM agents to effectively route and process diverse urban queries against existing urban information systems, (2) the effectiveness of #acr("RAG") technology in improving response accuracy when working with local knowledge and regulations and (3) the impact of integrating LLM agents with existing urban information-systems - increasing efficiency and decreasing the decision making process time.
 
@@ -720,11 +720,11 @@ Once the relevant data is gathered, the next stage is for the strategy planner a
 
 The sole difference between enumerating the data, as collected in the geocontext retriever and proper energy planning lies in the measures that are taken in response to identified issues. Those measures are conditioned by guidelines, broken down into multiple sources.
 
-The primary document called _Vision 2060 et objectifs 2035_#ref(<StrategieEnergetiqueEnergie>) has been adopted in 2019 and sets intermediate targets for 2035 that take into account the energetical landscape of Valais/Wallis, current knowledge, as well as federal energy and climate policies with the ultimate goal of achieving a 100% renewable and indigenous energy supply in 2060.
+The primary document called _Vision 2060 et objectifs 2035_ #ref(<StrategieEnergetiqueEnergie>) has been adopted in 2019 and sets intermediate targets for 2035 that take into account the energetical landscape of Valais/Wallis, current knowledge, as well as federal energy and climate policies with the ultimate goal of achieving a 100% renewable and indigenous energy supply in 2060.
 
-Moreover, the _Plan directeur 2019_#ref(<PlanDirecteurCantonala>) adopted by the federal council on the 1st of May 2019, states the strategy for the canton's territorial development in the form of 49 information sheets, distributed across the five activity sectors: (1) _Agriculture, forest, landscape and nature_, (2) _Tourism and leisure_, (3) _Urbanization_, (4) _Mobility and transport infrastructure_ and (5) _Supply and other infrastructure_.
+Moreover, the _Plan directeur 2019_ #ref(<PlanDirecteurCantonala>) adopted by the federal council on the 1st of May 2019, states the strategy for the canton's territorial development in the form of 49 information sheets, distributed across the five activity sectors: (1) _Agriculture, forest, landscape and nature_, (2) _Tourism and leisure_, (3) _Urbanization_, (4) _Mobility and transport infrastructure_ and (5) _Supply and other infrastructure_.
 
-Finally, the legal framework is defined by two key legislative documents. Notably, the _RS 705.1 - Loi sur les constructions (LC)_#ref(<RS7051Loia>) establishes the regulations for construction activities, while the _RS 730.1 - Loi sur l'énergie (LcEne)_#ref(<RS7301Loia>) defines the objectives and requirements for sustainable energy supply.
+Finally, the legal framework is defined by two key legislative documents. Notably, the _RS 705.1 - Loi sur les constructions (LC)_ #ref(<RS7051Loia>) establishes the regulations for construction activities, while the _RS 730.1 - Loi sur l'énergie (LcEne)_ #ref(<RS7301Loia>) defines the objectives and requirements for sustainable energy supply.
 
 ===== Preprocessing
 
@@ -744,7 +744,7 @@ As such, a systematic approach is applied when extracting information from these
 
 Qwen2.5-VL is a vision-language language model (multimodal) developed by Alibaba Cloud#footnote("https://www.alibabacloud.com/"), particularly well-suited for processing these complex documents.
 
-Introduced in March 2025, the model demonstrates strong performance, competing that of leading proprietary models in document parsing, structured data extraction and visual reasoning#ref(<baiQwen25VLTechnicalReport2025>).
+Introduced in March 2025, the model demonstrates strong performance, competing that of leading proprietary models in document parsing, structured data extraction and visual reasoning #ref(<baiQwen25VLTechnicalReport2025>).
 Consequently, it is able to interpret and analyze figures, plots, tables, etc.
 
 In addition, Qwen2.5-VL is completely open-source and available in compact versions (under 7 billion parameters), making it a great fit for the computational resources that are available.
@@ -755,7 +755,7 @@ These chunks are also translated into english, during the preprocessing step, by
 Finally, the extracted information from each page is encoded into an embedding and stored in the local database, along with its associated chunks and metadata.
 
 Generating embeddings also comes with its own costs, requiring specialized models capable of producing vector representations from text.
-As a result, the model nomic-embed-text, developed by Nomic AI#footnote("https://www.nomic.ai/"), is used for used high-performance english text embeddings#ref(<nussbaumNomicEmbedTraining2025>).
+As a result, the model nomic-embed-text, developed by Nomic AI#footnote("https://www.nomic.ai/"), is used for used high-performance english text embeddings #ref(<nussbaumNomicEmbedTraining2025>).
 
 It is capable of handling large context windows (the number of tokens that can be processed at once by the model, here 2000), enhancing its ability to capture semantic meaning and improve the quality of information retrieval.
 On top of that, it is open-source and available in Ollama, facilitating local deployment.
@@ -770,7 +770,7 @@ An issue still lies in how the guidelines themselves are _designed_. While the o
 
 Quantitative targets are typically described as such:
 #set quote(block: true)
-#quote(attribution: [Page 7, _Vision 2060 et objectifs 2035_#ref(<StrategieEnergetiqueEnergie>)])[Ces objectifs de consommation sont multipliés par le  nombre d’habitants pour obtenir la consommation pour  l’ensemble du canton, sans les besoins des grands sites industriels. La consommation d’énergie finale pourrait rester stable jusqu’en 2020 (7’960 GWh/a), puis diminuer de 23 % jusqu’en 2035 pour atteindre 6’095 GWh/a. La consommation d’énergie fossile sera amenée à diminuer drastiquement.]
+#quote(attribution: [Page 7, _Vision 2060 et objectifs 2035_ #ref(<StrategieEnergetiqueEnergie>)])[Ces objectifs de consommation sont multipliés par le  nombre d’habitants pour obtenir la consommation pour  l’ensemble du canton, sans les besoins des grands sites industriels. La consommation d’énergie finale pourrait rester stable jusqu’en 2020 (7’960 GWh/a), puis diminuer de 23 % jusqu’en 2035 pour atteindre 6’095 GWh/a. La consommation d’énergie fossile sera amenée à diminuer drastiquement.]
 Therefore, they must be scaled down to reflect the municipality’s specific context and expectations.
 
 Identifying which ones require rescaling is a challenging task, as it demands a comprehensive understanding of the broader context.
@@ -945,34 +945,26 @@ For each user prompt, the cumulated number of tokens that are input and output f
 
 The cumulative count of prompts and average token count per prompt are incrementally calculated and stored in the database.
 
-Along that, Welford's online algorithm allows for the calculation of the variance, in a single pass.
+Along that, Welford's online algorithm allows for the calculation of the variance, in a single pass (#ref(<welford>)).
 It defines a recurrence relation for updating the sum of squared differences from the current mean, allowing to compute the variance incrementally.
-#highlight("TODO: référencer wikipedia correctement")
-#highlight("TODO: inclure math ahahahha")
 
 This algorithm is numerically stable and does not require storing all the data points, reducing the memory footprint of the system.
 
 To sum up, the token utilization of users is tracked in the form of three metrics only: (1) the average token count per prompt, (2) the sum of squared differences from the current mean, from which the variance can be computed and (3) the cumulative count of prompts.
 
-When users prompt the AI, the cumulative token count for that run is monitored. This value is then compared against the user's sampled token utilization distribution using a z-score to measure how far the new usage deviates from the user's average.
+When users prompt the AI, the cumulative token count for that run is monitored. This value is then compared against the user's sampled token utilization distribution using the standard score (#ref(<zscore>)), a statistical measure that expresses how many standard deviations a value is from the mean, to measure how far the new usage deviates from the user's average.
+
 Accordingly, the token usage of the current prompt is categorized into one of the predefined categories: "bad", "average", or "good" ; each associated with a color pelet displayed in the interface.
-#highlight("TODO: mieux définir zscore??")
-#highlight("TODO: mettre les maths?")
 
 Moreover, an energy consumption analogy is presented alongside the pelet.
-A simple heuristic of 3 Joules per token is used to estimate the energy consumption of the current prompt.
-It is then expressed as the equivalent duration, in minutes, a 10 W LED light bulb could run with the same amount of energy.
+The research article _Beyond Test-Time Compute Strategies: Advocating Energy-per-Token in LLM Inference_ #ref(<wilhelmTestTimeComputeStrategies2025>) provides benchmarks indicating that language models of similar size, on average, consume 3 Joules of energy, per token, during inference.
 
-#highlight("TODO: CITER LE PAPIER ET LE METTRE DANS LA BIBLIOGRAPHIE")
-#highlight("TODO: mettre les maths?")
+As such, the energy consumption of the current prompt is estimated using the simple heuristic of 3 Joules per token.
+It is then expressed as the equivalent duration, in minutes, a 10 watt LED light bulb could run with the same amount of energy (#ref(<token_consumption>)).
 
 This implementation is strictly meant to raise awareness about the energy consumption associated with AI usage.
 In this solution, requesting factual data from the system is more energy-efficient than inquiring actionable planning.
 This is because factual queries involve fewer agents in the workflow defined in #ref(<ai_agent_design>).
-
-#highlight("TOOD: concept de persistance???")
-#highlight("TODO: mettre des screenshots?")
-#highlight("TODO: mettre un schéma?")
 
 With that, the implementation details of the web interface are clarified. This highlights its role as being on par with the AI agent solution itself.
 
@@ -1007,13 +999,12 @@ However, a bigger, more capable model was used in the strategy planner agent.
 Although not quantified in this context, larger models are generally better at processing complex accumulated context and providing more coherent interpretations.
 Recent research highlights that larger language models demonstrate superior emergent reasoning and contextual integration abilities.
 
-This is shown in the paper _Emergent Abilities of Large Language Models_#ref(<weiEmergentAbilitiesLarge2022>), published in the _Transactions of Machine Learning Research_, in 2022.
+This is shown in the paper _Emergent Abilities of Large Language Models_ #ref(<weiEmergentAbilitiesLarge2022>), published in the _Transactions of Machine Learning Research_, in 2022.
 These capabilities are relevant for the strategy planner agent which must synthesize large context to deduce energy planning insights and recommendations.
 
 To support this, greater models run on _Calypso_, a sandbox infrastructure designed and reserved for students of the bachelor program.
 Nevertheless, the largest model that fits on this infrastructure (around 8 billion parameters) remains relatively small compared to state-of-the-art large language models (>150 billion parameters).
-Exploring the use of -_really_- large language models in future work could yield improvements in interpretation and overall quality of the system.
-#highlight("TODO: mettre un exemple prompt mixin résutlats??")
+Exploring the use of -really- large language models in future work could lead to improvements in interpretation and overall quality of the system.
 
 Furthermore, a strong limitation of the solution is the inability of the user to provide and induce bias in the system#footnote("While no extensive jailbreaking or bias testing was conducted, all attempts made during the development process to introduce bias into the system were unsuccessful.").
 
@@ -1022,15 +1013,16 @@ While this ensures consistent output, it also reduces the flexibility and adapta
 
 These instructions are distinguished into two categories: presentation directives (1) and effective instructions (2).
 
-Presentation directives define how the data should be formatted (table, bullet points...) and which aspects of the data should be prioritized or highlighted. This structures the response and emphasizes specific details that are key to the users.
+Presentation directives define how the data should be formatted (table, bullet points, etc.) and which aspects of the data should be prioritized or highlighted. This structures the response and emphasizes specific details that are key to the users.
 
 Effective instructions, on the other hand, may attempt to substitute the official data sources retrieved by the system with user-provided knowledge or simply refine and guide the output of the system to better align with user needs.
+
 Informed users may provide more accurate and precise figures regarding the datasets referenced in #ref(<datasets_table>) but their contributions are completely ignored as the solution prioritizes its own retrieved data.
-#highlight("TODO: mettre un exemple de bias data qui marche pas")
+
+An example of this type of interaction can be found in #ref(<fake_data>).
 
 The system is guided by the different prompts to strictly operate based on the workflow defined in #ref(<ai_agent_design>) and offer assistance in energy planning tasks.
-Providing more detailed instructions in the response generation prompt may enable this behavior.
-#highlight("TODO: parler qqepart de prompt engineering?")
+Providing more detailed instructions in the prompt may enable this behavior.
 
 Finally, a stronger limitation is induced by the choice of agentic paradigm.
 Lately, coding agents, AI agents capable of autonomously generating and executing code, have gained popularity.
@@ -1196,7 +1188,7 @@ It is crafted by Prof. Jessen Page to support energy planning for the municipali
 
 With the groundwork established, the following section presents the results that will be discussed in the next chapter.
 
-Both the expert assessment and benchmarking are conducted using the version of the solution as of June 20, 2025#footnote[Code at commit `c2bea64` in the repository.], ensuring consistency and reliability in the evaluation process.
+Both the expert assessment and benchmarking are conducted using the version of the solution as of June 20, 2025#footnote[Code at commit `c2bea64` in the repository.], ensuring consistency and reliability in the evaluation process and reported conclusions.
 
 == Evaluation Results
 
@@ -1247,9 +1239,11 @@ A smaller configuration is defined for further comparison against the baseline.
 This baseline, a _larger_ configuration, leverages bigger language models for the strategy planner agent as introduced in the #ref(<limitations>, supplement: it => it.body) section.
 
 The general-purpose Qwen series offers tool-using abilities, reasoning and model size, making it the only currently available option in Ollama that is viable for running lightweight, yet capable agents.
-Deepseek models, on the other hand, are developed by Deepseek, a company funded by the High-Flyer#footnote("https://www.high-flyer.cn/") hedge fund and whose models support similar capabilities to Qwen.
-The R1 model (8 billion parameters) serves as the evaluator for all LLM-as-a-judge benchmarking. Using a model from a different family than the those in the individual agents helps minimize potential bias in the assessment.
-#highlight("TODO: expliquer que aurait été intéressant de comparer d'autres modèles mais pas possible")
+Deepseek models, on the other hand, are developed by Deepseek, a company funded by the High-Flyer#footnote("https://www.high-flyer.cn/") hedge fund and whose models support similar capabilities to Qwen. They are also open-source.
+
+The R1 model (8 billion parameters) serves as the evaluator for all LLM-as-a-judge benchmarking. Using a model from a different "family" than those in the individual agents helps minimize potential bias in the assessment.
+
+It is also the only other model available in Ollama that offers both reasoning and tool-using capabilities within the available computational resources.
 
 The #ref(<comparison_test_human_llm>) presents the results, showing both the expert assessment and G-eval benchmarking scores for all nine prompts, side by side and for both configurations:
 #set table(
@@ -1725,14 +1719,19 @@ At this stage, the solution shows promise and supports the potential for AI agen
   supplement: [Prompt],
 ) <benchmark_system_prompt>
 
-// Table of acronyms, NOT COMPULSORY
-#print-index(
-  title: heavy-title(i18n(doc_language, "acronym-table-title"), mult: 1, top: 1em, bottom: 1em),
-  sorted: "up",
-  delimiter: " : ",
-  row-gutter: 0.7em,
-  outlined: false,
-)
+#pagebreak()
+
+#heavy-title("Conversations", top: 1em, bottom: 1em)
+
+#let bias_conversation = read("code/conversation_bias.md")
+#figure(
+  code()[
+    #raw(bias_conversation, lang: "md")
+  ],
+  caption: "Biasing result through made up figures.",
+  kind: "conversation",
+  supplement: [Conversation],
+) <fake_data>
 
 #pagebreak()
 
@@ -1770,6 +1769,28 @@ $
 $ <qcd>
 
 $
+  overline(x)_n & = overline(x)_(n-1) + frac(x_n-overline(x)_(n-1), n)                              \
+        M_(2,n) & = M_(2,n-1)+(x_n-overline(x)_(n-1))(x_n-overline(x)_n)                            \
+           s_n² & =frac(M_(2,n), n-1)                                                               \
+                & "where" overline(x)_n "denotes the sample mean of the first" n "samples," M_(2,n) \
+                & "is the sum of squares of differences from the current mean"                      \
+                & "and" s_n² "the unbiased sample variance."
+$ <welford>
+
+$
+  z & = frac(x - mu, sigma)                                \
+    & "where" z "is the standard score,"                   \
+    & mu "is the mean of the population and"               \
+    & sigma "is the standard deviation of the population."
+$ <zscore>
+
+$
+  "Runtime"_"LED 10 W" & = frac(h(x), 10 * 60) ["minutes"]                   \
+                       & "where" h(x) = 3x ["J"] "is the heuristic meant to" \
+                       & "approximate the energy cost of" x "tokens."
+$ <token_consumption>
+
+$
   "Spearman coefficient of correlation" & = frac("cov"["R"[X]", R"[Y]], sigma_("R"[X])sigma_("R"[Y])) \
   & "where R"[X] "and" "R"[Y] "are the ranks of raw scores" (X_i,Y_i), \
   &"cov"["R"[X]", R"[Y]] "is the covariance of the rank variables"\
@@ -1777,6 +1798,15 @@ $
 $ <spearman>
 
 #pagebreak()
+
+// Table of acronyms, NOT COMPULSORY
+#print-index(
+  title: heavy-title(i18n(doc_language, "acronym-table-title"), mult: 1, top: 1em, bottom: 1em),
+  sorted: "up",
+  delimiter: " : ",
+  row-gutter: 0.7em,
+  outlined: false,
+)
 
 // Table of listings
 #table-of-figures()
