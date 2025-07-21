@@ -79,6 +79,19 @@ Le système démontre un potentiel pour soutenir les utilisateurs experts dans l
 #abstract-footer("fr")
 
 #cleardoublepage()
+#heavy-title("Artificial Intelligence notice")
+
+While generative artificial intelligence is the core of this work, it has also been a great help in assisting the following tasks: prompt engineering (1) and thesis report rewording (2)#footnote("The language models used for these tasks are GPT-4.1 (OpenAI) and Claude 3.7 (Anthropic).").
+
+The different prompts defined in the appendix were refined with the use of generative artificial intelligence. This strongly enhances the quality of the prompts, implementing prompt engineering techniques to ensure clear, concise and effective instructions.
+
+#ref(<prompt_creation>) defines typical directives that were given to the language model.
+
+On top of that, sentences in the following report were often revised with the assistance of a language model, improving their clarity and readability.
+
+Besides that, all other aspects of this work are my own.
+
+#cleardoublepage()
 // Get the proper title for acknowledgements if not written in English
 #heavy-title(context i18n(inc.global-language.get(), "acknowledgements"))
 
@@ -134,19 +147,6 @@ A user-friendly interface enables users to interact with the system in a convers
 Finally, user behavior is analyzed to takeaway user preferences which gradually adapt the answers to better meet the user expectations.
 
 This document outlines the methodology used to design and implement the solution, details the evaluation framework and presents the results, in relation to the research question.
-
-#cleardoublepage()
-#heavy-title("Artificial Intelligence notice")
-
-While generative artificial intelligence is the core of this work, it has also been a great help in assisting the following tasks: prompt engineering (1) and thesis report rewording (2)#footnote("The language models used for these tasks are GPT-4.1 (OpenAI) and Claude 3.7 (Anthropic).").
-
-The different prompts defined in the appendix were refined with the use of generative artificial intelligence. This strongly enhances the quality of the prompts, implementing prompt engineering techniques to ensure clear, concise and effective instructions.
-
-#ref(<prompt_creation>) defines typical directives that were given to the language model.
-
-On top of that, sentences in the following report were often revised with the assistance of a language model, improving their clarity and readability.
-
-Besides that, all other aspects of this work are my own.
 
 = State of the Art <state_of_art>
 
@@ -355,7 +355,12 @@ The layers are made up of various components. The basic dataflow between them is
 
 The nature and type of data that is exchanged between the AI agent and both the local database and third-party APIs will be later discussed.
 
-Having established a high-level understanding of the system's architecture, the following sections delve into the internal details of each component, starting with the heart of the solution: the AI agent.
+Components are designed as modular and independent services, each containerized using Docker#footnote("https://www.docker.com/"), first released in 2013 by Docker Incorporated.
+
+This novel approach introduced a lightweight containerization paradigm where each container is isolated from the host system and other containers, providing a consistent runtime environment.
+As such, the solution is easily portable from development to production.
+
+Now that the main components have been introduced, the following section describes the design and implementation of the AI system.
 
 === AI agent
 
@@ -721,6 +726,8 @@ Moreover, the _Plan directeur 2019_#ref(<PlanDirecteurCantonala>) adopted by the
 
 Finally, the legal framework is defined by two key legislative documents. Notably, the _RS 705.1 - Loi sur les constructions (LC)_#ref(<RS7051Loia>) establishes the regulations for construction activities, while the _RS 730.1 - Loi sur l'énergie (LcEne)_#ref(<RS7301Loia>) defines the objectives and requirements for sustainable energy supply.
 
+===== Preprocessing
+
 These documents are specifically designed and structured to convey information to the public and come in a single #acr("PDF") and are available in both french and german. They are organized into sections, subsections or paragraphs which reference figures, tables, plots, past paragraphs and so on.
 
 Visual structure does not necessarily imply a logical flow of information. A document can look and feel organized but still lack a proper machine readable structure.
@@ -757,6 +764,8 @@ With clear guidelines now extracted from documents of any format, it is necessar
 
 Preprocessing these documents and storing them in a database enables the RAG pattern to be leveraged as the agent may now retrieve the relevant information at query time to ground and align its responses with guidelines.
 
+===== Guidelines Interpretation
+
 An issue still lies in how the guidelines themselves are _designed_. While the objectives and figures outlined inside these documents concern the entire canton, this solution is only scoped to municipalities.
 
 Quantitative targets are typically described as such:
@@ -780,9 +789,6 @@ These interfaces are shown in the #ref(<guidelines_retriever_design>) below:
 )<guidelines_retriever_design>
 
 With the relevant guidelines retrieved and rescaled, the query is routed to the strategy planner agent (#ref(<ai_agent_design>), transition 7) which will use them as clear constraints.
-
-#highlight("TODO: mettre un premier chapitre preprocessing?")
-#highlight("TODO: reformuler et enlever les formulations 'we' ?")
 
 ==== Municipal Citizen Profile
 
@@ -898,8 +904,9 @@ A maximum of three attempts are allowed before the workflow is not restarted any
 
 At this point, the user's request has been answered and the system is ready to receive a new request, refining the proposed energy planning.
 
-This concludes the design and implementation of the AI agent responsible for energy planning.
-#highlight("TODO: conclusion plus longue jsp")
+This concludes the design and development of the AI solution. Together, the different components form a robust, multi-agent system that breaks down complex energy planning into smaller, more accessible tasks.
+
+The following section details the implementation choices for the web interface.
 
 === Web Interface
 
@@ -911,9 +918,7 @@ Therefore, a web interface was developed to provide a seamless experience for us
 
 On the development side, the interface was implemented using React#footnote("https://react.dev/"), a popular framework released by Facebook (now Meta) in 2013. React offers a declarative and efficient way to build user interfaces, offering a clean and modular approach using components.
 
-In reality, the choice of framework is not particularly critical in this context. Dozens of frameworks claim to revolutionize the way developers build web applications, but all lead to similar outcomes despite different approaches and philosophies. Past experiences with React and its ecosystem made it a comfortable and efficient choice for this project.
-
-#highlight("TODO: parler vite, bun et docker???")
+In reality, the choice of framework is not particularly critical in this context. Dozens of frameworks claim to revolutionize the way developers build web applications, but all lead to similar outcomes despite different approaches and philosophies. Past experiences with React and its ecosystem made it a comfortable and efficient choice for this work.
 
 The primary feature of the web interface is the ability to send a prompt to the AI system and have the response streamed back, in real time.
 This is achieved using #acr("SSE"), a one-way communication protocol where the server (here the AI agent) pushes events to the client.
