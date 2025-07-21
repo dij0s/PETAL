@@ -81,7 +81,7 @@ Le système démontre un potentiel pour soutenir les utilisateurs experts dans l
 #cleardoublepage()
 #heavy-title("Artificial Intelligence notice")
 
-While generative artificial intelligence is the core of this work, it has also been a great help in assisting the following tasks: prompt engineering (1) and thesis report rewording (2)#footnote("The language models used for these tasks are GPT-4.1 (OpenAI) and Claude 3.7 (Anthropic).").
+While generative artificial intelligence is the core of this work, it has also been a great help in assisting the following tasks: (1) prompt engineering and (2) thesis report rewording#footnote("The language models used for these tasks are GPT-4.1 (OpenAI) and Claude 3.7 (Anthropic).").
 
 The different prompts defined in the appendix were refined with the use of generative artificial intelligence. This strongly enhances the quality of the prompts, implementing prompt engineering techniques to ensure clear, concise and effective instructions.
 
@@ -115,25 +115,25 @@ Municipalities may introduce in their regulations energy requirements that are m
 Municipalities in Switzerland are required to submit an energy planning document which outlines their future strategies to comply with those directives while also considering the characteristics of their energetical landscape.
 
 These different properties can be quantified and analyzed through the use of very valuable resources: data.
-Data are emitted by various sources ; sensors, energy models or citizens' records for example all yield data points that help us assess different indicators we are willing to measure against our municipality. These indicators, _in fine_, help us evaluate our progress towards energy-related goals.
+Data are emitted by various sources; sensors, energy models or citizens' records for example all yield data points that help us assess different indicators we are willing to measure against our municipality. These indicators, _in fine_, help us evaluate our progress towards energy-related goals.
 
 Over the past few years, #acr("AI") has rapidly transformed our habits when interacting with information.
 
 == Problem
 
-#acrpl("LLM") allow users to interact with these systems in natural language facilitating the interface between humans and _machines_. They can provide insights into vast amounts of data at speed and scales which are beyond our capabilities.
+#acrpl("LLM") allow users to interact with these systems using natural language, facilitating the interface between humans and _machines_. They can provide insights into vast amounts of data at speeds and scales beyond human capabilities.
 
-This work tackles this exact problem that is the implementation of a solution which assists users into energy planning for a municipality.
+As a result, this work tackles the implementation of a solution which assists users into energy planning for a municipality.
 
 This complex problem is approached by leveraging the power of _specialized_ AIs which each offer expertise into a variety of domains and are coordinated using an _orchestration_ AI to provide a solution. The expertise of the user interacting with the system tailors this solution to the specificities of the municipality.
 
-The key steps in the engineering of this implementation are identifying the key information and datasources that are relevant to this process, structure the different AIs into an architecture whose components and interfaces are well-defined and ultimately implementing the solution.
+Key engineering steps in this implementation are: (1) identifying the primary information and data sources that are relevant to this process, (2) structuring the different AIs into an architecture whose components and interfaces are well-defined and (3) ultimately implementing the solution.
 
 == Objectives
 
-The main objective of this work is to investigate how effective and reliable such a solution is and to assess its strengths and weaknesses. Additional goals are also outlined:
+The main objective of this thesis is to investigate how effective and reliable such a solution is and to assess its strengths and weaknesses. Additional goals are also outlined:
 - Defining the important information in assisting user decision making.
-- Understanding which datasources are available and relevant for this decision making.
+- Understanding which data sources are available and relevant for this decision making.
 - Structuring the decision by using an orchestration AI and many specialized AIs.
 - Training specialized AIs on specialized datasets.
 - Simplifying the user interface by handling the communication between the orchestration AI and the specialized AIs.
@@ -210,20 +210,20 @@ Relevance scores, on the other hand, remain high whatever the configuration as t
 They also concluded that this research proved practical real-world city management application as it enables efficient processing of urban planning tasks while maintaining high relevance in responses and shortening task completion time from days to hours.
 
 The ITMO study presents a research-driven implementation of LLM agents focusing on decision support through integration with urban data platforms which curate and process urban data to provide insights and recommendations for urban planning and management.
-Rather than relying on these large-scale platforms, the present thesis explores the potential of leveraging publicly available data from federal and cantonal sources while also considering the interface with municipal archives and residents' files.
+Rather than relying on these large-scale platforms, the present work explores the potential of leveraging publicly available data from federal and cantonal sources while also considering the interface with municipal archives and residents' files.
 This work strongly values the user experience with efforts in enhancing conversational interactions through preference-driven reporting and improving the clarity and quality of reported decisions.
 It neither serves as a continuation nor a re-implementation of the ITMO study, but rather represents an independent application of AI agents to a related use case specifically adapted to the context of a Bachelor's thesis and shaped by my practical implementation choices and problem-solving approach.
 Any solution designed and implemented around similar goals and data-related constraints, regardless of the specificities of the use case, may result in an architecture that is somewhat similar.
 
-As we forget about the use case and consider more generic research on the matter, we encounter  publications that rather focus on the optimization of various aspects of AI agents, such as their scalability, efficiency and robustness. While this work tackles some of these challenges, it does not incorporate major research efforts into these areas.
+As we forget about the use case and consider more generic research on the matter, we encounter  publications that rather focus on the optimization of various aspects of AI agents, such as their scalability, efficiency and robustness. While this thesis tackles some of these challenges, it does not incorporate major research efforts into these areas.
 
 Another AI-centric solution relevant to this use case is aino#footnote("https://www.aino.world/"), described on their homepage as an _AI GIS Analyst for Urban planning teams_. Developed and marketed in the United States, it is a commercial business solution offering a platform where an AI analyzes sites and provides visual insights from simple questions. This solution inspired me into a few design and user experience improvements in my work as no implementation details are provided.
 
-These two points of view position this work within the fast-changing field of AI-driven solutions for urban planning and beyond.
+These two points of view position this project within the fast-changing field of AI-driven solutions for urban planning and beyond.
 
 = Methodology <methodology>
 
-The following chapter provides an overview of the methodology that has been adopted in this work and describes the approach taken to design, implement and further evaluate the proposed solution.
+The following chapter provides an overview of the methodology that has been adopted in this thesis and describes the approach taken to design, implement and further evaluate the proposed solution.
 A clear emphasis is put onto the key decisions that have shaped the solution throughout its development as this chapter aims to offer full transparency and reproducibility which enables readers to understand the rationale and structure behind it.
 
 == Requirements
@@ -236,7 +236,7 @@ Those are categorized into functional and non-functional requirements. Functiona
 The first step is to understand the problem that is solved. Energy planning typically involves:
 - Identifying available energy resources#footnote("The resources and needs are assessed within the geographical boundaries of the municipality, only."), infrastructure and untapped potential.
 - Characterizing the needs.
-- Assessing different measures and their impacts ; sobriety (reducing energy consumption), efficiency (more efficient technologies) and production of renewable energy sources.
+- Assessing different measures and their impacts; sobriety (reducing energy consumption), efficiency (more efficient technologies) and production of renewable energy sources.
 
 Hence, assisting users in energy planning requires a solution that can gather relevant data sources, analyze and present the current energy landscape of the municipality and provide actionable recommendations tailored to the context of the municipality while ensuring compliance with the legislation and guidelines it is subject to.
 
@@ -304,7 +304,7 @@ These requirements are summarized in the #ref(<requirements_table>):
 
     [Non-functional],
     [Extensibility and adaptability],
-    [The architecture must allow for the addition of new features and datasources as requirements evolve.],
+    [The architecture must allow for the addition of new features and data sources as requirements evolve.],
 
     [Non-functional],
     [Usability and accessibility],
@@ -328,14 +328,17 @@ A modular, scalable and adaptable architecture was designed to ensure that the s
 
 The following chapter covers both the design and the implementation aspects of the solution.
 
-#figure(image("figs/system_design_global.svg", height: 5cm), caption: "Global system design")<global_system_design>
+#figure(
+  image("figs/system_design_global.svg", height: 5cm),
+  caption: "Schematization of the global system design",
+)<global_system_design>
 
 The global architecture in its most simplified form is presented in the #ref(<global_system_design>). The system is broken down into three distinct layers:
 - The frontend layer manages user interaction and presentation of data, providing an intuitive interface for users to communicate with the system.
 - The backend layer is responsible for business logic, orchestrating AI agents, processing data, managing a database and handling requests from the frontend.
 - The external services layer provides access to third-party #acrpl("API"), a set of protocols and tools that allows different software components to communicate with each other, enabling the system to retrieve data from external platforms and services.
 
-The layers are made up of various components. The basic dataflow between them is presented in the #ref(<global_dataflow>) below:
+The layers are made up of various components. The basic dataflow between them is presented in the #ref(<global_dataflow>):
 #figure(
   table(
     columns: 3,
@@ -351,7 +354,7 @@ The layers are made up of various components. The basic dataflow between them is
   caption: "Global system dataflow",
 ) <global_dataflow>
 
-The nature and type of data that are exchanged between the AI agent and both the local database and third-party APIs will be later discussed.
+The nature and type of data that are exchanged between the AI agent and both the local database and third-party APIs are discussed in each individual segment, dedicated to the respective components.
 
 Components are designed as modular and independent services, each containerized using Docker#footnote("https://www.docker.com/"), first released in 2013 by Docker Incorporated.
 
@@ -362,21 +365,20 @@ Now that the main components have been introduced, the following section describ
 
 === AI agent
 
-In recent months, AI agents have gained traction with the rapid advancement of AI technologies and the increasing demand for personalized and intelligent services.
-As a result, the term "AI agent" has become a buzzword, with product designers frequently applying the label to a wide range of technologies.
+Recently, the term "AI agent" has become a buzzword, leading to frequent misuse.
+Most definitions (#ref(<WhatAreAI2024>), #ref(<WhatAreAI>)) agree that the key behavior that distinguishes AI agents from other solutions is their degree of autonomy as they are able to operate and make decisions independently to achieve a set goal.
 
-Most definitions agree that the key behavior that distinguishes AI agents from other solutions is their degree of autonomy as they are able to operate and make decisions independently to achieve a set goal.
 The complete solution whose sole task is urban energy planning aligns with this definition, as do each of its individual components. Therefore, the term "AI agent" will be used to describe both the entire system and its subsystems.
 
 Human conversations rely on context and prior knowledge and so does the system's architecture. To deliver a conversational experience, it is essential that the architecture is built to effectively preserve and re-use this context throughout the discussion.
 One might suggest that the straightforward approach to maintaining conversational context is to include all previous exchanges with the user. However, this method can be very inefficient and comes at great cost.
 
-LLMs rely on a self-attention mechanism to identify and concentrate on the most relevant parts of the input sequence. Each token, the basic unit of text (word, single character, group of words...) that is processed by the model, is assigned a weight reflecting its importance. This allows the model to prioritize relevant information and ignore irrelevant details.
+LLMs rely on a self-attention mechanism to identify and concentrate on the most relevant parts of the input sequence. Each token, the basic unit of text (word, single character, group of words, etc.) that is processed by the model, is assigned a weight reflecting its importance. This allows the model to prioritize relevant information and ignore irrelevant details.
 
 Hence, when the entire conversation history is provided to the model, important tokens may get lost in the larger context and potentially lead to incorrect responses (phenomenon called attention diffusion).
 
 Considering this, a more efficient approach is proposed, relying on a single key assumption: each conversation focuses exclusively on energy planning for one municipality at a time.
-Accordingly, the conversational context is modeled as a single object that is updated at every turn. It is defined in the #ref(<conversational_state>) below:
+Accordingly, the conversational context is modeled as a single object that is updated at every turn. It is defined in the #ref(<conversational_state>):
 #let destructured_state = read("code/destructured_state.py")
 #figure(
   code()[
@@ -399,7 +401,7 @@ Doing so, it becomes possible to select reasoning models that are better suited 
 #figure(image("figs/ai_agent_system_design.svg", width: 100%), caption: "AI agent architecture")<ai_agent_design>
 #highlight("TODO: vérifier partout que les réf. transitions sont bonnes")
 
-The architecture in the #ref(<ai_agent_design>) above is modeled after a #acr("FSM"), where each node represents an agent and each edge represents a transition that is either always executed (solid) or conditionally executed (dashed). The dynamic flow of control between agents is guided by the evolving conversational state. It is finite, per definition, as the state takes value in a discrete set.
+The architecture in the #ref(<ai_agent_design>) is modeled after a #acr("FSM"), where each node represents an agent and each edge represents a transition that is either always executed (solid) or conditionally executed (dashed). The dynamic flow of control between agents is guided by the evolving conversational state. It is finite, per definition, as the state takes value in a discrete set.
 
 On the implementation-side, LangGraph#footnote("https://www.langchain.com/langgraph"), an open-source Python framework, is used to implement the AI agent architecture. Unlike linear pipelines, LangGraph uses a graph abstraction by default, which is particularly well-suited for this state machine architecture.
 
@@ -453,7 +455,7 @@ Upon receiving a user prompt, the agent analyzes the query to extract its underl
 - The intent: specifies whether the query is "factual" (for e.g. requesting data) or "actionable" (seeking planning guidance, recommendations, or strategic advice).
 - The location: the municipality name mentioned in the user request, if available.
 - The aggregated query: a summary that combines all available context from the current conversation and the previous query into a single one.
-- The conversation type: identifies the conversational context ; "new_analysis" (fresh query), "correction_request" (user questions the accuracy of a previous response) or "follow_up" (user requests additional detail or expansion on the same topic).
+- The conversation type: identifies the conversational context; "new_analysis" (fresh query), "correction_request" (user questions the accuracy of a previous response) or "follow_up" (user requests additional detail or expansion on the same topic).
 - The need for clarification: defines whether more information is needed to understand what users wants (e.g., missing location, unclear intent, or vague request).
 - The needs for memoization: specifies if the user provided explicit preferences, corrections to assumptions, or scope refinements that should be remembered for future queries (for e.g. the format used to summarize the retrieved data or only considering a single aspect from certain data points).
 
@@ -462,7 +464,7 @@ While language models typically generate natural language responses, these compl
 
 This is possible thanks to OpenAI#footnote("https://openai.com/"), introducing the support for structured outputs in late 2024, a feature that has since been adopted by many providers. Pydantic enables this by providing a simple way to define data models and validate data, ensuring the output format is consistent.
 
-The instructions #ref(<intent_router_prompt_system>) and #ref(<intent_router_prompt_user>) are designed to guide the language model on how to generate the correct output#footnote("All prompts are included in the appendix.").
+The instructions in #ref(<intent_router_prompt_system>) and #ref(<intent_router_prompt_user>) are designed to guide the language model on how to generate the correct output#footnote("Please note that all prompts are included in the appendix.").
 Few-shot prompting helps the language model by providing examples on how to complete the task, helping it generalize to subsequent prompts.
 In this context, it facilitates the definition of the _aggregated_query_ and _needs_memoization_ fields.
 
@@ -479,13 +481,13 @@ To ensure correct implementation, whenever a request concerns a different munici
 On top of that, user-provided feedback and corrections shape the system's behavior allowing it to adapt to the user's preferences.
 When there is a need for memoization, the system stores both the previous query (the _corrected_) and the current query (the _correctee_), in the database.
 
-This highlights the interfaces of the intent router, as detailed in the #ref(<intent_router_design>) below:
+This highlights the interfaces of the intent router, as detailed in the #ref(<intent_router_design>):
 #figure(image("figs/intent_router_design.svg", width: 80%), caption: "Intent router, interfaces")<intent_router_design>
 
 An assumption still lies in the nature of the field _location_ as it is assumed to either be set or unset. A set location does not necessarily imply that it is a valid municipality, inscribed in the published Swiss official commune register#footnote("https://www.bfs.admin.ch/bfs/en/home/basics/swiss-official-commune-register.html").
-A solution is proposed in the section #ref(<geocontext_retriever>, supplement: it => it.body).
+A solution is proposed in the #ref(<geocontext_retriever>).
 
-Finally, the query is routed according to the #ref(<ai_agent_design>):
+Finally, the query is routed as shown in the #ref(<ai_agent_design>):
 - If clarification is needed (either because the need for clarification is explicitly requested, or fields are missing), the request is sent to the clarify query agent (2).
 - If the conversation type is a correction request, the query is sent to the geocontext retriever agent (4) as it implies a re-assessment of the response without extra information.
 - If the intent is said to be actionable, the request is sent to both the geocontext retriever and the guidelines retriever agents, concurrently -(4) and (5)- enabling guideline-compliant responses.
@@ -498,10 +500,10 @@ Clarifying and resolving vagueness in the user's query is essential to better un
 
 With the output of the intent router agent properly defined, the two cases which lead to the need for clarification are either an explicit request for clarification due to ambiguity or missing information.
 
-Those two cases are both handled at once as a language model is prompted with the user's query and missing fields to generate and stream a response inquiring for further information or clarification (#ref(<ai_agent_design>), transition 3). The interfaces are illustrated in the #ref(<clarify_query_design>) below:
+Those two cases are both handled at once as a language model is prompted with the user's query and missing fields to generate and stream a response inquiring for further information or clarification (#ref(<ai_agent_design>), transition 3). The interfaces are illustrated in the #ref(<clarify_query_design>):
 #figure(image("figs/clarify_query_design.svg", width: 80%), caption: "Clarify query, interfaces")<clarify_query_design>
 
-In the following turn, the newly provided information is merged with the previously deduced intent as designed and presented in the section #ref(<intent_router>, supplement: it => it.body).
+In the following turn, the newly provided information is merged with the previously deduced intent as designed and presented in the #ref(<intent_router>).
 
 This task is supported by both #ref(<clarify_query_system_prompt>) and #ref(<clarify_query_user_prompt>).
 
@@ -511,7 +513,7 @@ With no _structural_ ambiguity left in the user's query, the intent router agent
 
 Energy planning as defined in the solution requires assessing the energy resources, infrastructure, potential and needs within the municipality. The geocontext retriever is responsible for this task.
 
-Before profiling the municipality, it is essential to identify the different public datasources that are available.
+Before profiling the municipality, it is essential to identify the different public data sources that are available.
 Throughout its federal and cantonal institutions, Switzerland provides a wide range of public data such as GeoAdmin#footnote("geo.admin.ch"), the geographic information platform of the Confederation which offers direct access to geospatial data and maps.
 
 The data originate from various offices commissioned by the Confederation:
@@ -647,7 +649,7 @@ The #ref(<datasets_table>) presents the datasets incorporated in the solution an
 
 Leveraging these datasets provides the necessary information to assess the energy needs, potential, and infrastructure within the municipality and establish a baseline profile for energy planning.
 
-The discretization of the different datasources showcases the importance of spatial tiling when dealing with these data.
+The discretization of the different data sources showcases the importance of spatial tiling when dealing with these data.
 
 In the average municipality, certain features are few and easily assessable whereas it is impossible to retrieve meaningful insights from the greater-resolution datasets (for e.g. the suitability of roofs, per roof pane) without additional processing or aggregation.
 
@@ -664,13 +666,13 @@ The second issue is mitigated depending on the nature of the data. The basic app
 4. The confidence interval is computed using a T-distribution and confidence level (#ref(<confidence_interval>)).
 #set math.equation(numbering: "1.")
 
-This random geographical sampling process is depicted in the #ref(<sampling_design>) below:
+This random geographical sampling process is depicted in the #ref(<sampling_design>):
 #figure(
   image("figs/tiling_design.svg", width: 100%),
   caption: "Random geographical sampling, municipality of Grône",
 )<sampling_design>
 
-Choosing the sampling size and confidence level is important for a proper statistical estimation. In this work, both parameters are set empirically and kept relatively large to benefit from lower computational costs, but without optimizing for the best possible accuracy.
+Choosing the sampling size and confidence level is important for a proper statistical estimation. In this project, both parameters are set empirically and kept relatively large to benefit from lower computational costs, but without optimizing for the best possible accuracy.
 
 As such, only the suitability of roofs and facades for use of solar energy is estimated using this technique as they are both datasets which showcase potential of exploitation rather than precise measurements on top of being well distributed in the geographic space. The confidence level in this case is set to 80%.
 
@@ -698,7 +700,7 @@ As such, if the distribution of scores is too uniform, the tools are provided to
 This approach reduces the overall computational cost while increasing the quality of tool selection.
 #highlight("TODO: CHECKER VIM TEMP!!")
 
-With the appropriate tools chosen, the system can effectively retrieve the data. It is simply added to the _context_tools_ field in the conversational state (#ref(<conversational_state>)), as presented in the #ref(<geocontext_retriever_design>) below:
+With the appropriate tools chosen, the system can effectively retrieve the data. It is simply added to the _context_tools_ field in the conversational state (#ref(<conversational_state>)), as presented in the #ref(<geocontext_retriever_design>):
 #figure(
   image("figs/geocontext_retriever_design.svg", width: 80%),
   caption: "Geocontext retriever, interfaces",
@@ -708,7 +710,7 @@ Expanding the functionnalities of the geocontext retriever is straightforward: n
 
 Geospatial information is accumulated over the conversation turns, allowing for context-aware planning and consistent, spatially informed decisions. It is only reset when switching to a new municipality as it becomes invalid.
 
-In the section #ref(<intent_router>, supplement: it => it.body), the validity of the location is not confirmed. This is directly implemented in the different tools above and routing of this agent (#ref(<ai_agent_design>)):
+In the #ref(<intent_router>), the validity of the location is not confirmed. This is directly implemented in the different tools and routing of this agent (#ref(<ai_agent_design>)):
 - If the location is non-valid, retrieving data raises an error and the request is routed to the clarify query agent (6).
 - Otherwise, the query is sent to the strategy planner agent (7).
 
@@ -758,7 +760,7 @@ As a result, the model nomic-embed-text, developed by Nomic AI#footnote("https:/
 It is capable of handling large context windows (the number of tokens that can be processed at once by the model, here 2000), enhancing its ability to capture semantic meaning and improve the quality of information retrieval.
 On top of that, it is open-source and available in Ollama, facilitating local deployment.
 
-With clear guidelines now extracted from documents of any format, it is necessary to identify those that are relevant to the user's query. Since those are already embedded, the related guidelines are simply those that are closest to the embedded request in the vector space, as described in the #ref(<geocontext_retriever>, supplement: it => it.body) section is applied.
+With clear guidelines now extracted from documents of any format, it is necessary to identify those that are relevant to the user's query. Since those are already embedded, the related guidelines are simply those that are closest to the embedded request in the vector space, as described in the #ref(<geocontext_retriever>) is applied.
 
 Preprocessing these documents and storing them in a database enables the RAG pattern to be leveraged as the agent may now retrieve the relevant information at query time to ground and align its responses with guidelines.
 
@@ -768,7 +770,7 @@ An issue still lies in how the guidelines themselves are _designed_. While the o
 
 Quantitative targets are typically described as such:
 #set quote(block: true)
-#quote(attribution: [Page 7, _Vision 2060 et objectifs 2035_ #ref(<StrategieEnergetiqueEnergie>)])[Ces objectifs de consommation sont multipliés par le  nombre d’habitants pour obtenir la consommation pour  l’ensemble du canton, sans les besoins des grands sites industriels. La consommation d’énergie finale pourrait rester stable jusqu’en 2020 (7’960 GWh/a), puis diminuer de 23 % jusqu’en 2035 pour atteindre 6’095 GWh/a. La consommation d’énergie fossile sera amenée à diminuer drastiquement.]
+#quote(attribution: [_Vision 2060 et objectifs 2035_ #ref(<StrategieEnergetiqueEnergie>, supplement: [Page 7])])[Ces objectifs de consommation sont multipliés par le nombre d’habitants pour obtenir la consommation pour  l’ensemble du canton, sans les besoins des grands sites industriels. La consommation d’énergie finale pourrait rester stable jusqu’en 2020 (7’960 GWh/a), puis diminuer de 23 % jusqu’en 2035 pour atteindre 6’095 GWh/a. La consommation d’énergie fossile sera amenée à diminuer drastiquement.]
 Therefore, they must be scaled down to reflect the municipality’s specific context and expectations.
 
 Identifying which ones require rescaling is a challenging task, as it demands a comprehensive understanding of the broader context.
@@ -778,9 +780,9 @@ Finally, they are multiplied by a factor corresponding to the ratio of the munic
 While this is a straightforward way to scale targets, proper rescaling should take into account the economic activity, energy landscape and industrial presence in the municipality to ensure a more accurate adjustment.
 
 The adjusted guidelines are accumulated onto the _context_constraints_ field in the conversational state (#ref(<conversational_state>)).
-Similarly to the geospatial information described in the #ref(<geocontext_retriever>, supplement: it => it.body) section, the processed guidelines are accumulated in the state as the conversation goes on and only cleared when switching to a new municipality.
+Similarly to the geospatial information described in the #ref(<geocontext_retriever>), the processed guidelines are accumulated in the state as the conversation goes on and only cleared when switching to a new municipality.
 
-These interfaces are shown in the #ref(<guidelines_retriever_design>) below:
+These interfaces are shown in the #ref(<guidelines_retriever_design>):
 #figure(
   image("figs/guidelines_retriever_design.svg", width: 80%),
   caption: "Guidelines retriever, interfaces",
@@ -791,7 +793,7 @@ With the relevant guidelines retrieved and rescaled, the query is routed to the 
 ==== Municipal Citizen Profile
 
 Before delving into the strategy planner agent, it is necessary to assess how the solution could be enhanced by incorporating additional municipal data.
-This section is deliberately included in the #ref(<system_design>, supplement: it => it.body) chapter, as this aspect of the solution was envisioned from the start and a proof of concept has been developed.
+This segment is deliberately included in the #ref(<system_design>), as this aspect of the solution was envisioned from the start and a proof of concept has been developed.
 
 Switzerland has three levels of political authority: the Confederation (federal government), the cantons (states) and the communes (municipalities).
 
@@ -811,7 +813,7 @@ After being assessed and approved by the municipality, these applications are ad
 Moreover, municipalities are actively working to digitalize these processes.
 Currently, most documents are scanned and stored in a digital format (typically PDF).
 
-As described in the #ref(<guidelines_retriever>, supplement: it => it.body) section, MLLMs facilitate the extraction of information from these documents.
+As described in the #ref(<guidelines_retriever>), MLLMs facilitate the extraction of information from these documents.
 The only difference lies in how those models are leveraged.
 
 Instead of inquiring the model to summarize or retrieve key insight, a simple citizen profile that is valuable for energy planning is defined#footnote("This profile was defined with the help of the supervisors and could easily be extended.") and searched for, inside each page of the citizen's record (#ref(<municipal_citizen_profile>)):
@@ -823,7 +825,7 @@ Instead of inquiring the model to summarize or retrieve key insight, a simple ci
 
 In the end, the individual pages results are aggregated into a single resident energy profile.
 
-This procedure was tested against a typical citizen record, provided by Prof. Jessen Page. The #ref(<citizen_profile_example>) below provides the anonymized (without _parcel_number_), resulting profile:
+This procedure was tested against a typical citizen record, provided by Prof. Jessen Page. The #ref(<citizen_profile_example>) provides the anonymized (without _parcel_number_), resulting profile:
 
 #figure(
   code()[
@@ -852,19 +854,19 @@ With this proof of concept demonstrated, the next step covers the design and imp
 At this stage, every bit of information that is needed to establish a proper energy planning strategy is gathered into the conversational context (#ref(<conversational_state>)).
 The user's prompt has been broken down and analyzed with relevant data points and guidelines retrieved and processed.
 
-In the #ref(<intent_router>, supplement: it => it.body) section, the _intent_ field is defined to either be factual (requesting data) or actionable (seeking planning guidance, recommendations, or strategic advice).
+In the #ref(<intent_router>), the _intent_ field is defined to either be factual (requesting data) or actionable (seeking planning guidance, recommendations, or strategic advice).
 This distinction is crucial as it allows the agent to differentiate between the two tasks, the latter being more expensive in computational resources because of the extra complexity of correlating guidelines and data to concretize a strategy.
 
 Factual queries still contribute to the final goal of establishing an energy planning strategy as it enables users to assess the profile of the municipality and subsequently refine and guide the system into a more effective and informed strategy.
 
-As defined in the same section, the local database stores user feedback and corrections to past queries.
+Furthermore, the local database stores user feedback and corrections to past queries.
 The agent retrieves pertinent preferences and memories related to the current query and shapes the response according to those expectations.
 Like tools and guidelines, memories are stored as embeddings and are therefore retrieved based on semantic similarity.
 
 Finally, similar tools to those retrieved by the geocontext retriever agent are retrieved in order to generate tailored recommendations.
 The selection of similar tools is based on their categorization, as defined in #ref(<datasets_table>). This encourages assessing the full spectrum of available data for any municipality.
 
-The state interfaces are presented in the #ref(<strategy_planner_design>) below:
+The state interfaces are presented in the #ref(<strategy_planner_design>):
 #figure(
   image("figs/strategy_planner_design.svg", width: 80%),
   caption: "Strategy planner, interfaces",
@@ -895,7 +897,7 @@ On top of that, the number of residents in the municipality and its exploitable 
   image("figs/critic_design.svg", width: 80%),
   caption: "Critic design, interfaces",
 )<critic_design>
-Its output is a boolean value (#ref(<critic_design>), _retry_) that indicates whether the response has been interpreted correctly based on the rules above.
+Its output is a boolean value (#ref(<critic_design>), _retry_) that indicates whether the response has been interpreted correctly based on the rules.
 
 If it the response is not satisfactory, the complete process is restarted as if the user had just prompted the system (#ref(<ai_agent_design>), transition 10).
 A maximum of three attempts are allowed before the workflow is not restarted anymore.
@@ -916,7 +918,7 @@ Therefore, a web interface was developed to provide a seamless experience for us
 
 On the development side, the interface was implemented using React#footnote("https://react.dev/"), a popular framework released by Facebook (now Meta) in 2013. React offers a declarative and efficient way to build user interfaces, offering a clean and modular approach using components.
 
-In reality, the choice of framework is not particularly critical in this context. Dozens of frameworks claim to revolutionize the way developers build web applications, but all lead to similar outcomes despite different approaches and philosophies. Past experiences with React and its ecosystem made it a comfortable and efficient choice for this work.
+In reality, the choice of framework is not particularly critical in this context. Dozens of frameworks claim to revolutionize the way developers build web applications, but all lead to similar outcomes despite different approaches and philosophies. Past experiences with React and its ecosystem made it a comfortable and efficient choice for this project.
 
 The primary feature of the web interface is the ability to send a prompt to the AI system and have the response streamed back, in real time.
 This is achieved using #acr("SSE"), a one-way communication protocol where the server (here the AI agent) pushes events to the client.
@@ -925,7 +927,7 @@ In addition to streaming tokens as events, continuous status updates are emitted
 The application being event-driven, SSE was chosen over classic polling mechanisms. Polling requires repeated requests from the client to the server, which can increase both server load and response latency whereas SSE maintains a single persistent connection on which events are pushed.
 
 On top of that, the use-case of energy planning for municipalities greatly benefits from a map, displaying the assessed data points.
-This functionality recovers a problem covered in the #ref(<geocontext_retriever>, supplement: it => it.body) section: the loss of information due to aggregation.
+This functionality recovers a problem covered in the #ref(<geocontext_retriever>): the loss of information due to aggregation.
 
 All datasets referenced in #ref(<datasets_table>) provide layers, along with their discretized features. Interpreting them visually preserves the local variation and allows for a more nuanced understanding of the reported aggregated values.
 
@@ -952,7 +954,7 @@ To sum up, the token utilization of users is tracked in the form of three metric
 
 When users prompt the AI, the cumulative token count for that run is monitored. This value is then compared against the user's sampled token utilization distribution using the standard score (#ref(<zscore>)), a statistical measure that expresses how many standard deviations a value is from the mean, to measure how far the new usage deviates from the user's average.
 
-Accordingly, the token usage of the current prompt is categorized into one of the predefined categories: "bad", "average", or "good" ; each associated with a color pelet displayed in the interface.
+Accordingly, the token usage of the current prompt is categorized into one of the predefined categories: "bad", "average", or "good"; each associated with a color pelet displayed in the interface.
 
 Moreover, an energy consumption analogy is presented alongside the pelet.
 The research article _Beyond Test-Time Compute Strategies: Advocating Energy-per-Token in LLM Inference_ #ref(<wilhelmTestTimeComputeStrategies2025>) provides benchmarks indicating that language models of similar size, on average, consume 3 Joules of energy, per token, during inference.
@@ -976,7 +978,7 @@ Identifying them is a first step towards a self-evaluation of the solution. Plea
 When integrating external services and data sources, it is very difficult to assess the quality and exactitude of the data.
 Inaccuracies lead to incorrect interpretations and conclusions reported by the system, degrading the performance and reliability of the system.
 
-The various offices referenced in the #ref(<geocontext_retriever>, supplement: it => it.body) section, commissioned to retrieve and publish data, address these issues by implementing different quality assessment procedures.
+The various offices referenced in the #ref(<geocontext_retriever>), commissioned to retrieve and publish data, address these issues by implementing different quality assessment procedures.
 
 The SFOE, for example, only tolerates a small proportion of errors and gaps in the data they collect#footnote("https://www.bfs.admin.ch/bfs/de/home/register/personenregister/registerharmonisierung/qualitaet-datenlieferung.html").
 
@@ -1002,11 +1004,11 @@ These capabilities are relevant for the strategy planner agent which must synthe
 
 To support this, greater models run on _Calypso_, a sandbox infrastructure designed and reserved for students of the bachelor program.
 Nevertheless, the largest model that fits on this infrastructure (around 8 billion parameters) remains relatively small compared to state-of-the-art large language models (>150 billion parameters).
-Exploring the use of -really- large language models in future work could lead to improvements in interpretation and overall quality of the system.
+Exploring the use of -really- large language models in future implementations could lead to improvements in interpretation and overall quality of the system.
 
 Furthermore, a strong limitation of the solution is the inability of the user to provide and induce bias in the system#footnote("While no extensive jailbreaking or bias testing was conducted, all attempts made during the development process to introduce bias into the system were unsuccessful.").
 
-This might be seen as a good thing, as it guarantees consistency in the output but this also means that the system is less flexible and adaptable to the individual preferences, explained in the #ref(<intent_router>, supplement: it => it.body) section.
+This might be seen as a good thing, as it guarantees consistency in the output but this also means that the system is less flexible and adaptable to the individual preferences, explained in the #ref(<intent_router>).
 
 While this ensures consistent output, it also reduces the flexibility and adaptability of the system to put into service all user preferences.
 These instructions are distinguished into two categories: presentation directives (1) and effective instructions (2).
@@ -1026,13 +1028,13 @@ Lately, coding agents, AI agents capable of autonomously generating and executin
 
 Leveraging them broadens the scope of tasks that can be handled by the agents. General use cases for these agents include data processing and analysis, interaction with APIs and arithmetics.
 
-The retrieval, processing and aggregation of the data sources presented in the #ref(<geocontext_retriever>, supplement: it => it.body) section would be an excellent application of their capabilities.
+The retrieval, processing and aggregation of the data sources presented in the #ref(<geocontext_retriever>) would be an excellent application of their capabilities.
 Rather than relying on static, predefined procedures for data retrieval, agents could dynamically generate and execute code to access and process data from larger and more diverse datasets, naturally expanding the range of available data sources.
 
 The classic agent architecture adopted in this work ensures a more transparent and traceable workflow where the role and interface of each agent is clearly defined.
 While this design choice facilitates maintainability and allows for a more reliable and structured handling of complex geospatial data, it would still be interesting to explore the paradigm shift towards coding agents.
 
-Outside of the data retrieval and processing, these agents would greatly enhance the critic of the system's response (#ref(<critic>, supplement: it => it.body)).
+Outside of the data retrieval and processing, these agents would greatly enhance the critic of the system's response (#ref(<critic>)).
 A typical energy profile, including relevant indicators from the datasets in #ref(<datasets_table>) could be pre-defined and, for example, standardized to a per-resident basis.
 
 By doing so, the agent could evaluate the accuracy of the values presented in the energy planning report, converting them to the same reference scale and comparing them against the average profile.
@@ -1061,7 +1063,7 @@ This approach provides a scalable and consistent alternative to human evaluation
 
 === LLM-as-a-judge Benchmarking Framework
 #highlight("TODO: vérif abus de langage g-eval dans discussions??")
-Unlike human experts which may emphasize different aspects depending on their interpretation or even mood, language model evaluation is driven by clear rules, ensuring consistency and uniformity across all cases. The G-Eval metric, as introduced in the #ref(<state_of_art>, supplement: it => it.body) section, summarizes the score of the criteria and quantifies the quality of the response.
+Unlike human experts which may emphasize different aspects depending on their interpretation or even mood, language model evaluation is driven by clear rules, ensuring consistency and uniformity across all cases. The G-Eval metric, as introduced in the #ref(<state_of_art>), summarizes the score of the criteria and quantifies the quality of the response.
 
 The criteria for the LLM-as-a-judge benchmarking framework are defined as follows:
 1. Data interpretation: assesses whether the response uses only relevant data, maintains mathematical accuracy, distinguishes energy types, preserves units and handles zero values correctly.
@@ -1115,23 +1117,23 @@ However, the grid presented in #ref(<scoring_grid_expert>) acts as a reference p
     table.header([Score], [Label], [Description]),
     [1],
     [Not relevant],
-    [Information is completely off-topic ; does not answer the question, is generic or incoherent in the context of energy planning.],
+    [Information is completely off-topic; does not answer the question, is generic or incoherent in the context of energy planning.],
 
     [2],
     [Weakly relevant],
-    [Some elements are related to the subject ; the response is mostly vague, imprecise, or off-topic. It could mislead an expert.],
+    [Some elements are related to the subject; the response is mostly vague, imprecise, or off-topic. It could mislead an expert.],
 
     [3],
     [Moderately relevant],
-    [Response is generally on theme but remains partial, imprecise, or incomplete ; requires significant corrections to be useful.],
+    [Response is generally on theme but remains partial, imprecise, or incomplete; requires significant corrections to be useful.],
 
     [4],
     [Relevant],
-    [Information is correct, targeted and generally adapted to the question ; minor adjustments may be needed but it is usable for planning.],
+    [Information is correct, targeted and generally adapted to the question; minor adjustments may be needed but it is usable for planning.],
 
     [5],
     [Highly relevant],
-    [Information is perfectly aligned with the question, complete and contextualized ; no corrections are necessary and it is ready to be used as-is for decision-making.],
+    [Information is perfectly aligned with the question, complete and contextualized; no corrections are necessary and it is ready to be used as-is for decision-making.],
   ),
   caption: "Ordinal evaluation grid for the expert",
 ) <scoring_grid_expert>
@@ -1192,7 +1194,7 @@ Both the expert assessment and benchmarking are conducted using the version of t
 == Evaluation Results
 
 Two different configurations of the solution, each using different language models, are benchmarked.
-The #ref(<configurations>) below breaks down their composition:
+The #ref(<configurations>) breaks down their composition:
 
 #set table(
   stroke: (x, y) => {
@@ -1235,7 +1237,7 @@ The #ref(<configurations>) below breaks down their composition:
 ) <configurations>
 
 A smaller configuration is defined for further comparison against the baseline.
-This baseline, a _larger_ configuration, leverages bigger language models for the strategy planner agent as introduced in the #ref(<limitations>, supplement: it => it.body) section.
+This baseline, a _larger_ configuration, leverages bigger language models for the strategy planner agent as introduced in the #ref(<limitations>).
 
 The general-purpose Qwen series offers tool-using abilities, reasoning and model size, making it the only currently available option in Ollama that is viable for running lightweight, yet capable agents.
 Deepseek models, on the other hand, are developed by Deepseek, a company funded by the High-Flyer#footnote("https://www.high-flyer.cn/") hedge fund and whose models support similar capabilities to Qwen. They are also open-source.
@@ -1492,7 +1494,7 @@ The feedback highlights recurring issues observed in the testcase, emphasizing c
 - Misinterpretation of request, such as discussing production when only demand was requested.
 
 While informed users might identify these inconsistencies and filter them out to extract meaningful insights, unfamiliar users may be deceived.
-Overall, these observations highlight both the potential and the current limitations of this work, as demonstrated through this analysis.
+Overall, these observations highlight both the potential and the current limitations of this project, as demonstrated through this analysis.
 
 The implications are further discussed in the #ref(<close>) and most importantly, brought back to the initial research question.
 
