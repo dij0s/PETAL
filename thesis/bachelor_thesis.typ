@@ -244,8 +244,16 @@ Besides that, it had been requested that the user interface has a map showcasing
 These requirements are summarized in the #ref(<requirements_table>):
 #show table.cell.where(y: 0): strong
 #show figure: set block(breakable: true)
-#set table(stroke: (x, y) => if y == 0 {
-  (bottom: 0.7pt + black)
+#set table(stroke: (x, y) => {
+  if x == 0 {
+    (right: 0.7pt + black)
+  }
+  if y == 0 {
+    (bottom: 0.7pt + black)
+  }
+  if y == 9 {
+    (bottom: 0.3pt + black)
+  }
 })
 #set table(
   fill: (x, y) => { if calc.odd(y) { rgb("F7F9FA") } },
@@ -513,9 +521,15 @@ The datasets are also available for download.
 The choice has been made to use the GeoAdmin API instead of downloading and maintaining local datasets as it ensures (1) that the data is always up to date and (2) removes the need for additional setup and maintenance of a dedicated geospatial database, a task that is particularly time-consuming in such a short time frame.
 
 In a real-world scenario, exploiting data locally allows for preprocessing and aggregation which significantly reduces latency during user interactions.
-Mechanisms such as caching and geospatial indexing, a technique used in databases enabling quick identification of objects located within a particular geographical area, would be useful for greater scalability of the solution.
 
-Datasets are often labeled as layers, as the data is organized according to the geospatial paradigm. Data is discretized into points, meshes, polygons and other spatial representations, all defined as a feature. Those features are independent geometries located in the space, without inherent relationships.
+Mechanisms such as caching and geospatial indexing, a technique used in databases enabling quick identification of objects located within a particular geographical area, would be useful for greater scalability of the solution.
+On the other hand, periodic updates would be necessary to ensure the data remains up to date.
+
+Although the solution does not require such implementations, it remains essential to understand how geographical data is structured and the key concepts behind it.
+
+Datasets are labeled as layers, as the data is organized according to the geospatial paradigm. Data is discretized into points, meshes, polygons and other spatial representations, all collectively referred to as features.
+
+Those features are independent geometries located in the space, without inherent relationships.
 Thus, identifying relevant features within a municipality implies searching them inside its geographic boundaries, since no relation lies between these entities.
 
 Although the GeoAdmin API enables searching for features in a given area, it is subject to a maximum number of 50 features retrieved per request.
@@ -523,6 +537,7 @@ Consequently, identifying them requires breaking down the search area into small
 
 This has been implemented by first clipping settlements and centres of larger cities onto the municipality's geometry, optimizing the search area and applying a spatial tiling on top. Different layers obviously require different tiling sizes, depending on the number and resolution of features.
 
+The #ref(<datasets_table>) presents the datasets incorporated in the solution and retrieved from the GeoAdmin API:
 #set table(
   fill: (x, y) => { if calc.odd(y) and x != 0 { rgb("F7F9FA") } },
   stroke: (x, y) => {
@@ -537,79 +552,94 @@ This has been implemented by first clipping settlements and centres of larger ci
     }
   },
 )
-The #ref(<datasets_table>) presents the data sources incorporated in the solution:
-
 #figure(
-  rotate(-90deg, reflow: true, {
-    show table.cell.where(x: 1): cell => {
-      show regex("\b.+?\b"): it => it.text.codepoints().join(sym.zws)
-      cell
-    }
-    table(
-      columns: (3cm, 7cm, 8cm, 2.5cm, 3cm),
-      table.header([Category], [Layer ID], [Description], [Unit], [Discretization]),
-      [*Needs*],
-      [ch.bfe.fernwaerme-nachfrage_industrie],
-      [Heat and cooling demand from industry],
-      [MWh/year],
-      [100m x 100m],
+  rotate(
+    -90deg,
+    reflow: true,
+    {
+      show table.cell.where(x: 1): cell => {
+        show regex("\b.+?\b"): it => it.text.codepoints().join(sym.zws)
+        cell
+      }
+      table(
+        columns: (3cm, 6.8cm, 8cm, 2.5cm, 3cm),
+        table.header(
+          [Category],
+          [Layer ID#footnote("This is the identifier defined in the geographic data catalogue of Switzerland, geocat.ch.")],
+          [Description],
+          [Unit],
+          [Discretization],
+        ),
+        [*Needs*],
+        [ch.bfe.fernwaerme-nachfrage_industrie],
+        [Heating and cooling demand from industry],
+        [MWh/year],
+        [100m x 100m],
 
-      [],
-      [ch.bfe.fernwaerme-nachfrage_wohn_dienstleistungsgebaeude],
-      [Heat and cooling demand from residential and commercial buildings],
-      [MWh/year],
-      [100m x 100m],
+        [],
+        [ch.bfe.fernwaerme-nachfrage_wohn_dienstleistungsgebaeude],
+        [Heating and cooling demand from residential and commercial buildings],
+        [MWh/year],
+        [100m x 100m],
 
-      [], [ch.bafu.klima-co2_ausstoss_gebaeude], [Greenhouse gas emissions from buildings], [kg/m²], [Per building],
+        [],
+        [ch.are.wohnungsinventar-zweitwohnungsanteil],
+        [Electricity needs (estimated from number of residents)],
+        [GWh/year],
+        [Per municipality],
 
-      [*Potential*],
-      [ch.bfe.kleinwasserkraftpotentiale],
-      [Potential of small hydropower plants],
-      [kW/m],
-      [Per watercourse],
+        [], [ch.bafu.klima-co2_ausstoss_gebaeude], [Heating energy sources in buildings], [-], [Per building],
 
-      [], [ch.bfe.waermepotential-gewaesser], [Potential heat use of water bodies], [GWh/year], [Per water body],
+        [*Potential*],
+        [ch.bfe.kleinwasserkraftpotentiale],
+        [Potential power of small hydropower plants],
+        [kW/m],
+        [Per watercourse],
 
-      [],
-      [ch.bfe.solarenergie-eignung-daecher],
-      [Suitability of roofs for use of solar energy],
-      [kWh/year],
-      [Per roof pane],
+        [],
+        [ch.bfe.waermepotential-gewaesser],
+        [Potential energy (heat use) of water bodies],
+        [GWh/year],
+        [Per water body],
 
-      [], [ch.bfe.solarenergie-eignung-fassaden], [Solar energy: suitability of façade], [kWh/year], [Per façade],
+        [], [ch.bfe.solarenergie-eignung-daecher], [Potential solar energy from roofs], [kWh/year], [Per roof pane],
 
-      [], [ch.bfe.biomasse-nicht-verholzt], [Biomass potential], [TJ], [Per municipality],
+        [], [ch.bfe.solarenergie-eignung-fassaden], [Potential solar energy from facades], [kWh/year], [Per facade],
 
-      [], [ch.bfe.fernwaerme-angebot], [Potential heat recovery from WWTPs], [MWh/year], [Per plant],
+        [], [ch.bfe.biomasse-nicht-verholzt], [Potential energy from biomass], [TJ], [Per municipality],
 
-      [*Infrastructure*],
-      [ch.bfe.statistik-wasserkraftanlagen],
-      [Hydropower plants: statistics],
-      [GWh/year],
-      [Per plant],
+        [],
+        [ch.bfe.fernwaerme-angebot],
+        [Potential heat recovery from wastewater treatment plants],
+        [MWh/year],
+        [Per plant],
 
-      [], [ch.bfe.windenergieanlagen], [Wind energy plants], [GWh/year], [Per turbine],
+        [*Infrastructure*],
+        [ch.bfe.statistik-wasserkraftanlagen],
+        [Energy from hydropower plants],
+        [GWh/year],
+        [Per plant],
 
-      [], [ch.bfe.biogasanlagen], [Biogas plants], [kWh/year], [Per plant],
-      [], [ch.bfe.kehrichtverbrennungsanlagen], [Waste incineration plants], [MWh/year], [Per plant],
+        [], [ch.bfe.windenergieanlagen], [Energy from wind plants], [GWh/year], [Per turbine],
 
-      [], [ch.bfe.elektrizitaetsproduktionsanlagen], [Electricity production plants], [kW], [Per plant],
+        [], [ch.bfe.biogasanlagen], [Energy from biogas plants], [kWh/year], [Per plant],
+        [], [ch.bfe.kehrichtverbrennungsanlagen], [Energy from waste incineration plants], [MWh/year], [Per plant],
 
-      [], [ch.bfe.thermische-netze], [Thermal networks], [MWh/year], [Per network],
+        [],
+        [ch.bfe.elektrizitaetsproduktionsanlagen],
+        [Energy from electricity production plants (photovoltaic, biomass, geothermal)],
+        [kW],
+        [Per plant],
 
-      // [], [ch.swisstopo.swissboundaries3d-gemeinde-flaeche.fill], [Municipalities], [-], [Per municipality],
-
-      // [], [ch.swisstopo.vec200-landcover], [Swiss land cover], [-], [Per surface],
-    )
-  }),
+        [], [ch.bfe.thermische-netze], [Deliverable energy from thermal networks], [MWh/year], [Per network],
+      )
+    },
+  ),
   caption: "Public datasets",
 ) <datasets_table>
 #pagebreak()
 
-#highlight("TODO: dire que simple d'ajouter des trucs?")
-#highlight("TODO: mieux décrire ce qu'il y a dans le tableau?")
-#highlight("TODO: mettre les sources, liens vers datasets?")
-#highlight("TODO: bouger label figure au dessus?")
+Leveraging these datasets provides the necessary information to assess the energy needs, potential, and infrastructure within the municipality and establish a baseline profile for energy planning.
 
 The discretization of the different datasources showcases the importance of spatial tiling when dealing with this data.
 
@@ -635,10 +665,8 @@ This random geographical sampling process is depicted in the #ref(<sampling_desi
 )<sampling_design>
 
 Choosing the sampling size and confidence level is important for a proper statistical estimation. In this work, both parameters are set empirically and kept relatively large to benefit from lower computational costs, but without optimizing for the best possible accuracy.
-As such, only the suitability of roofs and façades for use of solar energy is estimated using this technique as they are both datasets which showcase potential of exploitation rather than precise measurements and are well distributed in the geographic space.
 
-#highlight("TODO: citer les chiffres confidence level...?")
-#highlight("TODO: parler ajouter des modèles simu et autre dans les tools?")
+As such, only the suitability of roofs and facades for use of solar energy is estimated using this technique as they are both datasets which showcase potential of exploitation rather than precise measurements on top of being well distributed in the geographic space. The confidence level in this case is set to 80%.
 
 With the data standardized and properly aggregated, the geocontext retriever agent must now be able to interact with it.
 
@@ -671,6 +699,8 @@ With the appropriate tools chosen, the system can effectively retrieve the data.
   image("figs/geocontext_retriever_design.svg", width: 80%),
   caption: "Geocontext retriever, interfaces",
 )<geocontext_retriever_design>
+
+Expanding the functionnalities of the geocontext retriever is straightforward: new data sources, APIs or even simulation models can be integrated as additional tools the agent may use.
 
 Geospatial information is accumulated over the conversation turns, allowing for context-aware planning and consistent, spatially informed decisions. It is only reset when switching to a new municipality as it becomes invalid.
 
