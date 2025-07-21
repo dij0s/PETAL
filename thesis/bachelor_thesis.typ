@@ -105,7 +105,7 @@ And to those who sacrificed so much for us, THANK YOU.
 
 = Introduction
 
-Over the past few decades, society has been sensitized and slowly became more aware of significant problems that we are likely to face in the coming years.
+Human-driven activities are the principal cause of climate change and global warming #ref(<EvidenceNASAScience2022>).
 
 Climate change and other environmental issues arise as a result of human-driven activities.
 
