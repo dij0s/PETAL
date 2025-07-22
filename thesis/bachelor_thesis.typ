@@ -105,7 +105,7 @@ And to those who sacrificed so much for us, THANK YOU.
 Human-driven activities are the principal cause of climate change and global warming #ref(<EvidenceNASAScience2022>).
 
 Scientists have monitored this matter and proposed various frameworks to address and mitigate these problems. In Switzerland, these different frameworks are implemented in the legislation and guidelines (at federal and canton levels) to steer the country towards a more sustainable future.
-Municipalities may introduce in their regulations energy requirements that are more constraining than those set by the cantonal law as per article 12, al. 5 #ref(<RS7301Loia>).
+Municipalities may introduce in their regulations sustainability requirements that are more constraining than those set by the cantonal law #ref(<RS7301Loia>, supplement: [article 12, al. 5]).
 
 == Context
 
@@ -155,11 +155,8 @@ This document outlines the methodology used to design and implement the solution
 
 = State of the Art <state_of_art>
 
-#highlight("TODO: virer les définitions à double!!")
-#highlight("TODO: check ortographe")
-#highlight("TODO: update le thesis-id")
-
 Before exploring the methodological approach of the solution, it is necessary to introduce and understand the key concepts of the underlying technologies.
+
 On top of that, related work in the field of AI-assisted urban planning is presented, positioning this thesis within the broader landscape of such applications.
 
 == Technological Background
@@ -180,6 +177,7 @@ Language models are available in any shape, form and size, ranging from small to
 More parameters enable more complex and nuanced language understanding and generation, at the cost of greater computational demand.
 
 #acr("RAG"), on the other hand, addresses a fundamental limitation of language models #ref(<lewisRetrievalAugmentedGenerationKnowledgeIntensive2021>). As LLMs are trained on static datasets, they lack knowledge in domain-specific information.
+
 Therefore, RAG systems overcome this limitation by combining the generative capabilities of these models with external knowledge retrieval, enabling them to ground their responses in up-to-date, factual information.
 
 The RAG pipeline consists of three components:
@@ -203,13 +201,13 @@ The AI Institute at ITMO University published a paper in 2025 titled _LLM Agents
 
 The research focused on the testing of three hypotheses: (1) evaluating the capability of LLM agents to effectively route and process diverse urban queries against existing urban information systems, (2) the effectiveness of #acr("RAG") technology in improving response accuracy when working with local knowledge and regulations and (3) the impact of integrating LLM agents with existing urban information-systems - increasing efficiency and decreasing the decision making process time.
 
-LLM agents (sometimes called AI agents) are software systems that use AI to pursue goals and complete tasks on behalf of users. They show reasoning, planning and memory and have a level of autonomy to make decisions, learn and adapt as per #link("https://cloud.google.com/discover/what-are-ai-agents?hl=en")[cloud.google.com].
-
 Their proposed solution was tested against 150 question-answer pairs and used St. Petersburg's Digital Urban Platform as a testbed.
 The testing dataset was curated and built by a group of human experts such as specialists in urban data analysis, GIS specialists and urban architects.
 
 They then evaluated different configurations of LLM agents and state-of-the-art models against two primary metrics: G-eval and answer relevance.
-The G-eval metric provides greater compliance with human requirements as it uses LLMs to evaluate answers from other LLMs based on custom user criteria. These criteria can for e.g. be provided as a list of rules specifying precise steps the LLM should take for evaluation, mirroring human reasoning process.
+The G-eval metric provides greater compliance with human requirements as it uses LLMs to evaluate answers from other LLMs based on custom user criteria.
+
+These criteria can for e.g. be provided as a list of rules specifying precise steps the LLM should take for evaluation, mirroring human reasoning process.
 The answer relevance metric, on the other hand, assesses the relevance of the answer from the LLM when compared with the correct answer provided by the experts. This process also leverages LLMs as it first extracts the different statements from the answer and then compares those to the reference answer.
 Both metrics are bounded between 0 and 1, where a higher value indicates better performance.
 
@@ -218,7 +216,9 @@ Relevance scores, on the other hand, remain high whatever the configuration as t
 They also concluded that this research proved practical real-world city management application as it enables efficient processing of urban planning tasks while maintaining high relevance in responses and shortening task completion time from days to hours.
 
 The ITMO study presents a research-driven implementation of LLM agents focusing on decision support through integration with urban data platforms which curate and process urban data to provide insights and recommendations for urban planning and management.
-Rather than relying on these large-scale platforms, the present work explores the potential of leveraging publicly available data from federal and cantonal sources while also considering the interface with municipal archives and residents' files.
+
+Rather than relying on these large-scale platforms, the present work explores the potential of leveraging publicly available data from federal and cantonal sources while also considering the interface with municipal archives and municipal resident records.
+
 This work strongly values the user experience with efforts in enhancing conversational interactions through preference-driven reporting and improving the clarity and quality of reported decisions.
 It neither serves as a continuation nor a re-implementation of the ITMO study, but rather represents an independent application of AI agents to a related use case specifically adapted to the context of a Bachelor's thesis and shaped by my practical implementation choices and problem-solving approach.
 Any solution designed and implemented around similar goals and data-related constraints, regardless of the specificities of the use case, may result in an architecture that is somewhat similar.
@@ -317,17 +317,13 @@ These requirements are summarized in the #ref(<requirements_table>):
     [Non-functional],
     [Usability and accessibility],
     [The interface must be intuitive and accessible for users with varying technical expertise.],
-
-    [Non-functional],
-    [Multilingual support],
-    [The system should support multilingual interaction, including both the website interface and conversational responses.],
   ),
-  caption: "Table outlining the system requirements for the solution, divided into functional requirements (e.g., data integration, conversational interface) and non-functional requirements (e.g., usability, extensibility, multilingual support)",
+  caption: "Table outlining the system requirements for the solution, divided into functional requirements (e.g., data integration, conversational interface) and non-functional requirements (e.g., usability, extensibility)",
 ) <requirements_table>
 
 Ongoing weekly evaluations with supervisors led to the identification of additional needs, which progressively refined and improved the system to better support energy planning and enhance user experience.
 
-As these initial requirements established the basis for the project, the next section presents the design and implementation details of the solution.
+As these requirements established the basis for the project, the next section presents the design and implementation details of the solution.
 
 #pagebreak()
 == System Design <system_design>
@@ -364,9 +360,10 @@ The layers are made up of various components. The basic dataflow between them is
 
 The nature and type of data that are exchanged between the AI agent and both the local database and third-party APIs are discussed in each individual segment, dedicated to the respective components.
 
-Components are designed as modular and independent services, each containerized using Docker#footnote("https://www.docker.com/"), first released in 2013 by Docker Incorporated.
+Components are designed as modular and independent services, each containerized using Docker#footnote("https://www.docker.com/"), a solution first released in 2013 by Docker Incorporated.
 
-This novel approach introduced a lightweight containerization paradigm where each container is isolated from the host system and other containers, providing a consistent runtime environment.
+This approach introduces a lightweight containerization paradigm where each container is isolated from the host system and other containers, providing a consistent runtime environment.
+
 As such, the solution is easily portable from development to production.
 
 Now that the main components have been introduced, the following section describes the design and implementation of the AI system.
@@ -376,7 +373,7 @@ Now that the main components have been introduced, the following section describ
 Recently, the term "AI agent" has become a buzzword, leading to frequent misuse.
 Most definitions (#ref(<WhatAreAI2024>), #ref(<WhatAreAI>)) agree that the key behavior that distinguishes AI agents from other solutions is their degree of autonomy as they are able to operate and make decisions independently to achieve a set goal.
 
-The complete solution whose sole task is urban energy planning aligns with this definition, as do each of its individual components. Therefore, the term "AI agent" will be used to describe both the entire system and its subsystems.
+The complete solution, whose sole task is urban energy planning, aligns with this definition, as do each of its individual components. Therefore, the term "AI agent" will be used to describe both the entire system and its subsystems.
 
 Human conversations rely on context and prior knowledge and so does the system's architecture. To deliver a conversational experience, it is essential that the architecture is built to effectively preserve and re-use this context throughout the discussion.
 One might suggest that the straightforward approach to maintaining conversational context is to include all previous exchanges with the user. However, this method can be very inefficient and comes at great cost.
@@ -395,22 +392,20 @@ Accordingly, the conversational context is modeled as a single object that is up
   caption: "Python data structure representing the conversation state, including user inputs, language, intent, location, query aggregation and flags for clarification or memoization. It also stores contextual tools and constraints for guiding energy planning conversations.",
 ) <conversational_state>
 
-#highlight("TODO: virer double définition ?")
-
-The different agents leverage #acrpl("RLM"), a type of LLM designed to tackle problems by breaking them into logical steps, mimicking human reasoning.
+The different agents leverage #acrpl("RLM"), breaking problems into logical steps and mimicking human reasoning.
 Compared to standard language models, they are particularly valuable for tasks that require logical deduction and planning but come with notable drawbacks as they are typically more computationally intensive, leading to higher operational costs and increasing latency in response times.
 
 To address this challenge, the architecture is intentionally designed to reduce the number of language model calls whenever possible.
 Although these models show very strong capabilities, their usage can be excessive for certain tasks and lead to increased costs and latency.
-
+#pagebreak()
 By constraining the conversational state and narrowing the scope of each agent, it is also possible to reduce the computational load and latency by simply swapping out these large reasoning models by smaller, better-suited models.
-Doing so, it becomes possible to select reasoning models that are better suited to specific tasks while reducing the computational costs.
+
+Doing so, it becomes possible to select reasoning models that are better suited to specific tasks while minimizing the computational costs.
 
 #figure(
   image("figs/ai_agent_system_design.svg", width: 100%),
   caption: "Architecture of the AI multi-agent system showing the workflow between specialized agents. The diagram illustrates the Intent Router, Clarify Query, Geocontext Retriever, Guidelines Retriever, Strategy Planner and Critic agents with their interconnections. Solid arrows represent mandatory transitions while dashed arrows indicate conditional transitions based on the evolving conversational state.",
 )<ai_agent_design>
-#highlight("TODO: vérifier partout que les réf. transitions sont bonnes")
 
 The architecture in the #ref(<ai_agent_design>) is modeled after a #acr("FSM"), where each node represents an agent and each edge represents a transition that is either always executed (solid) or conditionally executed (dashed). The dynamic flow of control between agents is guided by the evolving conversational state. It is finite, per definition, as the state takes value in a discrete set.
 
@@ -477,7 +472,8 @@ This is possible thanks to OpenAI#footnote("https://openai.com/"), introducing t
 
 The instructions in #ref(<intent_router_prompt_system>) and #ref(<intent_router_prompt_user>) are designed to guide the language model on how to generate the correct output#footnote("Please note that all prompts are included in the appendix.").
 Few-shot prompting helps the language model by providing examples on how to complete the task, helping it generalize to subsequent prompts.
-In this context, it facilitates the definition of the _aggregated_query_ and _needs_memoization_ fields.
+
+In this context, it facilitates the definition of the _aggregated_query_ and _needs_memoization_ fields by providing a set of prompts with the result that would be expected, in return, for both of them.
 
 All these fields except the aggregated query take value in a finite set of options (considering the _location_ field is either set or unset.).
 Consequently, it is very easy to plan and orchestrate the following actions.
@@ -520,7 +516,7 @@ Those two cases are both handled at once as a language model is prompted with th
   image("figs/clarify_query_design.svg", width: 12cm),
   caption: "Interface diagram for the Clarify Query agent showing input/output data structures. The input is the conversation state and the output is the generated clarification question to guide further user input.",
 )<clarify_query_design>
-
+#pagebreak()
 In the following turn, the newly provided information is merged with the previously deduced intent as designed and presented in the #ref(<intent_router>).
 
 This task is supported by both #ref(<clarify_query_system_prompt>) and #ref(<clarify_query_user_prompt>).
@@ -661,7 +657,7 @@ The #ref(<datasets_table>) presents the datasets incorporated in the solution an
       )
     },
   ),
-  caption: "Table of Swiss federal geospatial datasets used by the solution for municipal energy planning, categorized by energy needs (consumption data for heating, cooling and electricity), renewable energy potential (solar, hydro, biomass and water-based sources) and existing infrastructure (operational power plants and thermal networks). Each dataset includes the official Swiss geocat.ch identifier, energy units and spatial discretization level.",
+  caption: "Table of Swiss federal geospatial datasets used by the solution for municipal energy planning, categorized by energy needs, energy potential and existing infrastructure. Each dataset includes the official Swiss geocat.ch identifier, energy units and spatial discretization level.",
 ) <datasets_table>
 #pagebreak()
 
@@ -704,10 +700,8 @@ The same applies to AI agents, which have, in this work, different tools allowin
 Consequently, language models can leverage their natural language processing capabilities to choose the appropriate tools for the query.
 
 An issue with the current approach is that when the _toolbox_ is too large, it becomes difficult for the language model to choose the right tools for the job.
-This issue is addressed by exploiting the power of embeddings.
 
-An embedding is a mathematical representation of data in a high-dimensional vector space where semantically similar information are mapped to nearby points.
-This enables the system to embed the descriptions of the different tools and easily retrieve them semantically. On top of that, it is more efficient computation-wise than prompting the language model to choose them.
+This issue is addressed by exploiting the power of embeddings, enabling the system to easily retrieve the different tools from their embedded descriptions, semantically. On top of that, it is more efficient computation-wise than prompting the language model to choose them.
 
 When retrieving tools, the system computes the cosine similarity between both embeddings to quantify the semantic similarity (#ref(<cosine_sim>)).
 Finally, the quartile coefficient of dispersion is measured against the distribution of retrieved similarity scores (#ref(<qcd>)).
@@ -766,7 +760,9 @@ Consequently, it is able to interpret and analyze figures, plots, tables, etc.
 
 In addition, Qwen2.5-VL is completely open-source and available in compact versions (under 7 billion parameters), making it a great fit for the computational resources that are available.
 
-The extracted information is then formatted in markdown, utilizing headings to structure the summary. It is then broken down into smaller chunks, each chunk being a "chapter" derived from the markdown content. Since only individual chunks are considered in subsequent steps, there is no need to perform an analysis across neighboring pages to ensure that the information is retrieved from its full context.
+The extracted information is then formatted in markdown, utilizing headings to structure the summary. It is then broken down into smaller chunks, each chunk being a "chapter" derived from the markdown content.
+
+Since only individual chunks are considered in subsequent steps, there is no need to perform an analysis across neighboring pages to ensure that the information is retrieved from its full context.
 These chunks are also translated into english, during the preprocessing step, by the language model.
 
 Finally, the extracted information from each page is encoded into an embedding and stored in the local database, along with its associated chunks and metadata.
@@ -869,7 +865,7 @@ With this proof of concept demonstrated, the next step covers the design and imp
 ==== Strategy Planner <strategy_planner>
 
 At this stage, every bit of information that is needed to establish a proper energy planning strategy is gathered into the conversational context (#ref(<conversational_state>)).
-The user's prompt has been broken down and analyzed with relevant data points and guidelines retrieved and processed.
+The prompt of the user has been broken down and analyzed with relevant data points and guidelines retrieved and processed.
 
 In the #ref(<intent_router>), the _intent_ field is defined to either be factual (requesting data) or actionable (seeking planning guidance, recommendations, or strategic advice).
 This distinction is crucial as it allows the agent to differentiate between the two tasks, the latter being more expensive in computational resources because of the extra complexity of correlating guidelines and data to concretize a strategy.
@@ -890,7 +886,7 @@ The state interfaces are presented in the #ref(<strategy_planner_design>):
 )<strategy_planner_design>
 
 The factual queries are treated by both #ref(<generate_answer_factual_system_prompt>) and #ref(<generate_answer_factual_user_prompt>) whereas actionable queries are handled by #ref(<generate_answer_actionable_system_prompt>) and #ref(<generate_answer_actionable_user_prompt>).
-The conversational context is simply broken down and included in the prompts.
+The conversational context is included in the prompts.
 
 The language model response, which is the answer to the user's query, is streamed to the web interface (#ref(<ai_agent_design>), transition 8).
 
@@ -930,8 +926,7 @@ The following section details the implementation choices for the web interface.
 Designing and providing an interface that is user-friendly and convenient for the user to interact with the AI system is key to the adoption of the product.
 The exactitude and accuracy of the AI system weighs heavily on the user's satisfaction but so does the user experience and presentation that is offered.
 
-In recent times, the tendency shifted from traditional desktop applications to web-based interfaces, offering greater accessibility for devices such as smartphones.
-Therefore, a web interface was developed to provide a seamless experience for users.
+A web interface is developed to provide a seamless experience for users, offering greater accessibility for devices such as smartphones.
 
 On the development side, the interface was implemented using React#footnote("https://react.dev/"), a popular framework released by Facebook (now Meta) in 2013. React offers a declarative and efficient way to build user interfaces, offering a clean and modular approach using components.
 
@@ -953,10 +948,9 @@ These data points and their sources are also presented in the interface, allowin
 On the implementation side, OpenLayers#footnote("https://openlayers.org/") is a robust and flexible open-source library for building interactive web maps.
 Native support for #acr("WMTS") enables the integration of tiled map services such as those provided by GeoAdmin. These tiles are high-resolution images enabling efficient and scalable map rendering by only loading visible portions of the map. GeoAdmin notably makes use of OpenLayers in their services.
 
-With the ultimate goal of assisting users i energy planning, downplaying the importance of durability aspects of the solution would be a significant oversight.
+With the ultimate goal of assisting users in energy planning, downplaying the importance of durability aspects of the solution would be a significant oversight.
 AI progress is often celebrated, yet the energetical impact of these systems is frequently overlooked.
 While a complete evaluation of the energetical footprint of the solution is clearly beyond this work's scope, a simple approach has been implemented to sensitize users to the matter.
-#highlight("TODO: en faire un sous-chapitre?")
 
 For each user prompt, the cumulated number of tokens that are input and output from the agents in #ref(<ai_agent_design>) is recorded.
 
@@ -969,7 +963,7 @@ This algorithm is numerically stable and does not require storing all the data p
 
 To sum up, the token utilization of users is tracked in the form of three metrics only: (1) the average token count per prompt, (2) the sum of squared differences from the current mean, from which the variance can be computed and (3) the cumulative count of prompts.
 
-When users prompt the AI, the cumulative token count for that run is monitored. This value is then compared against the user's sampled token utilization distribution using the standard score (#ref(<zscore>)), a statistical measure that expresses how many standard deviations a value is from the mean, to measure how far the new usage deviates from the user's average.
+When users prompt the AI, the cumulative token count for that run is monitored. This value is then compared against the user's sampled token utilization distribution using the standard score (#ref(<zscore>)), a statistical measure that expresses how many standard deviations away a value is from the mean, assessing how far the new usage deviates from the user's average.
 
 Accordingly, the token usage of the current prompt is categorized into one of the predefined categories: "bad", "average", or "good"; each associated with a color pelet displayed in the interface.
 
@@ -1076,7 +1070,6 @@ The latter leverages language models to mimic expert judgment, assessing the res
 This approach provides a scalable and consistent alternative to human evaluation.
 
 === LLM-as-a-judge Benchmarking Framework
-#highlight("TODO: vérif abus de langage g-eval dans discussions??")
 Unlike human experts which may emphasize different aspects depending on their interpretation or even mood, language model evaluation is driven by clear rules, ensuring consistency and uniformity across all cases. The G-Eval metric, as introduced in the #ref(<state_of_art>), summarizes the score of the criteria and quantifies the quality of the response.
 
 The criteria for the LLM-as-a-judge benchmarking framework are defined as follows:
@@ -1500,7 +1493,6 @@ Data interpretation and methodology alignment may be inherently biased towards a
 
 Alongside the qualitative scoring of the expert, annotations were also collected.
 #highlight("TODO: donner résultats raw expert + benchmarking?")
-#highlight("TODO: vérifier abus de langage variables qualitatives -> ordinales OK mais quantitatives?")
 
 The feedback highlights recurring issues observed in the test case, emphasizing certain systematic weaknesses in the solution:
 - Unsupported conclusions and takeaways, often delivered with high confidence.
@@ -1619,7 +1611,7 @@ Ultimately, this thesis demonstrates both the promise and the current challenges
   kind: "prompt",
   supplement: [Prompt],
 ) <intent_router_prompt_system>
-
+#pagebreak()
 #let intent_router_prompts_user = read("code/intent_router_prompt_user.py")
 #figure(
   code()[
@@ -1659,7 +1651,7 @@ Ultimately, this thesis demonstrates both the promise and the current challenges
   kind: "prompt",
   supplement: [Prompt],
 ) <geocontext_retriever_system_prompt>
-
+#pagebreak()
 #let infer_pages_prompts_system = read("code/infer_pages_system_prompt.py")
 #figure(
   code()[
@@ -1679,7 +1671,7 @@ Ultimately, this thesis demonstrates both the promise and the current challenges
   kind: "prompt",
   supplement: [Prompt],
 ) <guidelines_retriever_system_prompt>
-
+#pagebreak()
 #let infer_pages_structureless_prompts_system = read("code/infer_no_structure_system.py")
 #figure(
   code()[
@@ -1689,7 +1681,7 @@ Ultimately, this thesis demonstrates both the promise and the current challenges
   kind: "prompt",
   supplement: [Prompt],
 ) <municipal_citizen_profile>
-
+#pagebreak()
 #let generate_answer_factual_system_prompt = read("code/generate_answer_factual_system_prompt.py")
 #figure(
   code()[
@@ -1709,7 +1701,7 @@ Ultimately, this thesis demonstrates both the promise and the current challenges
   kind: "prompt",
   supplement: [Prompt],
 ) <generate_answer_factual_user_prompt>
-
+#pagebreak()
 #let generate_answer_actionable_system_prompt = read("code/generate_answer_actionable_system_prompt.py")
 #figure(
   code()[
@@ -1719,7 +1711,7 @@ Ultimately, this thesis demonstrates both the promise and the current challenges
   kind: "prompt",
   supplement: [Prompt],
 ) <generate_answer_actionable_system_prompt>
-
+#pagebreak()
 #let generate_answer_actionable_user_prompt = read("code/generate_answer_actionable_user_prompt.py")
 #figure(
   code()[
@@ -1739,7 +1731,7 @@ Ultimately, this thesis demonstrates both the promise and the current challenges
   kind: "prompt",
   supplement: [Prompt],
 ) <critic_answer_system_prompt>
-
+#pagebreak()
 #let benchmark_system_prompt = read("code/benchmark_system_prompt.py")
 #figure(
   code()[
@@ -1763,7 +1755,7 @@ Ultimately, this thesis demonstrates both the promise and the current challenges
   kind: "conversation",
   supplement: [Conversation],
 ) <example_conversation>
-
+#pagebreak()
 #let bias_conversation = read("code/conversation_bias.md")
 #figure(
   code()[
@@ -1773,7 +1765,7 @@ Ultimately, this thesis demonstrates both the promise and the current challenges
   kind: "conversation",
   supplement: [Conversation],
 ) <fake_data>
-
+#pagebreak()
 #let evaluation_conversation = read("code/dataset_evaluation.md")
 #figure(
   code()[
@@ -1791,8 +1783,8 @@ Ultimately, this thesis demonstrates both the promise and the current challenges
 #highlight("TODO: CHECKER les maths encore une fois")
 #highlight("TODO: juste citer la source wikipedia et enlever ça ???")
 $
-  overline(x) & = frac(1, N)sum_(i=1)^N x_i                                  \
-              & "where" overline(x) "is the sampled mean," N "the number of" \
+  overline(x) & = frac(1, N)sum_(i=1)^N x_i                                 \
+              & "where" overline(x) "is the sample mean," N "the number of" \
               & "samples and" x_i "the" i_"th" "sample tile."
 $ <sample_mean>
 #align(center, line(length: 90%, stroke: 0.5pt))
