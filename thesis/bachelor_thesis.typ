@@ -30,8 +30,6 @@
   version: "1.0", // or for instance "1.0", for the version of your thesis],
   code-theme: "bluloco-light",
 )
-#highlight("TODO: check ortographe")
-#highlight("TODO: update le thesis-id")
 // // If using acronyms
 #import "@preview/acrostiche:0.5.2": *
 #include "acronyms.typ"
@@ -104,7 +102,6 @@ And to those who sacrificed so much for us, THANK YOU.
 #set-header-footer(true)
 
 = Introduction
-
 Human-driven activities are the principal cause of climate change and global warming #ref(<EvidenceNASAScience2022>).
 
 Scientists have monitored this matter and proposed various frameworks to address and mitigate these problems. In Switzerland, these different frameworks are implemented in the legislation and guidelines (at federal and canton levels) to steer the country towards a more sustainable future.
@@ -140,7 +137,17 @@ The main objective of this thesis is to investigate how effective and reliable s
 
 The project is scoped to municipalities within the canton of Valais/Wallis and strictly relies on publicly available data.
 
-A user-friendly interface enables users to interact with the system in a conversational manner and visualize a map of the municipality with different layers.
+A user-friendly interface enables users to interact with the system in a conversational manner and visualize a map of the municipality with different layers, as depicted in #ref(<petal_interface_pv>) and #ref(<petal_interface_water>):
+
+#figure(
+  image("figs/petal_interface_pv.png", width: 100%),
+  caption: "Web interface showing a report and map about the assessment of photovoltaic solar energy, in Sion.",
+)<petal_interface_pv>
+
+#figure(
+  image("figs/petal_interface_water.png", width: 100%),
+  caption: "Web interface showing a report and map about the assessment of potential energy from small water sources, in Sion.",
+)<petal_interface_water>
 
 Finally, user behavior is analyzed to takeaway user preferences which gradually adapt the answers to better meet the user expectations.
 
@@ -150,6 +157,8 @@ This document outlines the methodology used to design and implement the solution
 
 #highlight("TODO: CHECKER VIM TEMP!!")
 #highlight("TODO: virer les définitions à double!!")
+#highlight("TODO: check ortographe")
+#highlight("TODO: update le thesis-id")
 
 Before exploring the methodological approach of the solution, it is necessary to introduce and understand the key concepts of the underlying technologies.
 On top of that, related work in the field of AI-assisted urban planning is presented, positioning this thesis within the broader landscape of such applications.
@@ -514,7 +523,7 @@ With no _structural_ ambiguity left in the user's query, the intent router agent
 Energy planning as defined in the solution requires assessing the energy resources, infrastructure, potential and needs within the municipality. The geocontext retriever is responsible for this task.
 
 Before profiling the municipality, it is essential to identify the different public data sources that are available.
-Throughout its federal and cantonal institutions, Switzerland provides a wide range of public data such as GeoAdmin#footnote("geo.admin.ch"), the geographic information platform of the Confederation which offers direct access to geospatial data and maps.
+Throughout its federal and cantonal institutions, Switzerland provides a wide range of public data such as GeoAdmin#footnote("https://www.geo.admin.ch/en"), the geographic information platform of the Confederation which offers direct access to geospatial data and maps.
 
 The data originate from various offices commissioned by the Confederation:
 - Swiss Federal Office of Energy (SFOE)
@@ -1297,6 +1306,7 @@ On the other hand, the scores per benchmarking criterion and per query _intent_ 
 
 The mean score and entropy of the scores distribution, per benchmarking criterion and per query _intent_ type are reported in the #ref(<comparison_criteria>) and #ref(<entropy_criteria>):
 
+#pagebreak()
 #set table(
   stroke: (x, y) => {
     if y == 4 {
