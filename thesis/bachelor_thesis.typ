@@ -491,7 +491,7 @@ On top of that, user-provided feedback and corrections shape the system's behavi
 When there is a need for memoization, the system stores both the previous query (the _corrected_) and the current query (the _correctee_), in the database.
 
 This highlights the interfaces of the intent router, as detailed in the #ref(<intent_router_design>):
-#figure(image("figs/intent_router_design.svg", width: 80%), caption: "Intent router, interfaces")<intent_router_design>
+#figure(image("figs/intent_router_design.svg", width: 12cm), caption: "Intent router, interfaces")<intent_router_design>
 
 An assumption still lies in the nature of the field _location_ as it is assumed to either be set or unset. A set location does not necessarily imply that it is a valid municipality, inscribed in the published Swiss official commune register#footnote("https://www.bfs.admin.ch/bfs/en/home/basics/swiss-official-commune-register.html").
 A solution is proposed in the #ref(<geocontext_retriever>).
@@ -510,7 +510,7 @@ Clarifying and resolving vagueness in the user's query is essential to better un
 With the output of the intent router agent properly defined, the two cases which lead to the need for clarification are either an explicit request for clarification due to ambiguity or missing information.
 
 Those two cases are both handled at once as a language model is prompted with the user's query and missing fields to generate and stream a response inquiring for further information or clarification (#ref(<ai_agent_design>), transition 3). The interfaces are illustrated in the #ref(<clarify_query_design>):
-#figure(image("figs/clarify_query_design.svg", width: 80%), caption: "Clarify query, interfaces")<clarify_query_design>
+#figure(image("figs/clarify_query_design.svg", width: 12cm), caption: "Clarify query, interfaces")<clarify_query_design>
 
 In the following turn, the newly provided information is merged with the previously deduced intent as designed and presented in the #ref(<intent_router>).
 
@@ -711,7 +711,7 @@ This approach reduces the overall computational cost while increasing the qualit
 
 With the appropriate tools chosen, the system can effectively retrieve the data. It is simply added to the _context_tools_ field in the conversational state (#ref(<conversational_state>)), as presented in the #ref(<geocontext_retriever_design>):
 #figure(
-  image("figs/geocontext_retriever_design.svg", width: 80%),
+  image("figs/geocontext_retriever_design.svg", width: 11cm),
   caption: "Geocontext retriever, interfaces",
 )<geocontext_retriever_design>
 
@@ -793,7 +793,7 @@ Similarly to the geospatial information described in the #ref(<geocontext_retrie
 
 These interfaces are shown in the #ref(<guidelines_retriever_design>):
 #figure(
-  image("figs/guidelines_retriever_design.svg", width: 80%),
+  image("figs/guidelines_retriever_design.svg", width: 12cm),
   caption: "Guidelines retriever, interfaces",
 )<guidelines_retriever_design>
 
@@ -877,7 +877,7 @@ The selection of similar tools is based on their categorization, as defined in #
 
 The state interfaces are presented in the #ref(<strategy_planner_design>):
 #figure(
-  image("figs/strategy_planner_design.svg", width: 80%),
+  image("figs/strategy_planner_design.svg", width: 11cm),
   caption: "Strategy planner, interfaces",
 )<strategy_planner_design>
 
@@ -903,7 +903,7 @@ As such, a language model is prompted the response generated in the <strategy_pl
 On top of that, the number of residents in the municipality and its exploitable area are both included, providing extra context that helps the model assess the feasibility of the proposed strategy.
 
 #figure(
-  image("figs/critic_design.svg", width: 80%),
+  image("figs/critic_design.svg", width: 12cm),
   caption: "Critic design, interfaces",
 )<critic_design>
 Its output is a boolean value (#ref(<critic_design>), _retry_) that indicates whether the response has been interpreted correctly based on the rules.
