@@ -727,7 +727,7 @@ Expanding the functionnalities of the geocontext retriever is straightforward: n
 Geospatial information is accumulated over the conversation turns, allowing for context-aware planning and consistent, spatially informed decisions. It is only reset when switching to a new municipality as it becomes invalid.
 
 In the #ref(<intent_router>), the validity of the location is not confirmed. This is directly implemented in the different tools and routing of this agent (#ref(<ai_agent_design>)):
-- If the location is non-valid, retrieving data raises an error and the request is routed to the clarify query agent (6).
+- If the location is incorrect, retrieving data raises an error and the request is routed to the clarify query agent (6).
 - Otherwise, the query is sent to the strategy planner agent (7).
 
 Once the relevant data are gathered, the next stage is for the strategy planner agent to analyze this information to conduct proper planning.
@@ -1038,9 +1038,6 @@ An example of this type of interaction can be found in #ref(<fake_data>).
 
 The system is guided by the different prompts to strictly operate based on the workflow defined in #ref(<ai_agent_design>) and offer assistance in energy planning tasks.
 Providing more detailed instructions in the prompt may enable this behavior.
-
-Finally, a stronger limitation is induced by the choice of agentic paradigm.
-Lately, coding agents, AI agents capable of autonomously generating and executing code, have gained popularity.
 
 Leveraging them broadens the scope of tasks that can be handled by the agents. General use cases for these agents include data processing and analysis, interaction with APIs and arithmetics.
 
@@ -1504,7 +1501,7 @@ Alongside the qualitative scoring of the expert, annotations were also collected
 #highlight("TODO: donner résultats raw expert + benchmarking?")
 #highlight("TODO: vérifier abus de langage variables qualitatives -> ordinales OK mais quantitatives?")
 
-The feedback highlights recurring issues observed in the testcase, emphasizing certain systematic weaknesses in the solution:
+The feedback highlights recurring issues observed in the test case, emphasizing certain systematic weaknesses in the solution:
 - Unsupported conclusions and takeaways, often delivered with high confidence.
 - Mix of municipal data and unscaled cantonal data, leading to inconsistent or misleading figures.
 - Misinterpretation of request, such as discussing production when only demand was requested.
@@ -1580,15 +1577,13 @@ The findings presented in this thesis open up several promising future implement
 - Integrating coding agents, transitioning from the current static data retrieval and analysis paradigm to fully autonomous data processing, delivering richer insights from broader data sources.
 - Developing a specialized classification model for the intent router agent, reducing the computational cost and latency of the solution as well as improving the accuracy of intent recognition.
 - Expanding the scope of supported municipalities outside of Valais/Wallis.
-- Enhancing the user experience, supporting mobile devices and improving the design and accessibility of the web interface.
+- Enhancing the user experience, supporting mobile devices, improving the design and accessibility of the web interface, generating PDF exports, etc.
 
 == Closing Remarks
 
 While the proposed solution marks a step towards smarter data-driven decision support tools, for municipalities, it does also highlight the ongoing need for research into reliability and transparency, enhancing the robustness of the solution.
 
 Ultimately, this thesis demonstrates both the promise and the current challenges of AI agents in the field of urban energy planning.
-// REPRENDRE UN PAR UN LES POINTS DE LA DONNEE -> pq j'ai pas entraîné, ...
-// fuzzy search <- amélioration plutôt que limitation et dire que utiliser un dictionnaire difficile car mises à jour fréquentes par exemple ici ou plus bas ??
 
 #pagebreak()
 #heavy-title(i18n(doc_language, "bibliography-title"), mult: 1, top: 0.5em, bottom: 0.3em)
@@ -1784,14 +1779,16 @@ Ultimately, this thesis demonstrates both the promise and the current challenges
 
 #highlight("TODO: CHECKER les maths encore une fois")
 #highlight("TODO: juste citer la source wikipedia et enlever ça ???")
-#highlight("TODO: EN FAIRE UNE FIGURE!!")
 $
-  overline(x) = frac(1, N)sum_(i=1)^N x_i && "where" overline(x) "is the sampled mean," N "the number of samples and" x_i "the" i_"th" "sample tile."
+  overline(x) & = frac(1, N)sum_(i=1)^N x_i                                  \
+              & "where" overline(x) "is the sampled mean," N "the number of" \
+              & "samples and" x_i "the" i_"th" "sample tile."
 $ <sample_mean>
-
+#align(center, line(length: 90%, stroke: 0.5pt))
 $
   s = sqrt(frac(sum_(i=1)^N(x_i-overline(x))², N-1)) && "where" s "is the sample standard deviation of a single tile."
 $ <std>
+#align(center, line(length: 90%, stroke: 0.5pt))
 
 $
   "Confidence interval for a single tile" & = overline(x) plus.minus t_(alpha/2, N-1) dot frac(s, sqrt(N)) \
@@ -1800,18 +1797,21 @@ $
                                             1-alpha "and"                                                  \
                                           & N-1 "degrees of freedom."
 $ <confidence_interval>
+#align(center, line(length: 90%, stroke: 0.5pt))
 
 $
-  "cosine similarity" & := cos(theta) = frac("A" dot "B", norm("A")norm("B")) = frac(sum_(i=1)^n A_i B_i, sqrt(sum_(i=1)^n A_i²) dot sqrt(sum_(i=1)^n B_i²))\
+  "Cosine similarity" & := cos(theta) = frac("A" dot "B", norm("A")norm("B")) = frac(sum_(i=1)^n A_i B_i, sqrt(sum_(i=1)^n A_i²) dot sqrt(sum_(i=1)^n B_i²))\
   &"where" theta "is the angle between A and B, two" n"-dimensional vectors"\
   &"and" A_i, B_i "the" i_"th" "components of vectors A and B."
 $ <cosine_sim>
+#align(center, line(length: 90%, stroke: 0.5pt))
 
 $
-  "quartile coefficient of dispersion" & := frac(frac(1, 2)"IQR", frac(Q_3+Q_1, 2)) = frac(frac(1, 2)(Q_3-Q_1), frac(Q_3+Q_1, 2)) = frac(Q_3-Q_1, Q_3+Q_1)\
+  "Quartile coefficient of dispersion" & := frac(frac(1, 2)"IQR", frac(Q_3+Q_1, 2)) = frac(frac(1, 2)(Q_3-Q_1), frac(Q_3+Q_1, 2)) = frac(Q_3-Q_1, Q_3+Q_1)\
   & "where IQR is the interquartile range and" \
   & Q_1 "and" Q_3 "the first and third quartiles, respectively."
 $ <qcd>
+#align(center, line(length: 90%, stroke: 0.5pt))
 
 $
   overline(x)_n & = overline(x)_(n-1) + frac(x_n-overline(x)_(n-1), n)                              \
@@ -1821,6 +1821,7 @@ $
                 & "is the sum of squares of differences from the current mean"                      \
                 & "and" s_n² "the unbiased sample variance."
 $ <welford>
+#align(center, line(length: 90%, stroke: 0.5pt))
 
 $
   z & = frac(x - mu, sigma)                                \
@@ -1828,12 +1829,14 @@ $
     & mu "is the mean of the population and"               \
     & sigma "is the standard deviation of the population."
 $ <zscore>
+#align(center, line(length: 90%, stroke: 0.5pt))
 
 $
   "Runtime"_"LED 10 W" & = frac(h(x), 10 * 60) ["minutes"]                   \
                        & "where" h(x) = 3x ["J"] "is the heuristic meant to" \
                        & "approximate the energy cost of" x "tokens."
 $ <token_consumption>
+#align(center, line(length: 90%, stroke: 0.5pt))
 
 $
   "H"(X) & := -sum_(x in cal(X))p(x)ln p(x)                                         \
@@ -1841,14 +1844,16 @@ $
          & "which may be any member" x "within the set" cal(X) "and is distributed" \
          & "according to" p: cal(X) arrow [0,1].
 $ <entropy>
+#align(center, line(length: 90%, stroke: 0.5pt))
 
 $
-  "Let" X & "be a discrete random variable that takes value in the set" \
+  "Let" &X "be a discrete random variable that takes value in the set" \
   & cal(X):={1,2,3,4,5} "and suppose" X "is uniformly distributed over" \
   & cal(X) ==> p(x) = frac(1, 5) forall x in cal(X). \
-  "Then, the entropy of" X "is": \
-  & "H"(X) = -sum_(x in cal(X))p(x)"ln"p(x)=-5 dot frac(1, 5)"ln"(frac(1, 5))="ln"(5) approx 1.61 "nats".
+  "Then, the entropy of" &X "is": \
+  "H"( & X) = -sum_(x in cal(X))p(x)"ln"p(x)=-5 dot frac(1, 5)"ln"(frac(1, 5))="ln"(5) approx 1.61 "nats".
 $ <entropy_upper_bound>
+#align(center, line(length: 90%, stroke: 0.5pt))
 
 $
   "Spearman coefficient of correlation" & = frac("cov"["R"[X]", R"[Y]], sigma_("R"[X])sigma_("R"[Y])) \
