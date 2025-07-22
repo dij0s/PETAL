@@ -5,127 +5,64 @@
 #let doc_language = "en" // Valid values are en, fr
 
 // Must be < 425 characters long.
-#let summary = "DataFlowX is a scalable data engineering platform for real-time analytics on large, heterogeneous datasets. DataFlowX automates data ingestion, transformation, and validation using distributed processing and intelligent scheduling. The system ensures data quality, accelerates insights, and supports seamless integration with modern business intelligence tools."
+#let summary = "
+PETAL is a multi-agent AI system that supports municipalities in energy planning by coordinating specialized agents through an orchestration layer.
+By utilizing publicly available geospatial data and regulatory frameworks, the solution produces data-driven, context-aware recommendations that comply with sustainability objectives."
 
 #let content = [
 
   // This is where you put the content of your executive summary
   == Objectives
-  The primary objective of DataFlowX is to provide organizations with a robust and scalable platform for real-time analytics on large, diverse datasets. By automating the processes of data ingestion, transformation, and validation, DataFlowX aims to streamline data workflows and ensure high quality.
+  The primary objective of PETAL is to support municipalities in Valais/Wallis in the complex task of urban energy planning by providing an AI-powered, multi-agent system that processes various data sources to generate actionable insights. By combining geospatial data with legal and design documents, PETAL helps municipalities align with federal and cantonal sustainability goals.
 
-  The platform leverages distributed processing and intelligent scheduling to optimize performance and resource utilization. Additionally, DataFlowX is designed to seamlessly integrate with modern business intelligence tools, enabling faster and more accurate insights. Ultimately, the project seeks to empower businesses to make data-driven decisions efficiently and confidently in dynamic environments.
+  The system uses an orchestration layer to manage specialized AI agents, guiding their workflow based on the ongoing conversational context.
+  PETAL delivers its recommendations through a web interface that visualizes data layers on a map, facilitating the interpretation for decision-makers.
+  Ultimately, the project aims to support decision-making and promote energy strategies tailored to local contexts and energy landscapes.
 
-  // An example a figure using the `cetz` package to draw a
-  #import "@preview/cetz:0.4.0": canvas, draw
-  #import "@preview/cetz-plot:0.1.2": plot
-  #import draw: circle, content, line, rect
-
-  #let ex_fig = canvas(length: 2cm, {
-    import draw: *
-    let phi = (1 + calc.sqrt(5)) / 2
-
-    ortho({
-      hide({
-        line(
-          (-phi, -1, 0),
-          (-phi, 1, 0),
-          (phi, 1, 0),
-          (phi, -1, 0),
-          close: true,
-          name: "xy",
-        )
-        line(
-          (-1, 0, -phi),
-          (1, 0, -phi),
-          (1, 0, phi),
-          (-1, 0, phi),
-          close: true,
-          name: "xz",
-        )
-        line(
-          (0, -phi, -1),
-          (0, -phi, 1),
-          (0, phi, 1),
-          (0, phi, -1),
-          close: true,
-          name: "yz",
-        )
-      })
-
-      intersections("a", "yz", "xy")
-      intersections("b", "xz", "yz")
-      intersections("c", "xy", "xz")
-
-      set-style(stroke: (thickness: 0.5pt, cap: "round", join: "round"))
-      line((0, 0, 0), "c.1", (phi, 1, 0), (phi, -1, 0), "c.3")
-      line("c.0", (-phi, 1, 0), "a.2")
-      line((0, 0, 0), "b.1", (1, 0, phi), (-1, 0, phi), "b.3")
-      line("b.0", (1, 0, -phi), "c.2")
-      line((0, 0, 0), "a.1", (0, phi, 1), (0, phi, -1), "a.3")
-      line("a.0", (0, -phi, 1), "b.2")
-
-      anchor("A", (0, phi, 1))
-      content("A", [$A$], anchor: "north", padding: .1)
-      anchor("B", (-1, 0, phi))
-      content("B", [$B$], anchor: "south", padding: .1)
-      anchor("C", (1, 0, phi))
-      content("C", [$C$], anchor: "south", padding: .1)
-      line("A", "B", stroke: (dash: "dashed"))
-      line("A", "C", stroke: (dash: "dashed"))
-    })
-  })
-
-  #align(center, scale-to-width(50%, ex_fig))
 
   == Explanation
-  The development of DataFlowX followed an agile methodology, emphasizing iterative progress and continuous feedback. The project began with requirements gathering and architectural design, focusing on scalability and integration capabilities. Core modules for data ingestion, transformation, and validation were implemented using distributed processing frameworks. Automated testing and code reviews ensured reliability and maintainability throughout development.
+  The development of PETAL followed a research-driven, iterative methodology, combining AI system design with practical experimentation.
+  The project started with an analysis of the main steps involved in urban energy planning, along with an assessment of relevant data sources and regulatory frameworks.
+  AI agents were subsequently designed and developed for specific roles using targeted prompts, enabling tasks such as identifying the underlying intent of queries, interpreting information, and profiling energy usage.
 
-  Regular meetings with stakeholders guided feature prioritization and refinements. Integration with business intelligence tools was achieved via standardized APIs. Performance benchmarks and user acceptance testing validated the system’s effectiveness. Documentation and training materials were prepared to facilitate deployment and user onboarding, ensuring a smooth transition to production.
+  Evaluation was then conducted through both expert assessment and an automated benchmarking framework using language models to assess performance. Iterative improvements were made based on continuous feedback and observed limitations. Emphasis was placed on transparency, reproducibility, and adaptability to ensure the system can support future extensions and integration with existing municipal workflows.
 
   #colbreak() // As Typst does not support auto column balancing, this must be put to break the columns evenly. Move it to a location that makes the columns even.
 
   == Conclusion / Benefits
-  DataFlowX delivers significant benefits by enabling organizations to harness real-time analytics on large, heterogeneous datasets with ease. Its automated data ingestion, transformation, and validation processes reduce manual effort and minimize errors, ensuring high data quality. The platform’s distributed architecture and intelligent scheduling optimize resource usage and scalability, supporting growing business needs. By streamlining complex data workflows and providing robust performance, DataFlowX empowers businesses to respond quickly to changing environments, maintain a competitive edge, and make informed, data-driven decisions with confidence and efficiency.
-
-  #figure(
-    code(numbering: none)[
-      ```scala
-      def lambda(val x : Any) : Int =
-        x match :
-          case f: Int => f
-          case _ => 42 // The answer
-      ```
-    ],
-    caption: "A code snippet",
-  )
-
-  #align(center, block(text([Everything *must* fit on one page when rendered !]), fill: yellow, inset: 4pt))
-
+  This work demonstrates that AI-powered multi-agent systems can effectively support municipal energy planning by structuring this complex task into specialized, coordinated subtasks, each assigned to specific agents.
+  The evaluation of PETAL shows strong capabilities in contextual reasoning and generation of data-grounded recommendations, with particularly good results observed when leveraging larger language models.
+  However, challenges such as occasional inconsistencies and unsupported claims highlight the importance of continued efforts to enhance the system’s reliability and trustworthiness.
+  PETAL lays the groundwork for advancing research and practical implementation of AI solutions within the field of energy planning.
   // Optionally, if you need a figure spanning multiple columns, you can use this.
-  #place(bottom, scope: "parent", float: true, figure(
-    image("figs/isc_logo.svg", fit: "contain", height: 6cm, width: 100%),
-    caption: "A figure spanning multiple columns",
-  ))
-
+  #place(
+    bottom,
+    scope: "parent",
+    float: true,
+    figure(
+      image("figs/petal_interface_water.png", fit: "contain", height: 7cm, width: 100%),
+      caption: "PETAL web interface displaying a follow-up report on small hydropower potential in Sion. The interface includes a chat panel showing the system response and an interactive map, visualizing water bodies and rooftop-level solar energy.",
+    ),
+  )
   // This is the end !
 ]
 
 // TODO: please modify the following to suit your needs.
 #show: project.with(
-  title: "Life, the Universe and Everything",
+  title: "Optimisation de la planification énergétique\nurbaine par l'orchestration de l'IA",
   language: doc_language, // Modify global if required, see above
-  authors: "Stormy Peters",
-  student-picture: image("figs/pixelize.png"), // [Optional], put none if not used
-  permanent-email: "john.doe@example.com", // [Optional], put none if not used
-  video-url: "https://isc.hevs.ch", // This is a link to the video of you project, if any
+  authors: "Dion Osmani",
+  student-picture: image("figs/portrait.jpg"), // [Optional], put none if not used
+  permanent-email: none, // [Optional], put none if not used
+  video-url: none, // This is a link to the video of you project, if any
 
   summary: summary, // Not to be changed
   content: content, // Not to be changed
 
-  thesis-supervisor: "Prof. Dr John von Neumann",
-  thesis-co-supervisor: "Lady Ada Lovelace", // Optional, use none if not needed
-  thesis-expert: "Dr Grace Hopper", // Optional, use none if not needed
-  academic-year: "2025-2026", // Optional, use none if not needed
+  thesis-supervisor: "Jessen Page",
+  thesis-co-supervisor: "Florian Desmons", // Optional, use none if not needed
+  thesis-expert: "Nils Schüler", // Optional, use none if not needed
+  academic-year: "2024-2025", // Optional, use none if not needed
 
   is-executive-summary: true, // This is an executive summary, not a full thesis
 
@@ -133,8 +70,8 @@
   programme: "Informatique et Systèmes de communication (ISC)",
 
   // Some keywords related to your thesis
-  keywords: ("engineering", "data", "machine learning", "meteorology"),
-  major: "Data engineering", // "Software engineering", "Networks and systems", "Embedded systems", "Computer security", "Data engineering""
+  keywords: ("engineering", "data", "large language models", "AI agents", "energy planning"),
+  major: "Data engineering", // "Software engineering", "Embedded systems", "Security", "something else"
 
   bind: right, // Bind the left side of the page
   footer: "Executive summary", // align(right, text(0.9em)[This is some content for the footer])
