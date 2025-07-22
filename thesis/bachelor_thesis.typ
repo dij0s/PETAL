@@ -155,7 +155,6 @@ This document outlines the methodology used to design and implement the solution
 
 = State of the Art <state_of_art>
 
-#highlight("TODO: CHECKER VIM TEMP!!")
 #highlight("TODO: virer les définitions à double!!")
 #highlight("TODO: check ortographe")
 #highlight("TODO: update le thesis-id")
@@ -393,7 +392,7 @@ Accordingly, the conversational context is modeled as a single object that is up
   code()[
     #raw(destructured_state, lang: "python")
   ],
-  caption: "Python data structure representing the conversation state, including user inputs, language, intent, location, query aggregation, and flags for clarification or memoization. It also stores contextual tools and constraints for guiding energy planning conversations.",
+  caption: "Python data structure representing the conversation state, including user inputs, language, intent, location, query aggregation and flags for clarification or memoization. It also stores contextual tools and constraints for guiding energy planning conversations.",
 ) <conversational_state>
 
 #highlight("TODO: virer double définition ?")
@@ -661,11 +660,11 @@ The #ref(<datasets_table>) presents the datasets incorporated in the solution an
       )
     },
   ),
-  caption: "Table of Swiss federal geospatial datasets used by the solution for municipal energy planning, categorized by energy needs (consumption data for heating, cooling, and electricity), renewable energy potential (solar, hydro, biomass, and water-based sources) and existing infrastructure (operational power plants and thermal networks). Each dataset includes the official Swiss geocat.ch identifier, energy units and spatial discretization level.",
+  caption: "Table of Swiss federal geospatial datasets used by the solution for municipal energy planning, categorized by energy needs (consumption data for heating, cooling and electricity), renewable energy potential (solar, hydro, biomass and water-based sources) and existing infrastructure (operational power plants and thermal networks). Each dataset includes the official Swiss geocat.ch identifier, energy units and spatial discretization level.",
 ) <datasets_table>
 #pagebreak()
 
-Leveraging these datasets provides the necessary information to assess the energy needs, potential, and infrastructure within the municipality and establish a baseline profile for energy planning.
+Leveraging these datasets provides the necessary information to assess the energy needs, potential and infrastructure within the municipality and establish a baseline profile for energy planning.
 
 The discretization of the different data sources showcases the importance of spatial tiling when dealing with these data.
 
@@ -716,12 +715,11 @@ This indicator provides a measure of the uniformity of the retrieved tools that 
 As such, if the distribution of scores is too uniform, the tools are provided to a language model that leverages its capabilities to only distinguish the appropriate ones, in the given context (#ref(<geocontext_retriever_system_prompt>)).
 
 This approach reduces the overall computational cost while increasing the quality of tool selection.
-#highlight("TODO: CHECKER VIM TEMP!!")
 
 With the appropriate tools chosen, the system can effectively retrieve the data. It is simply added to the _context_tools_ field in the conversational state (#ref(<conversational_state>)), as presented in the #ref(<geocontext_retriever_design>):
 #figure(
   image("figs/geocontext_retriever_design.svg", width: 11cm),
-  caption: "Interface diagram for the Geocontext Retriever agent showing input and output data structures. The input is the conversational state, and the output is the updated state with the retrieved geospatial data. It also features the interaction with geospatial APIs to obtain relevant geographical information.",
+  caption: "Interface diagram for the Geocontext Retriever agent showing input and output data structures. The input is the conversational state and the output is the updated state with the retrieved geospatial data. It also features the interaction with geospatial APIs to obtain relevant geographical information.",
 )<geocontext_retriever_design>
 
 Expanding the functionnalities of the geocontext retriever is straightforward: new data sources, APIs or even simulation models can be integrated as additional tools the agent may use.
@@ -1315,7 +1313,6 @@ On the other hand, the scores per benchmarking criterion and per query _intent_ 
 
 The mean score and entropy of the scores distribution, per benchmarking criterion and per query _intent_ type are reported in the #ref(<comparison_criteria>) and #ref(<entropy_criteria>):
 
-#pagebreak()
 #set table(
   stroke: (x, y) => {
     if y == 4 {
@@ -1412,7 +1409,7 @@ The #ref(<results>) differentiates the two evaluation frameworks: (1) the expert
 As both rely on different methods and criteria, they provide complementary insights rather than direct comparability.
 The expert evaluation provides nuanced and domain-informed feedback while the G-eval framework delivers a standardized and consistent assessment based on predefined criteria.
 
-The #ref(<comparison_test_human_llm>) presents both frameworks and their scores, side-by-side, against each prompt of the test dataset.
+Both frameworks and their scores are presented in the #ref(<comparison_test_human_llm>), side-by-side against each prompt of the test dataset.
 
 The relationship between these two frameworks is assessed by leveraging Spearman's rank correlation coefficient (#ref(<spearman>)).
 
@@ -1453,7 +1450,7 @@ The results are further grouped by prompt intent, distinguishing between factual
 
 The plot clearly demonstrates that the larger configuration is consistently ranked higher across all criteria, raising an important question: in which aspect of the qualitative evaluation does the larger configuration have the greatest impact ?
 
-The mean scores, reported in #ref(<comparison_criteria>) support that the data interpretation (+76% and +61%) and methodology alignment (+42% and +40%) show the most significant improvement, in both factual and actionable contexts.
+The mean scores, reported in #ref(<comparison_criteria>) support that the data interpretation (+76% and +61%) and methodology alignment (+42% and +40%) show the most significant improvement, in factual and actionable contexts.
 This suggests that bigger models enhance the system's ability to interpret the geospatial data and provide actionable insights from various perspectives, identifying patterns and most importantly suggesting measures.
 
 In contrast, municipal relevance and technical compliance only show slight improvements (<\17%) between configurations.
@@ -1549,17 +1546,49 @@ At this stage, the solution shows promise and supports the potential for AI agen
 
 = Conclusion
 
-// 9. *Discussion*: Interprets the results, discusses implications, and relates findings to the research question.
-// 10. *Conclusion*: Summarizes the main findings, contributions, and suggests future work.
+In summary, this work investigates the effectiveness and reliability of AI agents for urban energy planning, aiming to assist users into grounded and data-driven decisions at a municipal level.
+Therefore, a multi-agent architecture was adopted to decompose the complex task of energy planning into smaller, more manageable subtasks, each handled by a specialized agent.
 
+This chapter summarizes the main findings and contributions within this work and suggests directions for future research and development.
+
+== Main Findings
+
+While the assessment of the solution shows undeniable potential in supporting municipal energy planning tasks, it also highlights important limitations.
+
+In terms of effectiveness, the system successfully addresses energy planning queries by coordinating the different AI agents.
+Among its main strengths are its capabilities in contextual reasoning and structured planning tasks for queries that require strategic analysis and synthesis of diverse data sources.
+
+Larger language models demonstrate superior performance across all evaluation criteria, with the most significant improvements in data interpretation (+76% for factual queries, +61% for actionable queries) and methodology alignment (+42% for factual queries, +40% for actionable queries).
+
+Despite its effectiveness, the solution exhibits concerning reliability issues.
+The expert assessment identified recurring problems, such as unsupported conclusions that are delivered with a very confident tone or the misinterpretation of data sources leading to misleading figures and analysis.
+
+These issues pose particular risks for uninformed users, which may lack the expertise and knowledge to identify and filter out inconsistencies from the relevant insights.
+
+== Key Contributions
+
+Various contributions are outlined in this section, based on the implementation and assessment of the solution:
+1. A modular multi-agent architecture composed of six AI agents, each integrated through a unified conversational workflow, enabling the solution to exploit the capabilities of individual and specialized agents, while maintaining a clear and deterministic flow of information.
+2. Publicly available datasets and policy frameworks are incorporated into the system, ensuring that its reasoning is grounded in real-world planning constraints and sustainability requirements, both essential for effective urban energy planning.
+3. The evaluation framework combines expert assessment with LLM-as-a-judge automated benchmarking, merging nuanced qualitative feedback with a standardized evaluation based on predefined criteria, enabling large-scale comparison across diverse configurations.
+
+== Future Work
+
+The findings presented in this thesis open up several promising future implementations and investigations, from which a non-exhaustive list is outlined in this section:
+- Exploring the integration of large language models into the solution, addressing current limitations in data interpretation and consistency.
+- Extending both the capabilities of the automated benchmarking framework, leveraging finer-grained criteria to better identify areas of improvement and the number of runs to assess the inconsistency of the results.
+- Integrating coding agents, transitioning from the current static data retrieval and analysis paradigm to fully autonomous data processing, delivering richer insights from broader data sources.
+- Developing a specialized classification model for the intent router agent, reducing the computational cost and latency of the solution as well as improving the accuracy of intent recognition.
+- Expanding the scope of supported municipalities outside of Valais/Wallis.
+- Enhancing the user experience, supporting mobile devices and improving the design and accessibility of the web interface.
+
+== Closing Remarks
+
+While the proposed solution marks a step towards smarter data-driven decision support tools, for municipalities, it does also highlight the ongoing need for research into reliability and transparency, enhancing the robustness of the solution.
+
+Ultimately, this thesis demonstrates both the promise and the current challenges of AI agents in the field of urban energy planning.
 // REPRENDRE UN PAR UN LES POINTS DE LA DONNEE -> pq j'ai pas entraîné, ...
-// future work: 1) plus grands modeles, greater scale benchmark, 2) sucres solution
-// amélioration graphe
-// MCP
-// train classificateur guidelines, fine tune, ...
-// train classificateur intent
 // fuzzy search <- amélioration plutôt que limitation et dire que utiliser un dictionnaire difficile car mises à jour fréquentes par exemple ici ou plus bas ??
-// support mobile
 
 #pagebreak()
 #heavy-title(i18n(doc_language, "bibliography-title"), mult: 1, top: 0.5em, bottom: 0.3em)
@@ -1590,7 +1619,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(intent_router_prompts_system, lang: "python")
   ],
-  caption: "System prompt for the Intent Router agent that defines its role in analyzing user queries to extract location information and classify intent as either factual (data requests) or actionable (planning recommendations). The prompt establishes the agent's responsibility for parsing natural language queries, validating municipality names against Swiss commune registers, and determining when clarification is needed for ambiguous requests.",
+  caption: "System prompt for the Intent Router agent that defines its role in analyzing user queries to extract location information and classify intent as either factual (data requests) or actionable (planning recommendations). The prompt establishes the agent's responsibility for parsing natural language queries, validating municipality names against Swiss commune registers and determining when clarification is needed for ambiguous requests.",
   kind: "prompt",
   supplement: [Prompt],
 ) <intent_router_prompt_system>
@@ -1600,7 +1629,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(intent_router_prompts_user, lang: "python")
   ],
-  caption: "User prompt template for the Intent Router agent that provides the specific user query and conversation context for intent classification. This template structures the input data including the user's question, conversation history, and any previously identified location information, enabling the agent to make informed decisions about query intent and required clarifications.",
+  caption: "User prompt template for the Intent Router agent that provides the specific user query and conversation context for intent classification. This template structures the input data including the user's question, conversation history and any previously identified location information, enabling the agent to make informed decisions about query intent and required clarifications.",
   kind: "prompt",
   supplement: [Prompt],
 ) <intent_router_prompt_user>
@@ -1610,7 +1639,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(clarify_query_prompts_system, lang: "python")
   ],
-  caption: "System prompt for the Clarify Query agent that defines its role in handling ambiguous or incomplete user requests by generating targeted clarification questions. The prompt instructs the agent to identify missing information, formulate clear and specific follow-up questions, and maintain a conversational tone while ensuring all necessary details for energy planning analysis are obtained from the user.",
+  caption: "System prompt for the Clarify Query agent that defines its role in handling ambiguous or incomplete user requests by generating targeted clarification questions. The prompt instructs the agent to identify missing information, formulate clear and specific follow-up questions and maintain a conversational tone while ensuring all necessary details for energy planning analysis are obtained from the user.",
   kind: "prompt",
   supplement: [Prompt],
 ) <clarify_query_system_prompt>
@@ -1630,7 +1659,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(geocontext_retriever_prompts_system, lang: "python")
   ],
-  caption: "System prompt for the Geocontext Retriever agent that establishes its role in selecting and executing appropriate geospatial analysis tools based on user queries and municipal context. The prompt defines how the agent should interpret geographical requirements, choose relevant datasets, and format spatial information for downstream processing in the energy planning workflow.",
+  caption: "System prompt for the Geocontext Retriever agent that establishes its role in selecting and executing appropriate geospatial analysis tools based on user queries and municipal context. The prompt defines how the agent should interpret geographical requirements, choose relevant datasets and format spatial information for downstream processing in the energy planning workflow.",
   kind: "prompt",
   supplement: [Prompt],
 ) <geocontext_retriever_system_prompt>
@@ -1640,7 +1669,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(infer_pages_prompts_system, lang: "python")
   ],
-  caption: "System prompt for the data extraction component of the Guidelines Retriever that processes Swiss energy planning PDF documents to identify and extract relevant regulatory information. This prompt guides the automated parsing of complex regulatory documents, including federal and cantonal energy legislation, planning guidelines, and technical standards applicable to municipal energy strategies.",
+  caption: "System prompt for the data extraction component of the Guidelines Retriever that processes Swiss energy planning PDF documents to identify and extract relevant regulatory information. This prompt guides the automated parsing of complex regulatory documents, including federal and cantonal energy legislation, planning guidelines and technical standards applicable to municipal energy strategies.",
   kind: "prompt",
   supplement: [Prompt],
 ) <guidelines_retriever_data_extraction>
@@ -1650,7 +1679,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(guidelines_retriever_prompts_system, lang: "python")
   ],
-  caption: "System prompt for the Guidelines Retriever agent that defines its role in processing and interpreting Swiss federal and cantonal energy planning regulations. The prompt instructs the agent to analyze retrieved guideline documents, extract relevant regulatory requirements, and contextualize them for specific municipal energy planning scenarios while ensuring compliance with applicable legislation and best practices.",
+  caption: "System prompt for the Guidelines Retriever agent that defines its role in processing and interpreting Swiss federal and cantonal energy planning regulations. The prompt instructs the agent to analyze retrieved guideline documents, extract relevant regulatory requirements and contextualize them for specific municipal energy planning scenarios while ensuring compliance with applicable legislation and best practices.",
   kind: "prompt",
   supplement: [Prompt],
 ) <guidelines_retriever_system_prompt>
@@ -1660,7 +1689,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(infer_pages_structureless_prompts_system, lang: "python")
   ],
-  caption: "Data extraction prompt for the Municipal Citizen Profile component that processes unstructured Swiss federal energy registers to extract building-specific energy characteristics. This prompt guides the automated extraction of parcel data, energy consumption patterns, heating systems, and renewable energy installations, enabling personalized energy planning recommendations based on actual building infrastructure.",
+  caption: "Data extraction prompt for the Municipal Citizen Profile component that processes unstructured Swiss federal energy registers to extract building-specific energy characteristics. This prompt guides the automated extraction of parcel data, energy consumption patterns, heating systems and renewable energy installations, enabling personalized energy planning recommendations based on actual building infrastructure.",
   kind: "prompt",
   supplement: [Prompt],
 ) <municipal_citizen_profile>
@@ -1670,7 +1699,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(generate_answer_factual_system_prompt, lang: "python")
   ],
-  caption: "System prompt for the Strategy Planner agent when handling factual queries that request data analysis and information retrieval. This prompt defines the agent's role in processing geographical context, municipal data, and guidelines to provide accurate, data-driven responses about current energy consumption, infrastructure status, and resource availability without generating planning recommendations.",
+  caption: "System prompt for the Strategy Planner agent when handling factual queries that request data analysis and information retrieval. This prompt defines the agent's role in processing geographical context, municipal data and guidelines to provide accurate, data-driven responses about current energy consumption, infrastructure status and resource availability without generating planning recommendations.",
   kind: "prompt",
   supplement: [Prompt],
 ) <generate_answer_factual_system_prompt>
@@ -1680,7 +1709,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(generate_answer_factual_user_prompt, lang: "python")
   ],
-  caption: "User prompt template for factual queries processed by the Strategy Planner agent, structuring how data requests are formatted with retrieved contextual information including geographical data, applicable guidelines, and municipal characteristics. This template ensures consistent data presentation and accurate information synthesis for informational energy planning queries.",
+  caption: "User prompt template for factual queries processed by the Strategy Planner agent, structuring how data requests are formatted with retrieved contextual information including geographical data, applicable guidelines and municipal characteristics. This template ensures consistent data presentation and accurate information synthesis for informational energy planning queries.",
   kind: "prompt",
   supplement: [Prompt],
 ) <generate_answer_factual_user_prompt>
@@ -1690,7 +1719,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(generate_answer_actionable_system_prompt, lang: "python")
   ],
-  caption: "System prompt for the Strategy Planner agent when handling actionable queries that require strategic planning recommendations. This prompt defines the agent's role in synthesizing geographical data, regulatory guidelines, and municipal profiles to generate comprehensive energy planning strategies, implementation roadmaps, and specific actionable recommendations tailored to the municipality's context and constraints.",
+  caption: "System prompt for the Strategy Planner agent when handling actionable queries that require strategic planning recommendations. This prompt defines the agent's role in synthesizing geographical data, regulatory guidelines and municipal profiles to generate comprehensive energy planning strategies, implementation roadmaps and specific actionable recommendations tailored to the municipality's context and constraints.",
   kind: "prompt",
   supplement: [Prompt],
 ) <generate_answer_actionable_system_prompt>
@@ -1700,7 +1729,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(generate_answer_actionable_user_prompt, lang: "python")
   ],
-  caption: "User prompt template for actionable queries processed by the Strategy Planner agent, structuring how planning requests are formatted with comprehensive contextual information including geographical potential, regulatory constraints, municipal profiles, and user preferences. This template enables the generation of tailored strategic recommendations for municipal energy planning implementation.",
+  caption: "User prompt template for actionable queries processed by the Strategy Planner agent, structuring how planning requests are formatted with comprehensive contextual information including geographical potential, regulatory constraints, municipal profiles and user preferences. This template enables the generation of tailored strategic recommendations for municipal energy planning implementation.",
   kind: "prompt",
   supplement: [Prompt],
 ) <generate_answer_actionable_user_prompt>
@@ -1710,7 +1739,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(critic_answer_system_prompt, lang: "python")
   ],
-  caption: "System prompt for the Critic agent that performs quality assurance on generated responses before delivery to users. This prompt defines the agent's role in evaluating responses for mathematical accuracy, logical consistency, proper data interpretation, and alignment with guidelines, outputting a boolean decision on whether the response meets quality standards and should be delivered or regenerated.",
+  caption: "System prompt for the Critic agent that performs quality assurance on generated responses before delivery to users. This prompt defines the agent's role in evaluating responses for mathematical accuracy, logical consistency, proper data interpretation and alignment with guidelines, outputting a boolean decision on whether the response meets quality standards and should be delivered or regenerated.",
   kind: "prompt",
   supplement: [Prompt],
 ) <critic_answer_system_prompt>
@@ -1720,7 +1749,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(benchmark_system_prompt, lang: "python")
   ],
-  caption: "System prompt for the G-eval benchmarking framework that defines the evaluation criteria and scoring methodology for automated assessment of AI agent responses. This prompt instructs the evaluator model to assess responses across four key dimensions: data interpretation accuracy, methodology alignment with energy planning principles, municipal relevance, and technical compliance, using a standardized 1-5 scoring scale.",
+  caption: "System prompt for the G-eval benchmarking framework that defines the evaluation criteria and scoring methodology for automated assessment of AI agent responses. This prompt instructs the evaluator model to assess responses across four key dimensions: data interpretation accuracy, methodology alignment with energy planning principles, municipal relevance and technical compliance, using a standardized 1-5 scoring scale.",
   kind: "prompt",
   supplement: [Prompt],
 ) <benchmark_system_prompt>
@@ -1744,7 +1773,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(evaluation_conversation, lang: "md")
   ],
-  caption: "Complete conversation transcript showing the responses of the system to all nine test dataset prompts for municipal energy planning in Sion. This comprehensive evaluation demonstrates the system's performance across different query types including energy consumption analysis, future projections, efficiency measures, renewable potential assessment, and infrastructure mapping requests, providing the primary data for both expert assessment and automated benchmarking evaluation.",
+  caption: "Complete conversation transcript showing the responses of the system to all nine test dataset prompts for municipal energy planning in Sion. This comprehensive evaluation demonstrates the system's performance across different query types including energy consumption analysis, future projections, efficiency measures, renewable potential assessment and infrastructure mapping requests, providing the primary data for both expert assessment and automated benchmarking evaluation.",
   kind: "conversation",
   supplement: [Conversation],
 ) <evaluation_data>
