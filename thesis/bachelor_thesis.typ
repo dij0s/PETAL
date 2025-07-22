@@ -141,12 +141,12 @@ A user-friendly interface enables users to interact with the system in a convers
 
 #figure(
   image("figs/petal_interface_pv.png", width: 100%),
-  caption: "Web interface showing a report and map about the assessment of photovoltaic solar energy, in Sion.",
+  caption: "Web interface displaying a report on photovoltaic solar energy potential in Sion. The interface features a chat panel for querying the system and an interactive map, visualizing rooftop-level solar energy data.",
 )<petal_interface_pv>
 
 #figure(
   image("figs/petal_interface_water.png", width: 100%),
-  caption: "Web interface showing a report and map about the assessment of potential energy from small water sources, in Sion.",
+  caption: "Web interface displaying a follow-up report on small hydropower potential in Sion. The interface includes a chat panel showing system responses and an interactive map, visualizing water flow data and rooftop-level solar energy.",
 )<petal_interface_water>
 
 Finally, user behavior is analyzed to takeaway user preferences which gradually adapt the answers to better meet the user expectations.
@@ -323,7 +323,7 @@ These requirements are summarized in the #ref(<requirements_table>):
     [Multilingual support],
     [The system should support multilingual interaction, including both the website interface and conversational responses.],
   ),
-  caption: "Requirements table",
+  caption: "Table outlining the system requirements for the solution, divided into functional requirements (e.g., data integration, conversational interface) and non-functional requirements (e.g., usability, extensibility, multilingual support)",
 ) <requirements_table>
 
 Ongoing weekly evaluations with supervisors led to the identification of additional needs, which progressively refined and improved the system to better support energy planning and enhance user experience.
@@ -339,7 +339,7 @@ The following chapter covers both the design and the implementation aspects of t
 
 #figure(
   image("figs/system_design_global.svg", height: 5cm),
-  caption: "Schematization of the global system design",
+  caption: "High-level architecture diagram of the system showing the three-layer design and components with (1) the frontend layer (user interface), (2) the backend layer (AI agent orchestration and business logic) and (3) the external services layer (third-party APIs and data sources).",
 )<global_system_design>
 
 The global architecture in its most simplified form is presented in the #ref(<global_system_design>). The system is broken down into three distinct layers:
@@ -360,7 +360,7 @@ The layers are made up of various components. The basic dataflow between them is
     [Third-party APIs], [AI Agent (Backend)], [API response data],
     [AI Agent (Backend)], [User (Website)], [Streamed response],
   ),
-  caption: "Global system dataflow",
+  caption: "Table describing the data flow within the high-level components. It outlines how user queries are handled by the AI agent, gathering information from a local database and external APIs before returning a processed response to the user interface.",
 ) <global_dataflow>
 
 The nature and type of data that are exchanged between the AI agent and both the local database and third-party APIs are discussed in each individual segment, dedicated to the respective components.
@@ -393,7 +393,7 @@ Accordingly, the conversational context is modeled as a single object that is up
   code()[
     #raw(destructured_state, lang: "python")
   ],
-  caption: "Conversation state",
+  caption: "Python data structure representing the conversation state, including user inputs, language, intent, location, query aggregation, and flags for clarification or memoization. It also stores contextual tools and constraints for guiding energy planning conversations.",
 ) <conversational_state>
 
 #highlight("TODO: virer double définition ?")
@@ -407,7 +407,10 @@ Although these models show very strong capabilities, their usage can be excessiv
 By constraining the conversational state and narrowing the scope of each agent, it is also possible to reduce the computational load and latency by simply swapping out these large reasoning models by smaller, better-suited models.
 Doing so, it becomes possible to select reasoning models that are better suited to specific tasks while reducing the computational costs.
 
-#figure(image("figs/ai_agent_system_design.svg", width: 100%), caption: "AI agent architecture")<ai_agent_design>
+#figure(
+  image("figs/ai_agent_system_design.svg", width: 100%),
+  caption: "Architecture of the AI multi-agent system showing the workflow between specialized agents. The diagram illustrates the Intent Router, Clarify Query, Geocontext Retriever, Guidelines Retriever, Strategy Planner and Critic agents with their interconnections. Solid arrows represent mandatory transitions while dashed arrows indicate conditional transitions based on the evolving conversational state.",
+)<ai_agent_design>
 #highlight("TODO: vérifier partout que les réf. transitions sont bonnes")
 
 The architecture in the #ref(<ai_agent_design>) is modeled after a #acr("FSM"), where each node represents an agent and each edge represents a transition that is either always executed (solid) or conditionally executed (dashed). The dynamic flow of control between agents is guided by the evolving conversational state. It is finite, per definition, as the state takes value in a discrete set.
@@ -491,7 +494,10 @@ On top of that, user-provided feedback and corrections shape the system's behavi
 When there is a need for memoization, the system stores both the previous query (the _corrected_) and the current query (the _correctee_), in the database.
 
 This highlights the interfaces of the intent router, as detailed in the #ref(<intent_router_design>):
-#figure(image("figs/intent_router_design.svg", width: 12cm), caption: "Intent router, interfaces")<intent_router_design>
+#figure(
+  image("figs/intent_router_design.svg", width: 12cm),
+  caption: "Interface diagram for the Intent Router agent showing input/output data structures and interaction with the local database. The input is the prompt, while output provides structured classification that guides subsequent agent selection in the workflow.",
+)<intent_router_design>
 
 An assumption still lies in the nature of the field _location_ as it is assumed to either be set or unset. A set location does not necessarily imply that it is a valid municipality, inscribed in the published Swiss official commune register#footnote("https://www.bfs.admin.ch/bfs/en/home/basics/swiss-official-commune-register.html").
 A solution is proposed in the #ref(<geocontext_retriever>).
@@ -510,7 +516,10 @@ Clarifying and resolving vagueness in the user's query is essential to better un
 With the output of the intent router agent properly defined, the two cases which lead to the need for clarification are either an explicit request for clarification due to ambiguity or missing information.
 
 Those two cases are both handled at once as a language model is prompted with the user's query and missing fields to generate and stream a response inquiring for further information or clarification (#ref(<ai_agent_design>), transition 3). The interfaces are illustrated in the #ref(<clarify_query_design>):
-#figure(image("figs/clarify_query_design.svg", width: 12cm), caption: "Clarify query, interfaces")<clarify_query_design>
+#figure(
+  image("figs/clarify_query_design.svg", width: 12cm),
+  caption: "Interface diagram for the Clarify Query agent showing input/output data structures. The input is the conversation state and the output is the generated clarification question to guide further user input.",
+)<clarify_query_design>
 
 In the following turn, the newly provided information is merged with the previously deduced intent as designed and presented in the #ref(<intent_router>).
 
@@ -652,7 +661,7 @@ The #ref(<datasets_table>) presents the datasets incorporated in the solution an
       )
     },
   ),
-  caption: "Public datasets",
+  caption: "Table of Swiss federal geospatial datasets used by the solution for municipal energy planning, categorized by energy needs (consumption data for heating, cooling, and electricity), renewable energy potential (solar, hydro, biomass, and water-based sources) and existing infrastructure (operational power plants and thermal networks). Each dataset includes the official Swiss geocat.ch identifier, energy units and spatial discretization level.",
 ) <datasets_table>
 #pagebreak()
 
@@ -678,7 +687,7 @@ The second issue is mitigated depending on the nature of the data. The basic app
 This random geographical sampling process is depicted in the #ref(<sampling_design>):
 #figure(
   image("figs/tiling_design.svg", width: 100%),
-  caption: "Random geographical sampling, municipality of Grône",
+  caption: "Illustration of the random geographical sampling methodology applied to the municipality of Grône. The diagram shows the statistical approach used to estimate spatial data from high-resolution geospatial datasets by randomly sampling spatial tiles within municipal boundaries.",
 )<sampling_design>
 
 Choosing the sampling size and confidence level is important for a proper statistical estimation. In this project, both parameters are set empirically and kept relatively large to benefit from lower computational costs, but without optimizing for the best possible accuracy.
@@ -712,7 +721,7 @@ This approach reduces the overall computational cost while increasing the qualit
 With the appropriate tools chosen, the system can effectively retrieve the data. It is simply added to the _context_tools_ field in the conversational state (#ref(<conversational_state>)), as presented in the #ref(<geocontext_retriever_design>):
 #figure(
   image("figs/geocontext_retriever_design.svg", width: 11cm),
-  caption: "Geocontext retriever, interfaces",
+  caption: "Interface diagram for the Geocontext Retriever agent showing input and output data structures. The input is the conversational state, and the output is the updated state with the retrieved geospatial data. It also features the interaction with geospatial APIs to obtain relevant geographical information.",
 )<geocontext_retriever_design>
 
 Expanding the functionnalities of the geocontext retriever is straightforward: new data sources, APIs or even simulation models can be integrated as additional tools the agent may use.
@@ -794,7 +803,7 @@ Similarly to the geospatial information described in the #ref(<geocontext_retrie
 These interfaces are shown in the #ref(<guidelines_retriever_design>):
 #figure(
   image("figs/guidelines_retriever_design.svg", width: 12cm),
-  caption: "Guidelines retriever, interfaces",
+  caption: "Interface diagram for the Guidelines Retriever agent showing the input conversational context and output as updated state with the retrieved guidelines. The diagram also depicts interaction with the local database storing the embedded regulation documents.",
 )<guidelines_retriever_design>
 
 With the relevant guidelines retrieved and rescaled, the query is routed to the strategy planner agent (#ref(<ai_agent_design>), transition 7) which will use them as clear constraints.
@@ -849,7 +858,7 @@ This procedure was tested against a typical citizen record, provided by Prof. Je
       lang: "json",
     )
   ],
-  caption: "Citizen profile, example",
+  caption: "Example JSON structure of a Municipal Citizen Profile with building-specific energy data, including parcel number, surface area (m²), heating consumption (kWh/year), heating system type and installed photovoltaic capacity (kWp).",
 ) <citizen_profile_example>
 
 In a production scenario, these profiles would be generated automatically by setting up data pipelines and stored in a database for further use.
@@ -878,7 +887,7 @@ The selection of similar tools is based on their categorization, as defined in #
 The state interfaces are presented in the #ref(<strategy_planner_design>):
 #figure(
   image("figs/strategy_planner_design.svg", width: 11cm),
-  caption: "Strategy planner, interfaces",
+  caption: "Interface diagram for the Strategy Planner agent showing the conversational context in input and streamed response in output. The diagram also depicts interaction with the local database, storing the user preferences.",
 )<strategy_planner_design>
 
 The factual queries are treated by both #ref(<generate_answer_factual_system_prompt>) and #ref(<generate_answer_factual_user_prompt>) whereas actionable queries are handled by #ref(<generate_answer_actionable_system_prompt>) and #ref(<generate_answer_actionable_user_prompt>).
@@ -904,7 +913,7 @@ On top of that, the number of residents in the municipality and its exploitable 
 
 #figure(
   image("figs/critic_design.svg", width: 12cm),
-  caption: "Critic design, interfaces",
+  caption: "Interface diagram of the Critic agent, illustrating in input the generated response and full conversational context. It outputs a boolean decision and can trigger up to three retries if quality criteria are not met.",
 )<critic_design>
 Its output is a boolean value (#ref(<critic_design>), _retry_) that indicates whether the response has been interpreted correctly based on the rules.
 
@@ -1082,7 +1091,7 @@ The criteria for the LLM-as-a-judge benchmarking framework are defined as follow
 3. Municipal relevance: rates feasibility at local scale, direct query alignment, consideration of local context and actionable next steps.
 4. Technical compliance: checks language consistency, correct structure, citation format and completeness of required sections.
 
-And evaluated according to the following scale, presented in #ref(<scoring_grid_llm>):
+And evaluated according to the following scale, presented in #ref(<evaluation_grid>):
 #set table(
   fill: (x, y) => { if calc.odd(y) { rgb("F7F9FA") } },
   align: (x, _) => if x == 0 { center } else { left },
@@ -1102,8 +1111,8 @@ And evaluated according to the following scale, presented in #ref(<scoring_grid_
     [4], [Good quality, minor issues, genuinely useful for municipal planning.],
     [5], [Exceptional—accurate, specific, actionable, perfect methodology alignment.],
   ),
-  caption: "Ordinal evaluation grid for criteria in the benchmarking framework",
-) <scoring_grid_llm>
+  caption: "Five-point ordinal evaluation scale used in the LLM-as-a-judge benchmarking framework to assess AI agent responses across multiple criteria. Each score represents a quality level from (1) fundamentally flawed to (5) exceptional performance.",
+) <evaluation_grid>
 
 These criteria are based on the most frequent types of errors, encountered during the continuous assessment of the solution.
 
@@ -1144,7 +1153,7 @@ However, the grid presented in #ref(<scoring_grid_expert>) acts as a reference p
     [Highly relevant],
     [Information is perfectly aligned with the question, complete and contextualized; no corrections are necessary and it is ready to be used as-is for decision-making.],
   ),
-  caption: "Ordinal evaluation grid for the expert",
+  caption: "Five-point ordinal evaluation scale for expert assessment of AI-generated energy planning responses, ranging from completely irrelevant (1) to highly relevant and ready-to-use (5).",
 ) <scoring_grid_expert>
 
 === Framework Interpretability
@@ -1188,7 +1197,7 @@ This dataset consists of nine prompts and establishes the basis for assessing th
 
     [9], [Can you provide me with a map of heat/cold demand density and potential sources of heat/cold?],
   ),
-  caption: "Test dataset prompts for municipal energy planning in Sion",
+  caption: "Comprehensive test dataset of nine evaluation prompts designed for assessing the peformance of the system in municipal energy planning for Sion. This dataset enables systematic evaluation of both factual information retrieval and actionable planning recommendation capabilities.",
 ) <test_dataset>
 
 The dataset is aligned within the specific scope of available data sources, inherently restricting its size.
@@ -1242,7 +1251,7 @@ The #ref(<configurations>) breaks down their composition:
     [*Small*], [qwen3:1.7B], [qwen3:1.7B], [qwen3:1.7B], [qwen3:1.7B], [deepseek-r1:8B],
     [*Large (Baseline)*], [qwen3:1.7B], [qwen3:1.7B], [qwen3:1.7B], [*qwen3:8B*], [deepseek-r1:8B],
   ),
-  caption: "Agent language model by configuration",
+  caption: "Language model choices across different agent configurations used in the evaluation study. The small configuration uses lightweight 1.7B parameter Qwen3 models for all agents, while the large baseline configuration make use of a more powerful 8B parameter Qwen3 model specifically for the Strategy Planner agent, which handles the most complex reasoning tasks. The DeepSeek R1 8B model serves as the evaluator for G-eval benchmarking across both configurations to minimize bias in assessment.",
 ) <configurations>
 
 A smaller configuration is defined for further comparison against the baseline.
@@ -1293,7 +1302,7 @@ The #ref(<comparison_test_human_llm>) presents the results, showing both the exp
     [8], [0.25], [0.38 ± 0.00], [0.49 ± 0.13],
     [9], [0.25], [0.21 ± 0.06], [0.50 ± 0.11],
   ),
-  caption: "Expert assessment and G-eval scores on test dataset, per prompt.",
+  caption: "Comparative evaluation results showing expert assessment scores (normalized 0-1 scale) versus G-eval automated benchmarking scores (mean ± standard deviation over 10 runs) for both system configurations across all nine test prompts. The table demonstrates the performance difference between small and large configurations, with the large configuration consistently outperforming the small one in automated evaluation.",
 ) <comparison_test_human_llm>
 
 While both frameworks are not directly comparable, this provides an interesting perspective for further analysis.
@@ -1301,7 +1310,7 @@ While both frameworks are not directly comparable, this provides an interesting 
 On the other hand, the scores per benchmarking criterion and per query _intent_ type (either factual or actionable, per definition), for both configurations, are depicted in the #ref(<boxplots_criterion>):
 #figure(
   image("figs/boxplots_criterion_intent.png", width: 100%),
-  caption: "Boxplots per criterion score, by prompt intent.",
+  caption: "Box plot analysis showing the distribution of G-eval benchmark scores across the four evaluation criteria (Data Interpretation, Methodology Alignment, Municipal Relevance, Technical Compliance) grouped by query intent type (Factual vs. Actionable) for both small and large system configurations. The plots reveal performance variations between criteria and configurations.",
 )<boxplots_criterion>
 
 The mean score and entropy of the scores distribution, per benchmarking criterion and per query _intent_ type are reported in the #ref(<comparison_criteria>) and #ref(<entropy_criteria>):
@@ -1346,20 +1355,20 @@ The mean score and entropy of the scores distribution, per benchmarking criterio
     ),
     [], table.cell(colspan: 2, [Factual]), table.cell(colspan: 2, [Actionable]),
     [*Criterion*], [Small], [*Large*], [Small], [*Large*],
-    [Data interpretation], [1.45], [2.55], [1.70], [2.74],
-    [Methodology alignment],
+    [Data Interpretation], [1.45], [2.55], [1.70], [2.74],
+    [Methodology Alignment],
     [1.55],
     [2.20],
     [2.19],
     [3.07],
-    [Municipal relevance],
+    [Municipal Relevance],
     [3.00],
     [3.50],
     [2.54],
     [2.93],
-    [Technical compliance], [1.60], [1.80], [2.33], [2.34],
+    [Technical Compliance], [1.60], [1.80], [2.33], [2.34],
   ),
-  caption: "LLM-as-a-judge benchmark mean score on test dataset, per criteria and per query intent.",
+  caption: "Mean performance scores from five-point ordinal evaluation across four evaluation criteria, by query intent type (factual and actionable) and system configuration. The results show the superior performance of the large configuration and global challenges in Data interpretation and Technical compliance.",
 ) <comparison_criteria>
 
 #figure(
@@ -1372,19 +1381,19 @@ The mean score and entropy of the scores distribution, per benchmarking criterio
     [], table.cell(colspan: 2, [Factual]), table.cell(colspan: 2, [Actionable]),
     [*Criterion*], [Small], [*Large*], [Small], [*Large*],
     [Data interpretation], [0.69], [1.19], [0.69], [1.38],
-    [Methodology alignment],
+    [Methodology Alignment],
     [0.69],
     [1.25],
     [1.14],
     [1.54],
-    [Municipal relevance],
+    [Municipal Relevance],
     [0.00],
     [1.11],
     [1.00],
     [1.50],
-    [Source citations], [0.50], [0.95], [0.69], [1.16],
+    [Source Citations], [0.50], [0.95], [0.69], [1.16],
   ),
-  caption: "LLM-as-a-judge benchmark entropy of scores on test dataset, per criteria and per query intent.",
+  caption: "Entropy analysis (in nats) of G-eval score distributions across evaluation criteria and query types, measuring the variability and consistency of system performance. The large configuration shows generally higher entropy, particularly for actionable queries, indicating more varied responses.",
 ) <entropy_criteria>
 
 It is important to note that the distribution of prompts by intent is unbalanced as only two prompts from the test dataset (#ref(<test_dataset>)) are classified as "factual" (no° 1 and 4), while the seven remaining ones are classified as "actionable".
@@ -1571,7 +1580,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(prompt_creation)
   ],
-  caption: "Prompt engineering prompt",
+  caption: "Meta-prompt used for systematic prompt engineering",
   kind: "prompt",
   supplement: [Prompt],
 ) <prompt_creation>
@@ -1581,7 +1590,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(intent_router_prompts_system, lang: "python")
   ],
-  caption: "Intent router, system prompt",
+  caption: "System prompt for the Intent Router agent that defines its role in analyzing user queries to extract location information and classify intent as either factual (data requests) or actionable (planning recommendations). The prompt establishes the agent's responsibility for parsing natural language queries, validating municipality names against Swiss commune registers, and determining when clarification is needed for ambiguous requests.",
   kind: "prompt",
   supplement: [Prompt],
 ) <intent_router_prompt_system>
@@ -1591,7 +1600,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(intent_router_prompts_user, lang: "python")
   ],
-  caption: "Intent router, user prompt",
+  caption: "User prompt template for the Intent Router agent that provides the specific user query and conversation context for intent classification. This template structures the input data including the user's question, conversation history, and any previously identified location information, enabling the agent to make informed decisions about query intent and required clarifications.",
   kind: "prompt",
   supplement: [Prompt],
 ) <intent_router_prompt_user>
@@ -1601,7 +1610,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(clarify_query_prompts_system, lang: "python")
   ],
-  caption: "Clarify query, system prompt",
+  caption: "System prompt for the Clarify Query agent that defines its role in handling ambiguous or incomplete user requests by generating targeted clarification questions. The prompt instructs the agent to identify missing information, formulate clear and specific follow-up questions, and maintain a conversational tone while ensuring all necessary details for energy planning analysis are obtained from the user.",
   kind: "prompt",
   supplement: [Prompt],
 ) <clarify_query_system_prompt>
@@ -1611,7 +1620,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(clarify_query_prompts_user, lang: "python")
   ],
-  caption: "Clarify query, user prompt",
+  caption: "User prompt template for the Clarify Query agent that structures requests for clarification by combining the original user query with identified missing information fields. This template enables the agent to generate contextually appropriate clarification questions that help users refine their energy planning inquiries.",
   kind: "prompt",
   supplement: [Prompt],
 ) <clarify_query_user_prompt>
@@ -1621,7 +1630,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(geocontext_retriever_prompts_system, lang: "python")
   ],
-  caption: "Geocontext retriever, system prompt",
+  caption: "System prompt for the Geocontext Retriever agent that establishes its role in selecting and executing appropriate geospatial analysis tools based on user queries and municipal context. The prompt defines how the agent should interpret geographical requirements, choose relevant datasets, and format spatial information for downstream processing in the energy planning workflow.",
   kind: "prompt",
   supplement: [Prompt],
 ) <geocontext_retriever_system_prompt>
@@ -1631,7 +1640,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(infer_pages_prompts_system, lang: "python")
   ],
-  caption: "Guidelines retriever, data extraction prompt",
+  caption: "System prompt for the data extraction component of the Guidelines Retriever that processes Swiss energy planning PDF documents to identify and extract relevant regulatory information. This prompt guides the automated parsing of complex regulatory documents, including federal and cantonal energy legislation, planning guidelines, and technical standards applicable to municipal energy strategies.",
   kind: "prompt",
   supplement: [Prompt],
 ) <guidelines_retriever_data_extraction>
@@ -1641,7 +1650,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(guidelines_retriever_prompts_system, lang: "python")
   ],
-  caption: "Guidelines retriever, system prompt",
+  caption: "System prompt for the Guidelines Retriever agent that defines its role in processing and interpreting Swiss federal and cantonal energy planning regulations. The prompt instructs the agent to analyze retrieved guideline documents, extract relevant regulatory requirements, and contextualize them for specific municipal energy planning scenarios while ensuring compliance with applicable legislation and best practices.",
   kind: "prompt",
   supplement: [Prompt],
 ) <guidelines_retriever_system_prompt>
@@ -1651,7 +1660,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(infer_pages_structureless_prompts_system, lang: "python")
   ],
-  caption: "Municipal ciztizen profile, data extraction prompt",
+  caption: "Data extraction prompt for the Municipal Citizen Profile component that processes unstructured Swiss federal energy registers to extract building-specific energy characteristics. This prompt guides the automated extraction of parcel data, energy consumption patterns, heating systems, and renewable energy installations, enabling personalized energy planning recommendations based on actual building infrastructure.",
   kind: "prompt",
   supplement: [Prompt],
 ) <municipal_citizen_profile>
@@ -1661,7 +1670,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(generate_answer_factual_system_prompt, lang: "python")
   ],
-  caption: "Strategy planner, factual system prompt",
+  caption: "System prompt for the Strategy Planner agent when handling factual queries that request data analysis and information retrieval. This prompt defines the agent's role in processing geographical context, municipal data, and guidelines to provide accurate, data-driven responses about current energy consumption, infrastructure status, and resource availability without generating planning recommendations.",
   kind: "prompt",
   supplement: [Prompt],
 ) <generate_answer_factual_system_prompt>
@@ -1671,7 +1680,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(generate_answer_factual_user_prompt, lang: "python")
   ],
-  caption: "Strategy planner, factual user prompt",
+  caption: "User prompt template for factual queries processed by the Strategy Planner agent, structuring how data requests are formatted with retrieved contextual information including geographical data, applicable guidelines, and municipal characteristics. This template ensures consistent data presentation and accurate information synthesis for informational energy planning queries.",
   kind: "prompt",
   supplement: [Prompt],
 ) <generate_answer_factual_user_prompt>
@@ -1681,7 +1690,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(generate_answer_actionable_system_prompt, lang: "python")
   ],
-  caption: "Strategy planner, actionable system prompt",
+  caption: "System prompt for the Strategy Planner agent when handling actionable queries that require strategic planning recommendations. This prompt defines the agent's role in synthesizing geographical data, regulatory guidelines, and municipal profiles to generate comprehensive energy planning strategies, implementation roadmaps, and specific actionable recommendations tailored to the municipality's context and constraints.",
   kind: "prompt",
   supplement: [Prompt],
 ) <generate_answer_actionable_system_prompt>
@@ -1691,7 +1700,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(generate_answer_actionable_user_prompt, lang: "python")
   ],
-  caption: "Strategy planner, actionable user prompt",
+  caption: "User prompt template for actionable queries processed by the Strategy Planner agent, structuring how planning requests are formatted with comprehensive contextual information including geographical potential, regulatory constraints, municipal profiles, and user preferences. This template enables the generation of tailored strategic recommendations for municipal energy planning implementation.",
   kind: "prompt",
   supplement: [Prompt],
 ) <generate_answer_actionable_user_prompt>
@@ -1701,7 +1710,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(critic_answer_system_prompt, lang: "python")
   ],
-  caption: "Strategy planner, system prompt",
+  caption: "System prompt for the Critic agent that performs quality assurance on generated responses before delivery to users. This prompt defines the agent's role in evaluating responses for mathematical accuracy, logical consistency, proper data interpretation, and alignment with guidelines, outputting a boolean decision on whether the response meets quality standards and should be delivered or regenerated.",
   kind: "prompt",
   supplement: [Prompt],
 ) <critic_answer_system_prompt>
@@ -1711,7 +1720,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(benchmark_system_prompt, lang: "python")
   ],
-  caption: "Benchmark, system prompt",
+  caption: "System prompt for the G-eval benchmarking framework that defines the evaluation criteria and scoring methodology for automated assessment of AI agent responses. This prompt instructs the evaluator model to assess responses across four key dimensions: data interpretation accuracy, methodology alignment with energy planning principles, municipal relevance, and technical compliance, using a standardized 1-5 scoring scale.",
   kind: "prompt",
   supplement: [Prompt],
 ) <benchmark_system_prompt>
@@ -1725,7 +1734,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(bias_conversation, lang: "md")
   ],
-  caption: "Biasing result through made up figures.",
+  caption: "Example conversation demonstrating the system's vulnerability to generating biased or potentially misleading results when fabricating specific numerical figures in the absence of complete data. This conversation illustrates the importance of the Critic agent and quality assurance mechanisms in detecting and preventing the dissemination of unsubstantiated quantitative claims in energy planning recommendations.",
   kind: "conversation",
   supplement: [Conversation],
 ) <fake_data>
@@ -1735,7 +1744,7 @@ At this stage, the solution shows promise and supports the potential for AI agen
   code()[
     #raw(evaluation_conversation, lang: "md")
   ],
-  caption: "Evaluation of the dataset.",
+  caption: "Complete conversation transcript showing the responses of the system to all nine test dataset prompts for municipal energy planning in Sion. This comprehensive evaluation demonstrates the system's performance across different query types including energy consumption analysis, future projections, efficiency measures, renewable potential assessment, and infrastructure mapping requests, providing the primary data for both expert assessment and automated benchmarking evaluation.",
   kind: "conversation",
   supplement: [Conversation],
 ) <evaluation_data>
