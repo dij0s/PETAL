@@ -484,7 +484,8 @@ Consequently, it is very easy to plan and orchestrate the following actions.
 
 Since the application must offer a conversational experience, the previously determined state is updated and not overwritten.
 Past fields are only updated if they differ from the new ones. As such, context and knowledge is properly accumulated over time.
-Once the municipality is provided, for example, it is not needed anymore as the request is assumed to concern the same municipality.
+
+Once the municipality is provided, for example, it is not needed anymore as the request is assumed to concern the same municipality (#ref(<example_conversation>)).
 
 On the other hand, when a request treats a different municipality, both the _context_tools_ and _context_constraints_ defined in #ref(<conversational_state>) are reset. This way, the data associated with the previously discussed municipality are cleared.
 To ensure correct implementation, whenever a request concerns a different municipality, both the _context_tools_ and _context_constraints_ defined in #ref(<conversational_state>) are reset. This means the geospatial data and guidelines previously associated with the conversation are cleared.
@@ -1614,7 +1615,7 @@ Ultimately, this thesis demonstrates both the promise and the current challenges
   code()[
     #raw(intent_router_prompts_system, lang: "python")
   ],
-  caption: "System prompt for the Intent Router agent that defines its role in analyzing user queries to extract location information and classify intent as either factual (data requests) or actionable (planning recommendations). The prompt establishes the agent's responsibility for parsing natural language queries, validating municipality names against Swiss commune registers and determining when clarification is needed for ambiguous requests.",
+  caption: "System prompt for the Intent Router agent that defines its role in analyzing user queries to extract location information and classify intent as either factual (data requests) or actionable (planning recommendations). The prompt establishes the agent's responsibility for parsing natural language queries.",
   kind: "prompt",
   supplement: [Prompt],
 ) <intent_router_prompt_system>
@@ -1624,7 +1625,7 @@ Ultimately, this thesis demonstrates both the promise and the current challenges
   code()[
     #raw(intent_router_prompts_user, lang: "python")
   ],
-  caption: "User prompt template for the Intent Router agent that provides the specific user query and conversation context for intent classification. This template structures the input data including the user's question, conversation history and any previously identified location information, enabling the agent to make informed decisions about query intent and required clarifications.",
+  caption: "User prompt template for the Intent Router agent that provides the specific user query and conversation context for intent classification. This template structures the input data including the user's current and past question as well as the context.",
   kind: "prompt",
   supplement: [Prompt],
 ) <intent_router_prompt_user>
@@ -1664,7 +1665,7 @@ Ultimately, this thesis demonstrates both the promise and the current challenges
   code()[
     #raw(infer_pages_prompts_system, lang: "python")
   ],
-  caption: "System prompt for the data extraction component of the Guidelines Retriever that processes Swiss energy planning PDF documents to identify and extract relevant regulatory information. This prompt guides the automated parsing of complex regulatory documents, including federal and cantonal energy legislation, planning guidelines and technical standards applicable to municipal energy strategies.",
+  caption: "System prompt for the data extraction component of the Guidelines Retriever that processes Swiss energy planning and guidelines PDF documents to identify and extract relevant regulatory information. This prompt guides the automated parsing of complex regulatory documents.",
   kind: "prompt",
   supplement: [Prompt],
 ) <guidelines_retriever_data_extraction>
@@ -1674,7 +1675,7 @@ Ultimately, this thesis demonstrates both the promise and the current challenges
   code()[
     #raw(guidelines_retriever_prompts_system, lang: "python")
   ],
-  caption: "System prompt for the Guidelines Retriever agent that defines its role in processing and interpreting Swiss federal and cantonal energy planning regulations. The prompt instructs the agent to analyze retrieved guideline documents, extract relevant regulatory requirements and contextualize them for specific municipal energy planning scenarios while ensuring compliance with applicable legislation and best practices.",
+  caption: "System prompt for the Guidelines Retriever agent that defines its role in processing and interpreting Swiss federal and cantonal energy planning regulations. The prompt instructs the agent to analyze retrieved guideline documents, extract relevant regulatory requirements and contextualize them for specific municipal energy planning scenarios while ensuring compliance with applicable legislation.",
   kind: "prompt",
   supplement: [Prompt],
 ) <guidelines_retriever_system_prompt>
@@ -1684,7 +1685,7 @@ Ultimately, this thesis demonstrates both the promise and the current challenges
   code()[
     #raw(infer_pages_structureless_prompts_system, lang: "python")
   ],
-  caption: "Data extraction prompt for the Municipal Citizen Profile component that processes unstructured Swiss federal energy registers to extract building-specific energy characteristics. This prompt guides the automated extraction of parcel data, energy consumption patterns, heating systems and renewable energy installations, enabling personalized energy planning recommendations based on actual building infrastructure.",
+  caption: "Data extraction prompt for the Municipal Citizen Profile component that processes unstructured citizen records to extract building-specific energy characteristics. This prompt guides the automated extraction of parcel data, energy consumption patterns, heating systems and renewable energy installations.",
   kind: "prompt",
   supplement: [Prompt],
 ) <municipal_citizen_profile>
@@ -1753,12 +1754,22 @@ Ultimately, this thesis demonstrates both the promise and the current challenges
 
 #heavy-title("Conversations", top: 1em, bottom: 1em)
 
+#let example_conversation = read("code/conversation_example.md")
+#figure(
+  code()[
+    #raw(example_conversation, lang: "md")
+  ],
+  caption: "Example conversation demonstrating the system's conversational capabilities. This report addresses the municipality of Ayent. It is only mentioned at the very beginning of the conversation and not needed further on.",
+  kind: "conversation",
+  supplement: [Conversation],
+) <example_conversation>
+
 #let bias_conversation = read("code/conversation_bias.md")
 #figure(
   code()[
     #raw(bias_conversation, lang: "md")
   ],
-  caption: "Example conversation demonstrating the system's vulnerability to generating biased or potentially misleading results when fabricating specific numerical figures in the absence of complete data. This conversation illustrates the importance of the Critic agent and quality assurance mechanisms in detecting and preventing the dissemination of unsubstantiated quantitative claims in energy planning recommendations.",
+  caption: "Example conversation demonstrating the system's vulnerability to generating biased or potentially misleading results when fabricating specific numerical figures in the absence of complete data.",
   kind: "conversation",
   supplement: [Conversation],
 ) <fake_data>
@@ -1832,9 +1843,9 @@ $ <zscore>
 #align(center, line(length: 90%, stroke: 0.5pt))
 
 $
-  "Runtime"_"LED 10 W" & = frac(h(x), 10 * 60) ["minutes"]                   \
-                       & "where" h(x) = 3x ["J"] "is the heuristic meant to" \
-                       & "approximate the energy cost of" x "tokens."
+  "Runtime"_"LED 10 W" & = frac(h(x), 10 * 60) ["minutes"]                      \
+                       & "where" h(x) = 3x "is the heuristic meant to"          \
+                       & "approximate the energy cost of" x "tokens in Joules."
 $ <token_consumption>
 #align(center, line(length: 90%, stroke: 0.5pt))
 
