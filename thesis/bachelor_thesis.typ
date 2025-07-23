@@ -582,7 +582,6 @@ On the other hand, datasets that do not require such precision are subject to st
 2. The features within the sampled tiling are identified and their values summed.
 3. The sample mean (#ref(<sample_mean>)) and standard deviation (#ref(<std>)) are calculated.
 4. The confidence interval is computed using a T-distribution and confidence level (#ref(<confidence_interval>)).
-#set math.equation(numbering: "1.")
 
 This random geographical sampling process is depicted in the #ref(<sampling_design>).
 #figure(
@@ -1783,73 +1782,70 @@ Ultimately, this thesis demonstrates both the promise and the current challenges
 
 #heavy-title("C. Equations", top: 1em, bottom: 1em)
 
-#highlight("TODO: CHECKER les maths encore une fois")
-#highlight("TODO: juste citer la source wikipedia et enlever ça ???")
+#set math.equation(numbering: "1.")
+#show math.equation.where(block: true): set align(center)
+
 $
-  overline(x) & = frac(1, N)sum_(i=1)^N x_i                                 \
-              & "where" overline(x) "is the sample mean," N "the number of" \
-              & "samples and" x_i "the" i_"th" "sample tile."
-$ <sample_mean>
+  overline(x) = frac(1, N)sum_(i=1)^N x_i
+$<sample_mean>
+Where $overline(x)$ is the sample mean, $N$ the number of samples and $x_i$ the $i_"th"$ sample tile.
+
 #align(center, line(length: 90%, stroke: 0.5pt))
 $
-  s = sqrt(frac(sum_(i=1)^N(x_i-overline(x))², N-1)) && "where" s "is the sample standard deviation of a single tile."
-$ <std>
+  s = sqrt(frac(sum_(i=1)^N(x_i-overline(x))², N-1))
+$<std>
+Where $s$ is the sample standard deviation of a single tile.
+
 #align(center, line(length: 90%, stroke: 0.5pt))
 
 $
-  "Confidence interval for a single tile" & = overline(x) plus.minus t_(alpha/2, N-1) dot frac(s, sqrt(N)) \
-                                          & "where" t_(alpha/2, N-1) "is the critical value from the"      \
-                                          & "T-distribution for confidence level"
-                                            1-alpha "and"                                                  \
-                                          & N-1 "degrees of freedom."
+  "Confidence interval for a single tile" = overline(x) plus.minus t_(alpha/2, N-1) dot frac(s, sqrt(N))
 $ <confidence_interval>
+Where $t_(alpha/2, N-1)$ is the critical value from the T-distribution for confidence level $1-alpha$ and $N-1$ degrees of freedom.
+
 #align(center, line(length: 90%, stroke: 0.5pt))
 
 $
-  "Cosine similarity" & := cos(theta) = frac("A" dot "B", norm("A")norm("B")) = frac(sum_(i=1)^n A_i B_i, sqrt(sum_(i=1)^n A_i²) dot sqrt(sum_(i=1)^n B_i²))\
-  &"where" theta "is the angle between A and B, two" n"-dimensional vectors"\
-  &"and" A_i, B_i "the" i_"th" "components of vectors A and B."
+  "Cosine similarity" := cos(theta) = frac("A" dot "B", norm("A")norm("B")) = frac(sum_(i=1)^n A_i B_i, sqrt(sum_(i=1)^n A_i²) dot sqrt(sum_(i=1)^n B_i²))
 $ <cosine_sim>
+Where $theta$ is the angle between A and B, two $n$-dimensional vectors and $A_i, B_i$ the $i_"th"$ components of vectors A and B.
+
 #align(center, line(length: 90%, stroke: 0.5pt))
 
 $
-  "Quartile coefficient of dispersion" & := frac(frac(1, 2)"IQR", frac(Q_3+Q_1, 2)) = frac(frac(1, 2)(Q_3-Q_1), frac(Q_3+Q_1, 2)) = frac(Q_3-Q_1, Q_3+Q_1)\
-  & "where IQR is the interquartile range and" \
-  & Q_1 "and" Q_3 "the first and third quartiles, respectively."
+  "Quartile coefficient of dispersion" := frac(frac(1, 2)"IQR", frac(Q_3+Q_1, 2)) = frac(frac(1, 2)(Q_3-Q_1), frac(Q_3+Q_1, 2)) = frac(Q_3-Q_1, Q_3+Q_1)
 $ <qcd>
+Where $"IQR"$ is the interquartile range and $Q_1, Q_3$ the first and third quartiles, respectively.
+
 #align(center, line(length: 90%, stroke: 0.5pt))
 
 $
-  overline(x)_n & = overline(x)_(n-1) + frac(x_n-overline(x)_(n-1), n)                              \
-        M_(2,n) & = M_(2,n-1)+(x_n-overline(x)_(n-1))(x_n-overline(x)_n)                            \
-           s_n² & =frac(M_(2,n), n-1)                                                               \
-                & "where" overline(x)_n "denotes the sample mean of the first" n "samples," M_(2,n) \
-                & "is the sum of squares of differences from the current mean"                      \
-                & "and" s_n² "the unbiased sample variance."
+  overline(x)_n = overline(x)_(n-1) + frac(x_n-overline(x)_(n-1), n) \
+  M_(2,n) = M_(2,n-1)+(x_n-overline(x)_(n-1))(x_n-overline(x)_n) \
+  s_n² =frac(M_(2,n), n-1)
 $ <welford>
+Where $overline(x)_n$ denotes the sample mean of the first $n$ samples, $M_(2,n)$ is the sum of squares of differences from the current mean and $s_n²$ the unbiased sample variance.
 #align(center, line(length: 90%, stroke: 0.5pt))
 
 $
-  z & = frac(x - mu, sigma)                                \
-    & "where" z "is the standard score,"                   \
-    & mu "is the mean of the population and"               \
-    & sigma "is the standard deviation of the population."
+  z = frac(x - mu, sigma)
 $ <zscore>
+Where $z$ is the standard score, $mu$ is the mean of the population and $sigma$ is the standard deviation of the population.
+
 #align(center, line(length: 90%, stroke: 0.5pt))
 
 $
-  "Runtime"_"LED 10 W" & = frac(h(x), 10 * 60) ["minutes"]                      \
-                       & "where" h(x) = 3x "is the heuristic meant to"          \
-                       & "approximate the energy cost of" x "tokens in Joules."
+  "Runtime"_"LED 10 W" = frac(h(x), 10 * 60) ["minutes"]
 $ <token_consumption>
+Where $h(x) = 3x$ is the heuristic meant to approximate the energy cost of $x$ tokens in joules.
+
 #align(center, line(length: 90%, stroke: 0.5pt))
 
 $
-  "H"(X) & := -sum_(x in cal(X))p(x)ln p(x)                                         \
-         & "where H("X") is the entropy of the discrete random variable" X          \
-         & "which may be any member" x "within the set" cal(X) "and is distributed" \
-         & "according to" p: cal(X) arrow [0,1].
+  "H"(X) := -sum_(x in cal(X))p(x)ln p(x)
 $ <entropy>
+Where $"H"(X)$ is the entropy of the discrete random variable $X$ which takes value $x$ within the set $cal(X)$ and is distributed according to $p: cal(X) arrow [0,1]$.
+
 #align(center, line(length: 90%, stroke: 0.5pt))
 
 $
@@ -1862,11 +1858,9 @@ $ <entropy_upper_bound>
 #align(center, line(length: 90%, stroke: 0.5pt))
 
 $
-  "Spearman coefficient of correlation" & = frac("cov"["R"[X]", R"[Y]], sigma_("R"[X])sigma_("R"[Y])) \
-  & "where R"[X] "and" "R"[Y] "are the ranks of raw scores" (X_i,Y_i), \
-  &"cov"["R"[X]", R"[Y]] "is the covariance of the rank variables"\
-  & "and" sigma_("R"[X]),sigma_("R"[Y]) "are the standard deviations of the rank variables."
+  "Spearman coefficient of correlation" = frac("cov"["R"[X]", R"[Y]], sigma_("R"[X])sigma_("R"[Y]))
 $ <spearman>
+Where $"R"[X]$ and $"R"[Y]$ are the ranks of scores $(X_i,Y_i)$, $"cov"["R"[X]", R"[Y]]$ is the covariance of the rank variables and $sigma_("R"[X]),sigma_("R"[Y])$ are the standard deviations of the rank variables.
 
 #pagebreak()
 
