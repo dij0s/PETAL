@@ -38,7 +38,6 @@
 
 #cleardoublepage()
 #heavy-title("Abstract")
-
 This work investigates the implementation and evaluation of an AI-powered solution to assist municipalities in energy planning.
 As municipalities are required to develop energy planning documents to comply with federal and cantonal sustainability objectives and regulations, there is a growing need for tools that can process various energy sources of data and provide actionable insight to support human decision making.
 
@@ -271,7 +270,7 @@ As these requirements established the basis for the project, the next section pr
   }
 })
 #set table(
-  fill: (x, y) => { if calc.odd(y) { rgb("F7F9FA") } },
+  fill: (x, y) => { if calc.odd(y) { rgb("D8E1E6") } },
   align: (x, _) => if x == 0 { center } else { left },
 )
 #figure(
@@ -633,7 +632,7 @@ In the #ref(<intent_router>), the validity of the location is not confirmed. Thi
 Once the relevant data are gathered, the next stage is for the strategy planner agent to analyze this information to conduct proper planning.
 
 #set table(
-  fill: (x, y) => { if calc.odd(y) and x != 0 { rgb("F7F9FA") } },
+  fill: (x, y) => { if calc.odd(y) and x != 0 { rgb("D8E1E6") } },
   stroke: (x, y) => {
     if y == 0 {
       (bottom: 0.7pt + black)
@@ -1087,7 +1086,7 @@ The criteria for the LLM-as-a-judge benchmarking framework are defined as follow
 
 And evaluated according to the following scale, presented in #ref(<evaluation_grid>).
 #set table(
-  fill: (x, y) => { if calc.odd(y) { rgb("F7F9FA") } },
+  fill: (x, y) => { if calc.odd(y) { rgb("D8E1E6") } },
   align: (x, _) => if x == 0 { center } else { left },
   stroke: (x, y) => {
     if y == 0 {
@@ -1169,7 +1168,7 @@ For consistency and easier interpretation, expert scores are also rescaled linea
 With the evaluation frameworks introduced, the next step is to define the test dataset.
 This dataset consists of nine prompts and establishes the basis for assessing the performance of the solution (#ref(<test_dataset>)).
 #set table(
-  fill: (x, y) => if calc.odd(y) { rgb("F7F9FA") },
+  fill: (x, y) => if calc.odd(y) { rgb("D8E1E6") },
   align: (x, _) => if x == 0 { center } else { left },
 )
 #figure(
@@ -1333,7 +1332,7 @@ The mean score and entropy of the scores distribution, per benchmarking criterio
   },
   fill: (x, y) => {
     if y < 4 and x == 0 { none } else {
-      if calc.odd(y) { rgb("F7F9FA") }
+      if calc.odd(y) { rgb("D8E1E6") }
     }
   },
   align: (x, _) => if x == 0 { left } else { center },
@@ -1594,8 +1593,7 @@ Ultimately, this thesis demonstrates both the promise and the current challenges
 #cleardoublepage()
 #appendix-page()
 #pagebreak()
-
-#heavy-title("Prompts", top: 1em, bottom: 1em)
+#heavy-title("A. Prompts", top: 1em, bottom: 1em)
 
 #let prompt_creation = read("code/prompt_creation.txt")
 #figure(
@@ -1749,7 +1747,7 @@ Ultimately, this thesis demonstrates both the promise and the current challenges
 
 #pagebreak()
 
-#heavy-title("Conversations", top: 1em, bottom: 1em)
+#heavy-title("B. Conversations", top: 1em, bottom: 1em)
 
 #let example_conversation = read("code/conversation_example.md")
 #figure(
@@ -1783,7 +1781,7 @@ Ultimately, this thesis demonstrates both the promise and the current challenges
 
 #pagebreak()
 
-#heavy-title("Equations", top: 1em, bottom: 1em)
+#heavy-title("C. Equations", top: 1em, bottom: 1em)
 
 #highlight("TODO: CHECKER les maths encore une fois")
 #highlight("TODO: juste citer la source wikipedia et enlever ça ???")
