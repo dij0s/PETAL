@@ -12,7 +12,7 @@
   thesis-supervisor: "Jessen Page",
   thesis-co-supervisor: "Florian Desmons", // Optional, use none if not needed
   thesis-expert: "Nils Schüler", // Optional, use none if not needed
-  thesis-id: "ISC-ID-2501", // Your thesis ID (from the official project description) or none if not used
+  thesis-id: "ISC-ID-25-8", // Your thesis ID (from the official project description) or none if not used
   project-repos: "https://github.com/dij0s/PETAL", // Your project repository
 
 
@@ -104,7 +104,7 @@ And to those who sacrificed so much for us, THANK YOU.
 = Introduction
 Human-driven activities are the principal cause of climate change and global warming #ref(<EvidenceNASAScience2022>).
 
-Scientists have monitored this matter and proposed various frameworks to address and mitigate these problems. In Switzerland, these different frameworks are implemented in the legislation and guidelines (at federal and canton levels) to steer the country towards a more sustainable future.
+Domain experts have monitored this matter and proposed various frameworks to address and mitigate these problems. In Switzerland, these different frameworks are implemented in the legislation and guidelines (at federal and canton levels) to steer the country towards a more sustainable future.
 Municipalities may introduce in their regulations sustainability requirements that are more constraining than those set by the cantonal law #ref(<RS7301Loia>, supplement: [article 12, al. 5]).
 
 == Context
@@ -251,8 +251,14 @@ Hence, assisting users in energy planning requires a solution that can gather re
 Besides that, it had been requested that the user interface has a map showcasing the assessed data points within the municipality as well as for the AI to be able to _remember_ the user's preferences and past interactions to have the answer better fit what the user expects.
 
 These requirements are summarized in the #ref(<requirements_table>):
+
+Ongoing weekly evaluations with supervisors led to the identification of additional needs, which progressively refined and improved the system to better support energy planning and enhance user experience.
+
+As these requirements established the basis for the project, the next section presents the design and implementation details of the solution.
+#pagebreak()
 #show table.cell.where(y: 0): strong
 #show figure: set block(breakable: true)
+
 #set table(stroke: (x, y) => {
   if x == 0 {
     (right: 0.7pt + black)
@@ -268,62 +274,60 @@ These requirements are summarized in the #ref(<requirements_table>):
   fill: (x, y) => { if calc.odd(y) { rgb("F7F9FA") } },
   align: (x, _) => if x == 0 { center } else { left },
 )
-
-#pagebreak()
 #figure(
-  table(
-    columns: (auto, 25%, auto),
-    table.header([Type], [Requirement], [Description]),
-    [Functional],
-    [Multi-agent orchestration],
-    [The system must coordinate multiple specialized AIs through an orchestration layer to break down complex tasks into manageable subtasks.],
+  rotate(
+    -90deg,
+    reflow: true,
+    table(
+      columns: (12%, 25%, 58%),
+      table.header([Type], [Requirement], [Description]),
+      [Functional],
+      [Multi-agent orchestration],
+      [The system must coordinate multiple specialized AIs through an orchestration layer to break down complex tasks into manageable subtasks.],
 
-    [Functional],
-    [Conversational interface],
-    [The system must provide a natural language interface allowing users to interact with the AI through conversational queries.],
+      [Functional],
+      [Conversational interface],
+      [The system must provide a natural language interface allowing users to interact with the AI through conversational queries.],
 
-    [Functional],
-    [Gather relevant data sources],
-    [The solution must collect and integrate data from various sources relevant to the municipality's energy landscape.],
+      [Functional],
+      [Gather relevant data sources],
+      [The solution must collect and integrate data from various sources relevant to the municipality's energy landscape.],
 
-    [Functional],
-    [Provide actionable recommendations],
-    [The solution must generate tailored recommendations for energy planning, complying with the guidelines that apply to the municipality.],
+      [Functional],
+      [Provide actionable recommendations],
+      [The solution must generate tailored recommendations for energy planning, complying with the guidelines that apply to the municipality.],
 
-    [Functional],
-    [Analyze and present energy landscape],
-    [The system must process, analyze and present the current energy landscape of the municipality, enabling users to understand available resources and needs.],
+      [Functional],
+      [Analyze and present energy landscape],
+      [The system must process, analyze and present the current energy landscape of the municipality, enabling users to understand available resources and needs.],
 
-    [Functional],
-    [Municipality map],
-    [The user interface must include a map displaying assessed data points within the municipality for better spatial understanding.],
+      [Functional],
+      [Municipality map],
+      [The user interface must include a map displaying assessed data points within the municipality for better spatial understanding.],
 
-    [Functional],
-    [Preference memory],
-    [The AI must remember user preferences and past interactions to adapt responses and improve user experience over time.],
+      [Functional],
+      [Preference memory],
+      [The AI must remember user preferences and past interactions to adapt responses and improve user experience over time.],
 
-    [Functional],
-    [Live feedback],
-    [The system should perform a binary quality check on responses using a set of quality criteria and automatically regenerate the response if the conditions are not met.],
+      [Functional],
+      [Live feedback],
+      [The system should perform a binary quality check on responses using a set of quality criteria and automatically regenerate the response if the conditions are not met.],
 
-    [Functional],
-    [Data transparency],
-    [The solution should be transparent and provide the source and data processed from datasets, increasing user trust in the solution.],
+      [Functional],
+      [Data transparency],
+      [The solution should be transparent and provide the source and data processed from datasets, increasing user trust in the solution.],
 
-    [Non-functional],
-    [Extensibility and adaptability],
-    [The architecture must allow for the addition of new features and data sources as requirements evolve.],
+      [Non-functional],
+      [Extensibility and adaptability],
+      [The architecture must allow for the addition of new features and data sources as requirements evolve.],
 
-    [Non-functional],
-    [Usability and accessibility],
-    [The interface must be intuitive and accessible for users with varying technical expertise.],
+      [Non-functional],
+      [Usability and accessibility],
+      [The interface must be intuitive and accessible for users with varying technical expertise.],
+    ),
   ),
   caption: "Table outlining the system requirements for the solution, divided into functional requirements (e.g., data integration, conversational interface) and non-functional requirements (e.g., usability, extensibility)",
 ) <requirements_table>
-
-Ongoing weekly evaluations with supervisors led to the identification of additional needs, which progressively refined and improved the system to better support energy planning and enhance user experience.
-
-As these requirements established the basis for the project, the next section presents the design and implementation details of the solution.
 
 #pagebreak()
 == System Design <system_design>
@@ -495,7 +499,7 @@ This highlights the interfaces of the intent router, as detailed in the #ref(<in
   caption: "Interface diagram for the Intent Router agent showing input/output data structures and interaction with the local database. The input is the prompt, while output provides structured classification that guides subsequent agent selection in the workflow.",
 )<intent_router_design>
 
-An assumption still lies in the nature of the field _location_ as it is assumed to either be set or unset. A set location does not necessarily imply that it is a valid municipality, inscribed in the published Swiss official commune register#footnote("https://www.bfs.admin.ch/bfs/en/home/basics/swiss-official-commune-register.html").
+An assumption still lies in the nature of the field _location_ as it is assumed to either be set or unset. A set location does not necessarily imply that it is a valid municipality, inscribed in the published Swiss official commune register#footnote("https://www.bfs.admin.ch/").
 A solution is proposed in the #ref(<geocontext_retriever>).
 
 Finally, the query is routed as shown in the #ref(<ai_agent_design>):
@@ -560,6 +564,74 @@ Consequently, identifying them requires breaking down the search area into small
 This has been implemented by first clipping settlements and centres of larger cities onto the municipality's geometry, optimizing the search area and applying a spatial tiling on top. Different layers obviously require different tiling sizes, depending on the number and resolution of features.
 
 The #ref(<datasets_table>) presents the datasets incorporated in the solution and retrieved from the GeoAdmin API:
+
+Leveraging these datasets provides the necessary information to assess the energy needs, potential and infrastructure within the municipality and establish a baseline profile for energy planning.
+The discretization of the different data sources showcases the importance of spatial tiling when dealing with these data.
+
+In the average municipality, certain features are few and easily assessable whereas it is impossible to retrieve meaningful insights from the greater-resolution datasets (for e.g. the suitability of roofs, per roof pane) without additional processing or aggregation.
+
+Therefore, the features within the municipality are (1) identified within the municipality, (2) aggregated to the municipality level and (3) brought back to the same GWh/year unit#footnote("Only applies to energy measures. Energy is deduced from power, in watts, assuming non-stop operation (24/7/365)."). This standardization allows for an easier and consistent comparison of scalars, on a yearly basis, crucial for interpretability but comes with drawbacks:
+- The information of variability within the municipality itself is lost.
+- The aggregation of data is a costly process, especially when doing this on the fly.
+
+The first issue is partially recovered from the fact that the layers are displayed at their original resolution, in the web interface. This way, the variability can be easily visualized.
+
+The second issue is mitigated depending on the nature of the data. The basic approach to aggregation requires the summation of values and is only needed for datasets that benefit from great precision.
+
+On the other hand, datasets that do not require such precision are subject to statistical estimation:
+1. The spatial tiling is randomly sampled.
+2. The features within the sampled tiling are identified and their values summed.
+3. The sample mean (#ref(<sample_mean>)) and standard deviation (#ref(<std>)) are calculated.
+4. The confidence interval is computed using a T-distribution and confidence level (#ref(<confidence_interval>)).
+#set math.equation(numbering: "1.")
+
+This random geographical sampling process is depicted in the #ref(<sampling_design>):
+#figure(
+  image("figs/tiling_design.svg", width: 100%),
+  caption: "Illustration of the random geographical sampling methodology applied to the municipality of Grône. The diagram shows the statistical approach used to estimate spatial data from high-resolution geospatial datasets by randomly sampling spatial tiles within municipal boundaries.",
+)<sampling_design>
+
+Choosing the sampling size and confidence level is important for a proper statistical estimation. In this project, both parameters are set empirically and kept relatively large to benefit from lower computational costs, but without optimizing for the best possible accuracy.
+
+As such, only the suitability of roofs and facades for use of solar energy is estimated using this technique as they are both datasets which showcase potential of exploitation rather than precise measurements on top of being well distributed in the geographic space. The confidence level in this case is set to 80%.
+
+With the data standardized and properly aggregated, the geocontext retriever agent must now be able to interact with them.
+
+Previously, AI agents were described as autonomous systems able to operate and make decisions independently. These operations rely on tools.
+
+A construction worker, for example, has different tools for different needs, such as a hammer for nails, a saw for cutting wood and a level for ensuring straight walls. The tools come with a set of instructions describing how to use them and what to expect from them.
+
+The same applies to AI agents, which have, in this work, different tools allowing them to query, aggregate and retrieve data from the datasets in #ref(<datasets_table>).
+Consequently, language models can leverage their natural language processing capabilities to choose the appropriate tools for the query.
+
+An issue with the current approach is that when the _toolbox_ is too large, it becomes difficult for the language model to choose the right tools for the job.
+
+This issue is addressed by exploiting the power of embeddings, enabling the system to easily retrieve the different tools from their embedded descriptions, semantically. On top of that, it is more efficient computation-wise than prompting the language model to choose them.
+
+When retrieving tools, the system computes the cosine similarity between both embeddings to quantify the semantic similarity (#ref(<cosine_sim>)).
+Finally, the quartile coefficient of dispersion is measured against the distribution of retrieved similarity scores (#ref(<qcd>)).
+
+This indicator provides a measure of the uniformity of the retrieved tools that is less sensitive to outliers than measures such as the coefficient of variation.
+As such, if the distribution of scores is too uniform, the tools are provided to a language model that leverages its capabilities to only distinguish the appropriate ones, in the given context (#ref(<geocontext_retriever_system_prompt>)).
+
+This approach reduces the overall computational cost while increasing the quality of tool selection.
+
+With the appropriate tools chosen, the system can effectively retrieve the data. It is simply added to the _context_tools_ field in the conversational state (#ref(<conversational_state>)), as presented in the #ref(<geocontext_retriever_design>):
+#figure(
+  image("figs/geocontext_retriever_design.svg", width: 11cm),
+  caption: "Interface diagram for the Geocontext Retriever agent showing input and output data structures. The input is the conversational state and the output is the updated state with the retrieved geospatial data. It also features the interaction with geospatial APIs to obtain relevant geographical information.",
+)<geocontext_retriever_design>
+
+Expanding the functionnalities of the geocontext retriever is straightforward: new data sources, APIs or even simulation models can be integrated as additional tools the agent may use.
+
+Geospatial information is accumulated over the conversation turns, allowing for context-aware planning and consistent, spatially informed decisions. It is only reset when switching to a new municipality as it becomes invalid.
+
+In the #ref(<intent_router>), the validity of the location is not confirmed. This is directly implemented in the different tools and routing of this agent (#ref(<ai_agent_design>)):
+- If the location is incorrect, retrieving data raises an error and the request is routed to the clarify query agent (6).
+- Otherwise, the query is sent to the strategy planner agent (7).
+
+Once the relevant data are gathered, the next stage is for the strategy planner agent to analyze this information to conduct proper planning.
+
 #set table(
   fill: (x, y) => { if calc.odd(y) and x != 0 { rgb("F7F9FA") } },
   stroke: (x, y) => {
@@ -584,7 +656,7 @@ The #ref(<datasets_table>) presents the datasets incorporated in the solution an
         cell
       }
       table(
-        columns: (3cm, 6.8cm, 8cm, 2.5cm, 3cm),
+        columns: (3cm, 6.8cm, 7cm, 2.2cm, 3cm),
         table.header(
           [Category],
           [Layer ID#footnote("This is the identifier defined in the geographic data catalogue of Switzerland, geocat.ch.")],
@@ -659,73 +731,6 @@ The #ref(<datasets_table>) presents the datasets incorporated in the solution an
   ),
   caption: "Table of Swiss federal geospatial datasets used by the solution for municipal energy planning, categorized by energy needs, energy potential and existing infrastructure. Each dataset includes the official Swiss geocat.ch identifier, energy units and spatial discretization level.",
 ) <datasets_table>
-#pagebreak()
-
-Leveraging these datasets provides the necessary information to assess the energy needs, potential and infrastructure within the municipality and establish a baseline profile for energy planning.
-
-The discretization of the different data sources showcases the importance of spatial tiling when dealing with these data.
-
-In the average municipality, certain features are few and easily assessable whereas it is impossible to retrieve meaningful insights from the greater-resolution datasets (for e.g. the suitability of roofs, per roof pane) without additional processing or aggregation.
-
-Therefore, the features within the municipality are (1) identified within the municipality, (2) aggregated to the municipality level and (3) brought back to the same GWh/year unit#footnote("Only applies to energy measures. Energy is deduced from power, in watts, assuming non-stop operation (24/7/365)."). This standardization allows for an easier and consistent comparison of scalars, on a yearly basis, crucial for interpretability but comes with drawbacks:
-- The information of variability within the municipality itself is lost.
-- The aggregation of data is a costly process, especially when doing this on the fly.
-
-The first issue is partially recovered from the fact that the layers are displayed at their original resolution, in the web interface. This way, the variability can be easily visualized.
-
-The second issue is mitigated depending on the nature of the data. The basic approach to aggregation requires the summation of values and is only needed for datasets that benefit from great precision. On the other hand, datasets that do not require such precision are subject to statistical estimation:
-1. The spatial tiling is randomly sampled.
-2. The features within the sampled tiling are identified and their values summed.
-3. The sample mean (#ref(<sample_mean>)) and standard deviation (#ref(<std>)) are calculated.
-4. The confidence interval is computed using a T-distribution and confidence level (#ref(<confidence_interval>)).
-#set math.equation(numbering: "1.")
-
-This random geographical sampling process is depicted in the #ref(<sampling_design>):
-#figure(
-  image("figs/tiling_design.svg", width: 100%),
-  caption: "Illustration of the random geographical sampling methodology applied to the municipality of Grône. The diagram shows the statistical approach used to estimate spatial data from high-resolution geospatial datasets by randomly sampling spatial tiles within municipal boundaries.",
-)<sampling_design>
-
-Choosing the sampling size and confidence level is important for a proper statistical estimation. In this project, both parameters are set empirically and kept relatively large to benefit from lower computational costs, but without optimizing for the best possible accuracy.
-
-As such, only the suitability of roofs and facades for use of solar energy is estimated using this technique as they are both datasets which showcase potential of exploitation rather than precise measurements on top of being well distributed in the geographic space. The confidence level in this case is set to 80%.
-
-With the data standardized and properly aggregated, the geocontext retriever agent must now be able to interact with them.
-
-Previously, AI agents were described as autonomous systems able to operate and make decisions independently. These operations rely on tools.
-
-A construction worker, for example, has different tools for different needs, such as a hammer for nails, a saw for cutting wood and a level for ensuring straight walls. The tools come with a set of instructions describing how to use them and what to expect from them.
-
-The same applies to AI agents, which have, in this work, different tools allowing them to query, aggregate and retrieve data from the datasets in #ref(<datasets_table>).
-Consequently, language models can leverage their natural language processing capabilities to choose the appropriate tools for the query.
-
-An issue with the current approach is that when the _toolbox_ is too large, it becomes difficult for the language model to choose the right tools for the job.
-
-This issue is addressed by exploiting the power of embeddings, enabling the system to easily retrieve the different tools from their embedded descriptions, semantically. On top of that, it is more efficient computation-wise than prompting the language model to choose them.
-
-When retrieving tools, the system computes the cosine similarity between both embeddings to quantify the semantic similarity (#ref(<cosine_sim>)).
-Finally, the quartile coefficient of dispersion is measured against the distribution of retrieved similarity scores (#ref(<qcd>)).
-
-This indicator provides a measure of the uniformity of the retrieved tools that is less sensitive to outliers than measures such as the coefficient of variation.
-As such, if the distribution of scores is too uniform, the tools are provided to a language model that leverages its capabilities to only distinguish the appropriate ones, in the given context (#ref(<geocontext_retriever_system_prompt>)).
-
-This approach reduces the overall computational cost while increasing the quality of tool selection.
-
-With the appropriate tools chosen, the system can effectively retrieve the data. It is simply added to the _context_tools_ field in the conversational state (#ref(<conversational_state>)), as presented in the #ref(<geocontext_retriever_design>):
-#figure(
-  image("figs/geocontext_retriever_design.svg", width: 11cm),
-  caption: "Interface diagram for the Geocontext Retriever agent showing input and output data structures. The input is the conversational state and the output is the updated state with the retrieved geospatial data. It also features the interaction with geospatial APIs to obtain relevant geographical information.",
-)<geocontext_retriever_design>
-
-Expanding the functionnalities of the geocontext retriever is straightforward: new data sources, APIs or even simulation models can be integrated as additional tools the agent may use.
-
-Geospatial information is accumulated over the conversation turns, allowing for context-aware planning and consistent, spatially informed decisions. It is only reset when switching to a new municipality as it becomes invalid.
-
-In the #ref(<intent_router>), the validity of the location is not confirmed. This is directly implemented in the different tools and routing of this agent (#ref(<ai_agent_design>)):
-- If the location is incorrect, retrieving data raises an error and the request is routed to the clarify query agent (6).
-- Otherwise, the query is sent to the strategy planner agent (7).
-
-Once the relevant data are gathered, the next stage is for the strategy planner agent to analyze this information to conduct proper planning.
 
 ==== Guidelines Retriever <guidelines_retriever>
 
@@ -991,7 +996,7 @@ Inaccuracies lead to incorrect interpretations and conclusions reported by the s
 
 The various offices referenced in the #ref(<geocontext_retriever>), commissioned to retrieve and publish data, address these issues by implementing different quality assessment procedures.
 
-The SFOE, for example, only tolerates a small proportion of errors and gaps in the data they collect#footnote("https://www.bfs.admin.ch/bfs/de/home/register/personenregister/registerharmonisierung/qualitaet-datenlieferung.html").
+The SFOE, for example, only tolerates a small proportion of errors and gaps in the data they collect#footnote("https://www.bfs.admin.ch/").
 
 During the development of the solution, one such observation was made.
 When assessing the energy production of waste incineration plants, both the electricity and heat production are reported.
@@ -1147,7 +1152,7 @@ However, the grid presented in #ref(<scoring_grid_expert>) acts as a reference p
 
 === Framework Interpretability
 
-It is important to note that the G-eval and expert scores cannot be interpreted and directly compared, each being grounded in a distinct evaluation framework.
+It is important to note that the G-eval and expert scores cannot be directly compared, each being grounded in a distinct evaluation framework.
 
 G-eval offers a standardized framework with set evaluation criteria, allowing for a more consistent and reliable benchmarking. This enables the comparison of different solutions under identical conditions.
 
@@ -1196,7 +1201,7 @@ The responses generated by the solution to each question are presentend in #ref(
 
 With the groundwork established, the following section presents the results that will be discussed in the next chapter.
 
-Both the expert assessment and benchmarking are conducted using the version of the solution as of June 20, 2025#footnote[Code at commit `c2bea64` in the repository.], ensuring consistency and reliability in the evaluation process and reported conclusions.
+Both the expert assessment and benchmarking are conducted using the version of the solution as of June 20, 2025#footnote[Code at commit `c2bea64` in the repository and raw results in `evaluation` branch.], ensuring consistency and reliability in the evaluation process and reported conclusions.
 
 == Evaluation Results
 
@@ -1430,7 +1435,7 @@ Besides that, it is non-parametric, making no assumptions about the underlying d
 #highlight("TODO: citer wilcoxon")
 
 Therefore, it is applied to the paired scores of the larger and smaller configurations with the one-sided alternative hypothesis that the larger configuration significantly outperforms the smaller one.
-The resulting p-value is 0.009 ($equiv$ 0.9%), indicating a statistically significant difference between the two configurations considering a 5% confidence level.
+The resulting p-value is 0.009 (= 0.9%), indicating a statistically significant difference between the two configurations considering a 5% confidence level.
 
 The null hypothesis is hence rejected and confirms the alternative hypothesis: the larger configuration, indeed, outperforms the smaller configuration in a per-prompt basis and verifies the initial expectation that larger language models, incorporated into the AI agent solution, yield better results.
 
