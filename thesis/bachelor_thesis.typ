@@ -137,7 +137,7 @@ The main objective of this thesis is to investigate how effective and reliable s
 
 The project is scoped to municipalities within the canton of Valais/Wallis and strictly relies on publicly available data.
 
-A user-friendly interface enables users to interact with the system in a conversational manner and visualize a map of the municipality with different layers, as depicted in #ref(<petal_interface_pv>) and #ref(<petal_interface_water>):
+A user-friendly interface enables users to interact with the system in a conversational manner and visualize a map of the municipality with different layers, as depicted in #ref(<petal_interface_pv>) and #ref(<petal_interface_water>).
 
 #figure(
   image("figs/petal_interface_pv.png", width: 100%),
@@ -250,7 +250,7 @@ Hence, assisting users in energy planning requires a solution that can gather re
 
 Besides that, it had been requested that the user interface has a map showcasing the assessed data points within the municipality as well as for the AI to be able to _remember_ the user's preferences and past interactions to have the answer better fit what the user expects.
 
-These requirements are summarized in the #ref(<requirements_table>):
+These requirements are summarized in the #ref(<requirements_table>).
 
 Ongoing weekly evaluations with supervisors led to the identification of additional needs, which progressively refined and improved the system to better support energy planning and enhance user experience.
 
@@ -346,7 +346,7 @@ The global architecture in its most simplified form is presented in the #ref(<gl
 - The backend layer is responsible for business logic, orchestrating AI agents, processing data, managing a database and handling requests from the frontend.
 - The external services layer provides access to third-party #acrpl("API"), a set of protocols and tools that allows different software components to communicate with each other, enabling the system to retrieve data from external platforms and services.
 
-The layers are made up of various components. The basic dataflow between them is presented in the #ref(<global_dataflow>):
+The layers are made up of various components. The basic dataflow between them is presented in the #ref(<global_dataflow>).
 #figure(
   table(
     columns: 3,
@@ -387,7 +387,7 @@ LLMs rely on a self-attention mechanism to identify and concentrate on the most 
 Hence, when the entire conversation history is provided to the model, important tokens may get lost in the larger context and potentially lead to incorrect responses (phenomenon called attention diffusion).
 
 Considering this, a more efficient approach is proposed, relying on a single key assumption: each conversation focuses exclusively on energy planning for one municipality at a time.
-Accordingly, the conversational context is modeled as a single object that is updated at every turn. It is defined in the #ref(<conversational_state>):
+Accordingly, the conversational context is modeled as a single object that is updated at every turn. It is defined in the #ref(<conversational_state>).
 #let destructured_state = read("code/destructured_state.py")
 #figure(
   code()[
@@ -493,7 +493,7 @@ To ensure correct implementation, whenever a request concerns a different munici
 On top of that, user-provided feedback and corrections shape the system's behavior allowing it to adapt to the user's preferences.
 When there is a need for memoization, the system stores both the previous query (the _corrected_) and the current query (the _correctee_), in the database.
 
-This highlights the interfaces of the intent router, as detailed in the #ref(<intent_router_design>):
+This highlights the interfaces of the intent router, as detailed in the #ref(<intent_router_design>).
 #figure(
   image("figs/intent_router_design.svg", width: 12cm),
   caption: "Interface diagram for the Intent Router agent showing input/output data structures and interaction with the local database. The input is the prompt, while output provides structured classification that guides subsequent agent selection in the workflow.",
@@ -502,7 +502,7 @@ This highlights the interfaces of the intent router, as detailed in the #ref(<in
 An assumption still lies in the nature of the field _location_ as it is assumed to either be set or unset. A set location does not necessarily imply that it is a valid municipality, inscribed in the published Swiss official commune register#footnote("https://www.bfs.admin.ch/").
 A solution is proposed in the #ref(<geocontext_retriever>).
 
-Finally, the query is routed as shown in the #ref(<ai_agent_design>):
+Finally, the query is routed as shown in the #ref(<ai_agent_design>).
 - If clarification is needed (either because the need for clarification is explicitly requested, or fields are missing), the request is sent to the clarify query agent (2).
 - If the conversation type is a correction request, the query is sent to the geocontext retriever agent (4) as it implies a re-assessment of the response without extra information.
 - If the intent is said to be actionable, the request is sent to both the geocontext retriever and the guidelines retriever agents, concurrently -(4) and (5)- enabling guideline-compliant responses.
@@ -515,7 +515,7 @@ Clarifying and resolving vagueness in the user's query is essential to better un
 
 With the output of the intent router agent properly defined, the two cases which lead to the need for clarification are either an explicit request for clarification due to ambiguity or missing information.
 
-Those two cases are both handled at once as a language model is prompted with the user's query and missing fields to generate and stream a response inquiring for further information or clarification (#ref(<ai_agent_design>), transition 3). The interfaces are illustrated in the #ref(<clarify_query_design>):
+Those two cases are both handled at once as a language model is prompted with the user's query and missing fields to generate and stream a response inquiring for further information or clarification (#ref(<ai_agent_design>), transition 3). The interfaces are illustrated in the #ref(<clarify_query_design>).
 #figure(
   image("figs/clarify_query_design.svg", width: 12cm),
   caption: "Interface diagram for the Clarify Query agent showing input/output data structures. The input is the conversation state and the output is the generated clarification question to guide further user input.",
@@ -563,7 +563,7 @@ Consequently, identifying them requires breaking down the search area into small
 
 This has been implemented by first clipping settlements and centres of larger cities onto the municipality's geometry, optimizing the search area and applying a spatial tiling on top. Different layers obviously require different tiling sizes, depending on the number and resolution of features.
 
-The #ref(<datasets_table>) presents the datasets incorporated in the solution and retrieved from the GeoAdmin API:
+The #ref(<datasets_table>) presents the datasets incorporated in the solution and retrieved from the GeoAdmin API.
 
 Leveraging these datasets provides the necessary information to assess the energy needs, potential and infrastructure within the municipality and establish a baseline profile for energy planning.
 The discretization of the different data sources showcases the importance of spatial tiling when dealing with these data.
@@ -585,7 +585,7 @@ On the other hand, datasets that do not require such precision are subject to st
 4. The confidence interval is computed using a T-distribution and confidence level (#ref(<confidence_interval>)).
 #set math.equation(numbering: "1.")
 
-This random geographical sampling process is depicted in the #ref(<sampling_design>):
+This random geographical sampling process is depicted in the #ref(<sampling_design>).
 #figure(
   image("figs/tiling_design.svg", width: 100%),
   caption: "Illustration of the random geographical sampling methodology applied to the municipality of Grône. The diagram shows the statistical approach used to estimate spatial data from high-resolution geospatial datasets by randomly sampling spatial tiles within municipal boundaries.",
@@ -616,7 +616,7 @@ As such, if the distribution of scores is too uniform, the tools are provided to
 
 This approach reduces the overall computational cost while increasing the quality of tool selection.
 
-With the appropriate tools chosen, the system can effectively retrieve the data. It is simply added to the _context_tools_ field in the conversational state (#ref(<conversational_state>)), as presented in the #ref(<geocontext_retriever_design>):
+With the appropriate tools chosen, the system can effectively retrieve the data. It is simply added to the _context_tools_ field in the conversational state (#ref(<conversational_state>)), as presented in the #ref(<geocontext_retriever_design>).
 #figure(
   image("figs/geocontext_retriever_design.svg", width: 11cm),
   caption: "Interface diagram for the Geocontext Retriever agent showing input and output data structures. The input is the conversational state and the output is the updated state with the retrieved geospatial data. It also features the interaction with geospatial APIs to obtain relevant geographical information.",
@@ -626,7 +626,7 @@ Expanding the functionnalities of the geocontext retriever is straightforward: n
 
 Geospatial information is accumulated over the conversation turns, allowing for context-aware planning and consistent, spatially informed decisions. It is only reset when switching to a new municipality as it becomes invalid.
 
-In the #ref(<intent_router>), the validity of the location is not confirmed. This is directly implemented in the different tools and routing of this agent (#ref(<ai_agent_design>)):
+In the #ref(<intent_router>), the validity of the location is not confirmed. This is directly implemented in the different tools and routing of this agent (#ref(<ai_agent_design>)).
 - If the location is incorrect, retrieving data raises an error and the request is routed to the clarify query agent (6).
 - Otherwise, the query is sent to the strategy planner agent (7).
 
@@ -800,7 +800,7 @@ While this is a straightforward way to scale targets, proper rescaling should ta
 The adjusted guidelines are accumulated onto the _context_constraints_ field in the conversational state (#ref(<conversational_state>)).
 Similarly to the geospatial information described in the #ref(<geocontext_retriever>), the processed guidelines are accumulated in the state as the conversation goes on and only cleared when switching to a new municipality.
 
-These interfaces are shown in the #ref(<guidelines_retriever_design>):
+These interfaces are shown in the #ref(<guidelines_retriever_design>).
 #figure(
   image("figs/guidelines_retriever_design.svg", width: 12cm),
   caption: "Interface diagram for the Guidelines Retriever agent showing the input conversational context and output as updated state with the retrieved guidelines. The diagram also depicts interaction with the local database storing the embedded regulation documents.",
@@ -834,7 +834,7 @@ Currently, most documents are scanned and stored in a digital format (typically 
 As described in the #ref(<guidelines_retriever>), MLLMs facilitate the extraction of information from these documents.
 The only difference lies in how those models are leveraged.
 
-Instead of inquiring the model to summarize or retrieve key insight, a simple citizen profile that is valuable for energy planning is defined#footnote("This profile was defined with the help of the supervisors and could easily be extended.") and searched for, inside each page of the citizen's record (#ref(<municipal_citizen_profile>)):
+Instead of inquiring the model to summarize or retrieve key insight, a simple citizen profile that is valuable for energy planning is defined#footnote("This profile was defined with the help of the supervisors and could easily be extended.") and searched for, inside each page of the citizen's record (#ref(<municipal_citizen_profile>)).
 - The parcel number
 - The energy reference surface of the construction, in square meters
 - The type of heating system
@@ -843,7 +843,7 @@ Instead of inquiring the model to summarize or retrieve key insight, a simple ci
 
 In the end, the individual pages results are aggregated into a single resident energy profile.
 
-This procedure was tested against a typical citizen record, provided by Prof. Jessen Page. The #ref(<citizen_profile_example>) provides the anonymized (without _parcel_number_), resulting profile:
+This procedure was tested against a typical citizen record, provided by Prof. Jessen Page. The #ref(<citizen_profile_example>) provides the anonymized (without _parcel_number_), resulting profile.
 
 #figure(
   code()[
@@ -884,7 +884,7 @@ Like tools and guidelines, memories are stored as embeddings and are therefore r
 Finally, similar tools to those retrieved by the geocontext retriever agent are retrieved in order to generate tailored recommendations.
 The selection of similar tools is based on their categorization, as defined in #ref(<datasets_table>). This encourages assessing the full spectrum of available data for any municipality.
 
-The state interfaces are presented in the #ref(<strategy_planner_design>):
+The state interfaces are presented in the #ref(<strategy_planner_design>).
 #figure(
   image("figs/strategy_planner_design.svg", width: 11cm),
   caption: "Interface diagram for the Strategy Planner agent showing the conversational context in input and streamed response in output. The diagram also depicts interaction with the local database, storing the user preferences.",
@@ -1085,7 +1085,7 @@ The criteria for the LLM-as-a-judge benchmarking framework are defined as follow
 3. Municipal relevance: rates feasibility at local scale, direct query alignment, consideration of local context and actionable next steps.
 4. Technical compliance: checks language consistency, correct structure, citation format and completeness of required sections.
 
-And evaluated according to the following scale, presented in #ref(<evaluation_grid>):
+And evaluated according to the following scale, presented in #ref(<evaluation_grid>).
 #set table(
   fill: (x, y) => { if calc.odd(y) { rgb("F7F9FA") } },
   align: (x, _) => if x == 0 { center } else { left },
@@ -1122,7 +1122,7 @@ Human insight is naturally shaped by the domain knowledge and nuanced judgment o
 While the automated evaluation is constrained to a rigid scoring grid, the expert evaluation is richer as observations extend beyond these predefined criteria and reflects interpreted, context-specific priorities.
 As such, it is not feasible to enforce strict scoring rules to the expert.
 
-However, the grid presented in #ref(<scoring_grid_expert>) acts as a reference point and guides the nuanced and _unlimited_ qualitative feedback to a single quantitative score, allowing for further comparison and analysis:
+However, the grid presented in #ref(<scoring_grid_expert>) acts as a reference point and guides the nuanced and _unlimited_ qualitative feedback to a single quantitative score, allowing for further comparison and analysis.
 #figure(
   table(
     columns: 3,
@@ -1167,7 +1167,7 @@ For consistency and easier interpretation, expert scores are also rescaled linea
 === Test Dataset
 
 With the evaluation frameworks introduced, the next step is to define the test dataset.
-This dataset consists of nine prompts and establishes the basis for assessing the performance of the solution (#ref(<test_dataset>)):
+This dataset consists of nine prompts and establishes the basis for assessing the performance of the solution (#ref(<test_dataset>)).
 #set table(
   fill: (x, y) => if calc.odd(y) { rgb("F7F9FA") },
   align: (x, _) => if x == 0 { center } else { left },
@@ -1206,7 +1206,7 @@ Both the expert assessment and benchmarking are conducted using the version of t
 == Evaluation Results
 
 Two different configurations of the solution, each using different language models, are benchmarked.
-The #ref(<configurations>) breaks down their composition:
+The #ref(<configurations>) breaks down their composition.
 
 #set table(
   stroke: (x, y) => {
@@ -1258,7 +1258,7 @@ The R1 model (8 billion parameters) serves as the evaluator for all LLM-as-a-jud
 
 It is also the only other model available in Ollama that offers both reasoning and tool-using capabilities within the available computational resources.
 
-The #ref(<comparison_test_human_llm>) presents the results, showing both the expert assessment and G-eval benchmarking scores for all nine prompts, side by side and for both configurations:
+The #ref(<comparison_test_human_llm>) presents the results, showing both the expert assessment and G-eval benchmarking scores for all nine prompts, side by side and for both configurations.
 #set table(
   stroke: (x, y) => {
     if y == 2 {
@@ -1301,13 +1301,13 @@ The #ref(<comparison_test_human_llm>) presents the results, showing both the exp
 
 While both frameworks are not directly comparable, this provides an interesting perspective for further analysis.
 
-On the other hand, the scores per benchmarking criterion and per query _intent_ type (either factual or actionable, per definition), for both configurations, are depicted in the #ref(<boxplots_criterion>):
+On the other hand, the scores per benchmarking criterion and per query _intent_ type (either factual or actionable, per definition), for both configurations, are depicted in the #ref(<boxplots_criterion>).
 #figure(
   image("figs/boxplots_criterion_intent.png", width: 100%),
   caption: "Box plot analysis showing the distribution of G-eval benchmark scores across the four evaluation criteria (Data Interpretation, Methodology Alignment, Municipal Relevance, Technical Compliance) grouped by query intent type (Factual vs. Actionable) for both small and large system configurations. The plots reveal performance variations between criteria and configurations.",
 )<boxplots_criterion>
 
-The mean score and entropy of the scores distribution, per benchmarking criterion and per query _intent_ type are reported in the #ref(<comparison_criteria>) and #ref(<entropy_criteria>):
+The mean score and entropy of the scores distribution, per benchmarking criterion and per query _intent_ type are reported in the #ref(<comparison_criteria>) and #ref(<entropy_criteria>).
 
 #set table(
   stroke: (x, y) => {
