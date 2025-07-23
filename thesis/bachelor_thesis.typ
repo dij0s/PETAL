@@ -1428,9 +1428,9 @@ With that in mind, the results can now be compared in depth to gain additional i
 
 On top of that, the same #ref(<comparison_test_human_llm>) depicts the average G-eval scores for both configurations, per prompt. Visually, the larger configuration consistently outperforms the smaller configuration.
 
-This can be formally assessed by conducting a Wilcoxon signed-rank test, whose null hypothesis states that two randomly selected samples from two populations have the same distribution.
+This can be formally assessed by conducting a Wilcoxon signed-rank test, whose null hypothesis states that two randomly selected samples from two populations have the same distribution (#ref(<wilcoxon>)).
+
 Besides that, it is non-parametric, making no assumptions about the underlying distribution, making it more robust to outliers.
-#highlight("TODO: citer wilcoxon")
 
 Therefore, it is applied to the paired scores of the larger and smaller configurations with the one-sided alternative hypothesis that the larger configuration significantly outperforms the smaller one.
 The resulting p-value is 0.009 (= 0.9%), indicating a statistically significant difference between the two configurations considering a 5% confidence level.
@@ -1495,7 +1495,6 @@ However, this may also allude to an asymmetry in how the evaluation criteria are
 Data interpretation and methodology alignment may be inherently biased towards actionable prompts due to their nature of requiring more nuanced reasoning and context understanding, reinforcing previous concerns regarding the definition of the criteria.
 
 Alongside the qualitative scoring of the expert, annotations were also collected.
-#highlight("TODO: donner résultats raw expert + benchmarking?")
 
 The feedback highlights recurring issues observed in the test case, emphasizing certain systematic weaknesses in the solution:
 - Unsupported conclusions and takeaways, often delivered with high confidence.
@@ -1846,6 +1845,19 @@ $
   "Runtime"_"LED 10 W" = frac(h(x), 10 * 60) " "["minutes"]
 $ <token_consumption>
 Where $h(x) = 3x$ is the heuristic meant to approximate the energy cost of $x$ tokens in joules.
+
+#align(center, line(length: 90%, stroke: 0.5pt))
+
+The following equation defines Wilcoxon's signed-rank test statistic and p-value #ref(<WilcoxonSignedrankTest2025>).
+$
+  W := sum_(i=1)^n R_i dot cases(
+    1 & " if" d_i > 0,
+    -1 & " if" d_i < 0,
+    0 & " if" d_i = 0,
+  )\
+  p="P"("statistical test" >= W | H_0)
+$ <wilcoxon>
+Where $W$ is the Wilcoxon signed-rank test statistic, $R_i$ is the rank of the absolute difference $|d_i|$ with $d_i=x_i-y_i$, the difference between paired observations and $p$ is the p-value under the null hypothesis $H_0$, representing the probability of observing a test statistic as extreme as $W$.
 
 #align(center, line(length: 90%, stroke: 0.5pt))
 
