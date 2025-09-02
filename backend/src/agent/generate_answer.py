@@ -16,12 +16,19 @@ from storage.memories import fetch_memories
 from collections import defaultdict
 from functools import reduce
 
+# llm = (
+#     ModelProvider
+#         .from_ollama(
+#             env_variable="OLLAMA_MODEL_LLM_ANSWERING",
+#             temperature=0.8,
+#             defaults="qwen3:1.7b",
+#         )
+# )
 llm = (
     ModelProvider
-        .from_env_variable(
-            env_variable="OLLAMA_MODEL_LLM_ANSWERING",
+        .from_hf(
+            env_variable="HF_MODEL_LLM_ANSWERING",
             temperature=0.8,
-            defaults="qwen3:1.7b",
         )
 )
 full_language: defaultdict[str, str] = defaultdict(lambda: "English", {

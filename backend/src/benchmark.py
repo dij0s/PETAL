@@ -45,7 +45,7 @@ class Benchmark:
 
         self._llm = (
             ModelProvider
-                .from_env_variable(
+                .from_ollama(
                     "OLLAMA_MODEL_LLM_BENCHMARKING",
                     temperature=0,
                     defaults="llama3.2:3b",

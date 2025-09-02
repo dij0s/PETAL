@@ -8,6 +8,7 @@ dependencies = [
     "aiohttp>=3.11.18",
     "fastapi[standard]>=0.115.12",
     "langchain-core>=0.3.60",
+    "langchain-huggingface>=0.2.0",
     "langchain-ollama>=0.3.3",
     "langchain-redis>=0.2.2",
     "langgraph>=0.4.5",

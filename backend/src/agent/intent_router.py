@@ -68,7 +68,7 @@ user_prompt = PromptTemplate.from_template("""
 
 llm = (
     ModelProvider
-        .from_env_variable(
+        .from_ollama(
             env_variable="OLLAMA_MODEL_LLM_ROUTING",
             temperature=0,
             defaults="qwen3:1.7b"

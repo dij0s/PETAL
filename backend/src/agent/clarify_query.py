@@ -9,7 +9,7 @@ from collections import defaultdict
 
 llm = (
     ModelProvider
-        .from_env_variable(
+        .from_ollama(
             env_variable="OLLAMA_MODEL_LLM_ANSWERING",
             temperature=0.95,
             defaults="qwen3:1.7b"
