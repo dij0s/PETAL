@@ -34,5 +34,4 @@ uv run --env-file "$ENV_FILE" src/benchmark.py --iterations 10 --template benchm
 
 # === SHUTDOWN ===
 echo "Benchmark completed. Shutting down..."
-sudo shutdown -h now
 

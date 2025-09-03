@@ -2,7 +2,7 @@ import os
 
 from langchain.chat_models.base import BaseChatModel
 from langchain_ollama import ChatOllama
-from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
+from langchain_huggingface import HuggingFacePipeline, ChatHuggingFace
 
 class ModelProvider():
     """
@@ -38,7 +38,7 @@ class ModelProvider():
         """
         Creates a ChatHuggingFace model instance using parameters from an environment variable.
 
-        Args:s
+        Args:
             env_variable (str): The name of the environment variable containing the model name.
             temperature (float): The temperature parameter for the model.
 
@@ -49,8 +49,9 @@ class ModelProvider():
         if MODEL == "":
             raise ValueError("Model name not found in environment variable")
 
-        llm = HuggingFaceEndpoint(
-            repo_id=MODEL,
+        llm = HuggingFacePipeline.from_model_id(
+            model_id=MODEL,
+            task="text-generation",
             **kwargs
         )
-        return ChatHuggingFace(llm=llm)
+        return ChatHuggingFace(llm=llm, verbose=True)

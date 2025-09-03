@@ -16,6 +16,8 @@ from storage.memories import fetch_memories
 from collections import defaultdict
 from functools import reduce
 
+import os
+
 # llm = (
 #     ModelProvider
 #         .from_ollama(
@@ -28,7 +30,13 @@ llm = (
     ModelProvider
         .from_hf(
             env_variable="HF_MODEL_LLM_ANSWERING",
-            temperature=0.8,
+            pipeline_kwargs={
+                "temperature": 0.8,
+                "device_map": "auto"
+            },
+            model_kwargs={
+                "token": os.getenv("HUGGINGFACEHUB_API_TOKEN")
+            }
         )
 )
 full_language: defaultdict[str, str] = defaultdict(lambda: "English", {
@@ -322,7 +330,9 @@ async def generate_answer(state, *, config: RunnableConfig, store: BaseStore):
         HumanMessage(content=actionable_user_prompt.format(**prompt_args))
     ]
     writer({"type": "info", "content": "Generating a response..."})
+    print("error down here ?")
     response = await llm.ainvoke(prompt)
+    print("error up there ?")
     return {
         **state.model_dump(),
         "messages": state.messages + [AIMessage(content=response.content)],

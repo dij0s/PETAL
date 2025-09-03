@@ -3,8 +3,9 @@ name = "petal"
 version = "0.1.0"
 description = "PETAL is an agentic LLM developed to assist users into the energy planning of their municipality"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 dependencies = [
+    "accelerate>=1.7.0",
     "aiohttp>=3.11.18",
     "fastapi[standard]>=0.115.12",
     "langchain-core>=0.3.60",
@@ -23,6 +24,8 @@ dependencies = [
     "sentence-transformers>=4.1.0",
     "shapely>=2.1.1",
     "sse-starlette>=2.3.5",
+    "torch>=2.7.0",
+    "transformers>=4.57.0.dev0",
 ]
 
 [tool.pyright]
@@ -47,5 +50,5 @@ dev = [
     "redis>=6.2.0",
     "torch>=2.7.0",
     "torchvision>=0.22.0",
-    "transformers>=4.52.3",
+    "transformers>=4.56.0",
 ]
