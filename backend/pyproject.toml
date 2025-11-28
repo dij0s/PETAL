@@ -20,6 +20,7 @@ dependencies = [
     "sentence-transformers>=4.1.0",
     "shapely>=2.1.1",
     "sse-starlette>=2.3.5",
+    "transformers",
 ]
 
 [tool.pyright]
@@ -31,7 +32,7 @@ pythonpath = [".", "src"]
 markers = ["asyncio"]
 
 [tool.uv.sources]
-transformers = { git = "https://github.com/huggingface/transformers" }
+transformers = { git = "https://github.com/huggingface/transformers", tag = "v4.52.0" }
 
 [dependency-groups]
 dev = [
@@ -41,7 +42,6 @@ dev = [
     "langchain>=0.3.25",
     "layoutparser[layoutmodels]>=0.3.4",
     "marimo>=0.13.15",
-    "qwen-vl-utils[decord]==0.0.8",
     "redis>=6.2.0",
     "torch>=2.7.0",
     "torchvision>=0.22.0",
